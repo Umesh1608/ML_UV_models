@@ -8,8 +8,6 @@
 \usepackage{booktabs}
 \usepackage{hyperref}
 \usepackage[numbers,sort&compress]{natbib}
-\usepackage{algorithm}
-\usepackage{algpseudocode}
 \usepackage{subcaption}
 \usepackage{siunitx}
 \usepackage{adjustbox}
@@ -39,7 +37,7 @@
 \author{
     Umesh Arampath$^{1,*}$ \\[0.5em]
     \small $^1$Department of Mathematics, University of Iowa, Iowa City, USA \\
-    \small $^1$Midwest Bioprocessing Center, Illinois, USA \\[0.3em]
+    \small $^2$Midwest Bioprocessing Center, Illinois, USA \\[0.3em]
     \small $^*$Corresponding author: uarampath@mwbioprocessing.com
 }
 
@@ -91,7 +89,7 @@ Molecular property prediction is a fundamental task in computational chemistry a
 
 Deep learning approaches have emerged as powerful alternatives, capable of learning molecular representations directly from raw structural data. Among various molecular representations, the Simplified Molecular Input Line Entry System (SMILES) \cite{SMILESChemicalLanguage} has gained widespread adoption due to its simplicity and ability to represent complex molecular structures as linear strings.
 
-Recurrent Neural Networks (RNNs), particularly variants designed to handle long-range dependencies such as Long Short-Term Memory (LSTM) \ and Gated Recurrent Units (GRU), are well-suited for processing SMILES strings as sequential data. These architectures can capture the inherent sequential nature of SMILES notation and learn meaningful molecular representations for property prediction tasks.
+Recurrent Neural Networks (RNNs), particularly variants designed to handle long-range dependencies such as Long Short-Term Memory (LSTM) and Gated Recurrent Units (GRU), are well-suited for processing SMILES strings as sequential data. These architectures can capture the inherent sequential nature of SMILES notation and learn meaningful molecular representations for property prediction tasks.
 
 This work presents a comprehensive framework for predicting molecular UV absorption properties using bidirectional GRU networks operating on SMILES representations. We discuss the SMILES encoding scheme, RNN architectures, and our complete model pipeline for predicting molecular properties.
 
@@ -105,7 +103,7 @@ This work presents a comprehensive framework for predicting molecular UV absorpt
 \end{figure}
 
 
-Deep learning model solution in chemistry domain is depended on how the molecular data is represented. The Simplified Molecular Input Line Entry System (SMILES) is a “chemical language” \cite{weiningerSMILESChemicalLanguage1988} that encodes structural information of a chemical into a compact text representation.. By mapping atoms to characters and bonds to punctuation, SMILES transforms the molecule structure of a molecule into a linear sequence. For example, c and C denote aromatic and aliphatic carbons respectively. Special characters like ‘=’ denote the type of bonds (connections between atoms). Rings are denoted by encapsulating numbers, and side chains by round brackets. 
+Deep learning approaches in the chemistry domain depend on how molecular data is represented. The Simplified Molecular Input Line Entry System (SMILES) is a ``chemical language'' \cite{weiningerSMILESChemicalLanguage1988} that encodes structural information of a chemical into a compact text representation. By mapping atoms to characters and bonds to punctuation, SMILES transforms the molecule structure of a molecule into a linear sequence. For example, c and C denote aromatic and aliphatic carbons respectively. Special characters like ‘=’ denote the type of bonds (connections between atoms). Rings are denoted by encapsulating numbers, and side chains by round brackets. 
 
 The main advantage of the SMILES representation is its compatibility with deep learning architectures developed for Natural Language Processing (NLP). By treating molecules as text, we can directly leverage sequence processing models such as Recurrent Neural Networks (RNNs), Long Short-Term Memory (LSTM) networks, and Transformers to train the deep learning models.
 
@@ -260,7 +258,7 @@ To maximize the training data available for our deep learning model, we combined
 
 Recurrent Neural Networks (RNNs) are designed to process sequential data by maintaining a hidden state that captures information from previous time steps. One of the main challenges in applying RNN networks is designing an appropriate network architecture. The optimal combination of various network parameters (types and sizes of network layers, activation and optimization functions, learning and dropout rates, and the optimal way to encode the training data into vectorized form required by the network) requires some trial and error. There are no general rules for designing the optimal architecture; one has to experiment with different architectures and parameters.
 
-This section presents our best performing complete model architecture ( and others we tried as well) for SMILES-based molecular property prediction. The model integrates embedding, bidirectional GRU layers, and fully connected layers.
+This section presents our best-performing model architecture, as well as alternative architectures evaluated, for SMILES-based molecular property prediction. The model integrates embedding, bidirectional GRU layers, and fully connected layers.
 
 To use SMILES strings as input to neural networks, they must be converted to numerical representations through the following steps:
 
@@ -506,7 +504,7 @@ The model consists of the following components:
 
 \subsection{Integration of Solvent Information into the Model}
 
-Solubility prediction is inherently a system-dependent property that depends not only on the molecular structure of the solute but also critically on the nature of the solvent \cite{skyner2015review, llinas2008solubility}. Traditional machine learning approaches for solubility prediction often neglect explicit solvent information, treating solubility as an intrinsic molecular property or focusing exclusively on aqueous solubility. However, pharmaceutical development, chemical synthesis, and formulation science frequently require accurate predictions across diverse solvent systems \cite{alsenz2007high, balakin2006silico}.
+UV absorption is inherently a system-dependent property that depends not only on the molecular structure of the solute but also critically on the nature of the solvent. Solvatochromic shifts---changes in $\lambda_{\max}$ arising from solute--solvent interactions such as hydrogen bonding, dipole--dipole coupling, and dielectric stabilization of excited states---can reach tens of nanometers \cite{reichardt2011solvents}. Traditional machine learning approaches for spectral property prediction often neglect explicit solvent information, treating $\lambda_{\max}$ as an intrinsic molecular property. However, practical applications in pharmaceutical development, sunscreen formulation, and materials design require accurate predictions across diverse solvent systems.
 
 
 Several strategies have been proposed for incorporating solvent information into deep learning models for property prediction:
