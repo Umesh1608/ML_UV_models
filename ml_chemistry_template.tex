@@ -1,0 +1,672 @@
+\documentclass[11pt,a4paper]{article}
+
+% ===== Packages =====
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{subcaption}
+\usepackage{siunitx}
+\usepackage{adjustbox}
+\usepackage{soul}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, positioning, shapes, calc}
+\usepackage{longtable}
+\usepackage[dvipsnames]{xcolor}
+\usepackage[margin=1in]{geometry}
+\usepackage{lineno}  % For line numbers during review
+
+% ===== Hyperref Setup =====
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    citecolor=blue,
+    urlcolor=blue
+}
+
+% ===== Custom Commands =====
+\newcommand{\vect}[1]{\mathbf{#1}}
+\newcommand{\matr}[1]{\mathbf{#1}}
+
+% ===== Title and Authors =====
+\title{Sequential RNN Deep Networks for Predicting UV Absorption Properties of Organic Molecules}
+
+\author{
+    Umesh Arampath$^{1,*}$ \\[0.5em]
+    \small $^1$Department of Mathematics, University of Iowa, Iowa City, USA \\
+    \small $^1$Midwest Bioprocessing Center, Illinois, USA \\[0.3em]
+    \small $^*$Corresponding author: uarampath@mwbioprocessing.com
+}
+
+\date{}
+
+\begin{document}
+
+\maketitle
+
+% ===== Abstract =====
+\begin{abstract}
+Accurate prediction of UV absorption properties is essential for the rational design of molecules 
+targeting applications in sunscreen formulation, pharmaceutical development, and optoelectronic 
+materials. However, predicting the maximum absorption wavelength ($\lambda_{\max}$) of organic 
+molecules remains challenging due to the complex dependence of UV absorption on molecular 
+electronic structure and solute--solvent interactions. In this work, we present a deep learning 
+framework based on bidirectional Gated Recurrent Unit (BiGRU) networks that predicts 
+$\lambda_{\max}$ directly from SMILES string representations of organic molecules. We leverage 
+two comprehensive experimental UV/Vis absorption databases---comprising over 38,000 records
+across more than 15,000 unique organic chromophores measured in hundreds of solvent
+conditions. After merging, deduplication, and filtering, approximately 16,020
+solute--solvent pairs were used to train and evaluate our models. A key contribution of this work is the integration 
+of solvent information into the predictive framework through a sequence concatenation strategy, 
+where SMILES representations of both the solute and solvent are combined into a single input 
+sequence with special delimiter tokens, enabling the model to learn solvent effects 
+directly from data. The baseline model trained without solvent information achieved an RMSE of 
+24.36~nm, while the solvent-aware model reduced the prediction error to 20.34~nm, representing 
+a 16.5\% improvement. Experimental validation against UV-Vis spectroscopy measurements on 
+known UV-absorbing compounds including avobenzone, ferulic acid, homosalate, octisalate, and 
+oxybenzone demonstrated strong agreement between predicted and experimentally determined 
+$\lambda_{\max}$ values, with prediction errors ranging from 5 to 11~nm. These results 
+establish sequential RNN architectures with solvent-aware encoding as an effective and 
+computationally efficient approach for predicting UV absorption properties of organic 
+chromophores.
+\end{abstract}
+
+\noindent\textbf{Keywords:} machine learning; molecular design; deep learning; SMILES; property prediction
+
+\section{Introduction}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[scale=0.5]{p_1.png}
+  \caption{Schematic overview of the predictive modeling process  }
+  \label{fig:overview}
+\end{figure}
+
+Molecular property prediction is a fundamental task in computational chemistry and drug discovery, aiming to estimate physicochemical, biological, or pharmacological properties of molecules directly from their structural representations \cite{wuMoleculeNetBenchmarkMolecular2018}. Traditional approaches rely on handcrafted molecular descriptors or fingerprints, which require domain expertise and may not capture all relevant structural features.
+
+Deep learning approaches have emerged as powerful alternatives, capable of learning molecular representations directly from raw structural data. Among various molecular representations, the Simplified Molecular Input Line Entry System (SMILES) \cite{SMILESChemicalLanguage} has gained widespread adoption due to its simplicity and ability to represent complex molecular structures as linear strings.
+
+Recurrent Neural Networks (RNNs), particularly variants designed to handle long-range dependencies such as Long Short-Term Memory (LSTM) \ and Gated Recurrent Units (GRU), are well-suited for processing SMILES strings as sequential data. These architectures can capture the inherent sequential nature of SMILES notation and learn meaningful molecular representations for property prediction tasks.
+
+This work presents a comprehensive framework for predicting molecular UV absorption properties using bidirectional GRU networks operating on SMILES representations. We discuss the SMILES encoding scheme, RNN architectures, and our complete model pipeline for predicting molecular properties.
+
+\subsection{Molecular Representation Methods}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[scale=1]{3.png}
+  \caption{String Based Representations of Ferulic Acid  }
+  \label{fig:ferulic_representations}
+\end{figure}
+
+
+Deep learning model solution in chemistry domain is depended on how the molecular data is represented. The Simplified Molecular Input Line Entry System (SMILES) is a “chemical language” \cite{weiningerSMILESChemicalLanguage1988} that encodes structural information of a chemical into a compact text representation.. By mapping atoms to characters and bonds to punctuation, SMILES transforms the molecule structure of a molecule into a linear sequence. For example, c and C denote aromatic and aliphatic carbons respectively. Special characters like ‘=’ denote the type of bonds (connections between atoms). Rings are denoted by encapsulating numbers, and side chains by round brackets. 
+
+The main advantage of the SMILES representation is its compatibility with deep learning architectures developed for Natural Language Processing (NLP). By treating molecules as text, we can directly leverage sequence processing models such as Recurrent Neural Networks (RNNs), Long Short-Term Memory (LSTM) networks, and Transformers to train the deep learning models.
+
+Therefore, datasets with SMILES representation of molecules were used in this project, as this aligns with our objective of developing computationally efficient property prediction models.
+
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}[scale=0.85, transform shape]
+    
+    % Title
+    \node[font=\bfseries] at (0, 4) {SMILES Notation Examples};
+    
+    % Example 1: Ethanol
+    \begin{scope}[shift={(-4, 1.5)}]
+      \node[draw=blue!50, rounded corners=5pt, fill=blue!10, 
+            minimum width=2.8cm, minimum height=2cm, align=center] {
+        \textbf{Ethanol}\\[5pt]
+        \texttt{CCO}\\[5pt]
+        \small C--C--O--H
+      };
+    \end{scope}
+    
+    % Example 2: Acetic Acid
+    \begin{scope}[shift={(0, 1.5)}]
+      \node[draw=green!50, rounded corners=5pt, fill=green!10, 
+            minimum width=2.8cm, minimum height=2cm, align=center] {
+        \textbf{Acetic Acid}\\[5pt]
+        \texttt{CC(=O)O}\\[5pt]
+        \small CH$_3$COOH
+      };
+    \end{scope}
+    
+    % Example 3: Benzene
+    \begin{scope}[shift={(4, 1.5)}]
+      \node[draw=orange!50, rounded corners=5pt, fill=orange!10, 
+            minimum width=2.8cm, minimum height=2cm, align=center] {
+        \textbf{Benzene}\\[5pt]
+        \texttt{c1ccccc1}\\[5pt]
+        \small C$_6$H$_6$ (aromatic)
+      };
+    \end{scope}
+    
+    % Legend - two rows
+    \node[draw=gray!50, rounded corners=5pt, fill=gray!5, 
+          minimum width=10cm, minimum height=1.6cm, align=center] at (0, -1.2) {
+      \textbf{SMILES Components:}\\[3pt]
+      \textcolor{green!60!black}{Atoms (C, N, O)} \quad
+      \textcolor{cyan!60!black}{Aromatic (c, n, o)} \quad
+      \textcolor{orange!60!black}{Bonds (=, \#)}\\[2pt]
+      \textcolor{purple!60!black}{Branches ( )} \quad
+      \textcolor{red!60!black}{Rings (1, 2...)}
+    };
+    
+  \end{tikzpicture}
+  \caption{Examples of SMILES notation for common molecules. SMILES encodes molecular structures as linear strings using specific symbols for atoms, bonds, branches, and ring closures.}
+  \label{fig:smiles_examples}
+\end{figure}
+
+\subsection{Data Challenges}
+
+The performance of data-driven models in chemistry is highly dependent on data quality and domain specificity. For UV absorption prediction, the primary challenge is that $\lambda_{max}$ is \textbf{measured with respect to a solvent}. Chromophores (carbonyl, nitro, azo, and other functional groups) are responsible for UV-Vis absorption, and their interaction with the solvent environment heavily influences the observed $\lambda_{max}$ \cite{koplikUltravioletVisibleSpectrometry, clarkWhatCausesMolecules2013}. Therefore, the corresponding solvent information and the solute molecule must be considered together. These solvents are not uniform across datasets or even within the same dataset, presenting a significant challenge for model development. Considerable data engineering effort was required to filter, process, clean, and standardize the source databases into a uniform SMILES-based format suitable for model training.
+
+\section{Related Work}
+
+
+The Simplified Molecular-Input Line-Entry System (SMILES) provides a text-based representation of molecules that enables the application of natural language processing (NLP) techniques to chemical structures \citep{weiningerSMILESChemicalLanguage1988}. As SMILES strings are sequential and composed of characters, methods inspired by NLP such as word embeddings and recurrent neural networks have been extensively explored for molecular property prediction \citep{gohSMILES2VecInterpretableGeneralPurpose2018}.
+
+Early deep learning approaches for SMILES-based property prediction employed recurrent neural networks (RNNs). \citet{xuSeq2seqFingerprintUnsupervised2017} introduced Seq2seq fingerprint, which learns molecular embeddings using encoder-decoder RNN architectures in an unsupervised manner. Long Short-Term Memory (LSTM) and Gated Recurrent Unit (GRU) networks have gained widespread adoption for processing SMILES sequences due to their ability to capture long-range dependencies \citep{GeneratingFocusedMolecule}. \citet{gohSMILES2VecInterpretableGeneralPurpose2018} proposed SMILES2vec, an interpretable deep neural network that processes SMILES strings for predicting chemical properties. Bidirectional LSTM architectures have shown particular promise, demonstrating that BiLSTM models with attention mechanisms achieve competitive performance in predicting aqueous solubility and partition coefficients.
+
+Convolutional neural networks (CNNs) have also been applied to SMILES-based prediction. \citet{hiroharaConvolutionalNeuralNetwork2018a} proposed SCFP (SMILES-based Convolutional Fingerprint), which processes one-hot encoded SMILES vectors using convolutional layers. 
+
+The introduction of Transformer architectures has significantly advanced molecular property prediction. \citet{wangSMILESBERTLargeScale2019} developed SMILES-BERT, adapting the BERT framework for molecular representations through masked token prediction on large-scale unlabeled SMILES data. \citet{honda2019smiles} proposed SMILES Transformer for pre-trained molecular fingerprints, demonstrating effectiveness in low-data drug discovery scenarios. 
+
+Recognizing that different molecular representations capture complementary information, hybrid approaches have emerged. GraSeq \citep{guoGraSeqGraphSequence2020} combines SMILES sequences with molecular graphs using LSTM and graph neural networks to capture both sequential and topological information. MTBG \citep{liuPredictionMolecularToxicity2023} integrates SMILES processing via BiGRU with molecular graph embeddings using GraphSAGE for toxicity prediction.
+
+\subsection{Comparative Studies: RNN vs Transformer}
+
+\citet{chenMolecularLanguageModels2023} conducted a systematic comparison of RNN-based and Transformer-based language models across three molecular generation tasks of varying complexity. Their findings revealed that the optimal architecture choice depends on the characteristics of the target property. Specifically, RNNs demonstrated superior performance on tasks where molecular properties are determined by local structural features, while Transformers excelled when global molecular architecture and long-range dependencies were paramount.
+
+Several factors support the selection of RNNs for UV absorption prediction:
+
+\textbf{Local Feature Dependence.} UV-Vis absorption maxima ($\lambda_{max}$) are primarily governed by chromophoric groups and their immediate electronic environments. The $\pi \rightarrow \pi^*$ and $n \rightarrow \pi^*$ transitions responsible for UV absorption arise from localized conjugated systems, carbonyl groups, and aromatic rings. \citet{chenMolecularLanguageModels2023} demonstrated that RNNs outperform Transformers on properties such as logP, which are computed as sums of atomic contributions, a paradigm analogous to how electronic transitions depend on local chromophore contributions. The partition coefficient logP shares computational similarities with UV absorption, as both properties can be decomposed into contributions from molecular substructures.
+
+\textbf{Moderate Sequence Lengths.} The molecules in our dataset, comprising sunscreen compounds and phenolic acids, exhibit moderate molecular weights and SMILES sequence lengths typically ranging from 30 to 80 tokens. \citet{chenMolecularLanguageModels2023} found that RNNs perform optimally in this regime, with performance degradation occurring primarily for large molecules exceeding 100 heavy atoms. The Transformer's advantage in capturing long-range dependencies becomes relevant only for sequences substantially longer than those in our dataset.
+
+\textbf{Sequential Structure Encoding.} SMILES strings encode molecular structure in a manner where adjacent tokens often represent chemically connected atoms. RNNs naturally capture these local adjacency relationships through their recurrent hidden state updates. For chromophore identification, the sequential processing of RNNs aligns well with tracing conjugation pathways through the molecular graph as encoded in the SMILES representation.
+
+\textbf{Computational Efficiency.} For our dataset size and sequence lengths, RNNs offer favorable computational characteristics. The quadratic attention complexity of Transformers with respect to sequence length provides no advantage for moderate-length SMILES strings, while RNNs achieve comparable or superior performance with linear complexity.
+
+It should be noted that Transformers may offer advantages for related tasks involving larger molecules or properties requiring global structural awareness. However, for the specific application of predicting UV absorption wavelengths in small to medium-sized organic chromophores, the empirical evidence and theoretical considerations favor RNN-based architectures.
+
+
+\section{Methods}
+
+\subsection{Dataset Description and Preparation}
+
+
+The accurate prediction of UV absorption properties for small molecules has significant implications for industrial applications, including pharmaceutical development, sunscreen formulation, and optoelectronic materials design. To build a robust machine learning model capable of predicting UV absorption maxima ($\lambda_{max}$) for organic compounds, we identified and combined two comprehensive experimental databases from the literature. The selection criteria prioritized datasets with: (1) experimentally validated absorption measurements, (2) standardized SMILES representations for molecular structures, (3) documented solvent information, and (4) sufficient size and chemical diversity for training deep learning models.
+
+\subsection{Dataset 1: Experimental Database of Optical Properties of Organic Compounds}
+
+The first dataset employed in this study is the Experimental Database of Optical Properties of Organic Compounds, developed by Joung et al. \cite{joungExperimentalDatabaseOptical2020}. This database was specifically curated to facilitate data-driven chemistry applications using machine learning approaches. The dataset was constructed by systematically collecting optical properties of organic compounds from previously published literature sources.
+
+The database comprises 20,236 data points spanning 7,016 unique organic chromophores measured in 365 different solvents or in the solid state. The optical properties recorded are derived from absorption and emission spectra as reported in the original publications. Table~\ref{tab:dataset1_format} describes the data fields available in this database.
+
+\begin{table}[H]
+\centering
+\caption{Data fields in the Experimental Database of Optical Properties of Organic Compounds.}
+\label{tab:dataset1_format}
+\begin{tabular}{ll}
+\toprule
+\textbf{Field} & \textbf{Description} \\
+\midrule
+SMILES & Canonical SMILES representation of the molecule \\
+Solvent & Solvent used for measurement \\
+Absorption max (nm) & Wavelength of maximum absorption \\
+Emission max (nm) & Wavelength of maximum emission \\
+Quantum yield & Fluorescence quantum yield \\
+Extinction coefficient & Molar extinction coefficient \\
+Reference & Original literature source \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The comprehensive coverage of solvent conditions in this dataset makes it particularly valuable for our solvent-aware prediction approach, as it enables the model to learn solvatochromic effects across a diverse range of solute-solvent combinations.
+
+\subsection{Dataset 2: Comparative Dataset of UV/Vis Absorption Spectra}
+
+The second dataset utilized is the Comparative Dataset of Experimental and Computational Attributes of UV/Vis Absorption Spectra, developed by Beard et al. \cite{beardComparativeDatasetExperimental2019}. This database was auto-generated through systematic extraction from the literature and contains 18,309 records of experimentally determined UV/Vis absorption maxima along with associated extinction coefficients where available.
+
+The dataset encompasses 8,488 unique compounds, with a subset of 5,380 compounds containing both experimental and computational data. The database is provided in multiple formats including MongoDB, CSV, and JSON, facilitating integration with various programming environments such as Python, R, Java, and MATLAB.
+\begin{table}[H]
+\centering
+\caption{Summary of Dataset 2 characteristics.}
+\label{tab:dataset2_summary}
+\begin{tabular}{ll}
+\toprule
+\textbf{Attribute} & \textbf{Value} \\
+\midrule
+Total records & 18,309 \\
+Unique compounds & 8,488 \\
+Compounds with experimental + computational data & 5,380 \\
+Available formats & MongoDB, CSV, JSON \\
+Primary properties & $\lambda_{max}$, extinction coefficient \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+To maximize the training data available for our deep learning model, we combined both datasets.
+
+\subsection{Neural Network Architecture}
+
+Recurrent Neural Networks (RNNs) are designed to process sequential data by maintaining a hidden state that captures information from previous time steps. One of the main challenges in applying RNN networks is designing an appropriate network architecture. The optimal combination of various network parameters (types and sizes of network layers, activation and optimization functions, learning and dropout rates, and the optimal way to encode the training data into vectorized form required by the network) requires some trial and error. There are no general rules for designing the optimal architecture; one has to experiment with different architectures and parameters.
+
+This section presents our best performing complete model architecture ( and others we tried as well) for SMILES-based molecular property prediction. The model integrates embedding, bidirectional GRU layers, and fully connected layers.
+
+To use SMILES strings as input to neural networks, they must be converted to numerical representations through the following steps:
+
+\begin{enumerate}
+    \item \textbf{Tokenization}: Split the SMILES string into individual tokens (characters or multi-character symbols like \texttt{Cl}, \texttt{Br}).
+    \item \textbf{Vocabulary Mapping}: Map each unique token to an integer index.
+    \item \textbf{Padding}: Pad sequences to a fixed maximum length $T_{\max}$ for batch processing.
+    \item \textbf{Embedding}: Convert integer indices to dense vector representations.
+\end{enumerate}
+
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}[scale=0.85, transform shape,
+    box/.style={draw, rounded corners=5pt, minimum height=1.2cm, align=center},
+    arrow/.style={-{Stealth[length=3mm]}, thick}
+  ]
+    
+    % Stage 1: Raw SMILES
+    \node[box, fill=gray!20, minimum width=3cm] (raw) at (-6, 0) {
+      \textbf{Raw SMILES}\\
+      \texttt{CC(=O)O}
+    };
+    
+    % Stage 2: Tokenization
+    \node[box, fill=blue!15, minimum width=3.5cm] (token) at (-1.5, 0) {
+      \textbf{Tokenization}\\
+      {[C, C, (, =, O, ), O]}
+    };
+    
+    % Stage 3: Vocabulary Mapping
+    \node[box, fill=green!15, minimum width=3cm] (vocab) at (3, 0) {
+      \textbf{Vocab Mapping}\\
+      {[5, 5, 2, 8, 12, 3, 12]}
+    };
+    
+    % Stage 4: Padding
+    \node[box, fill=orange!15, minimum width=3cm] (pad) at (7.5, 0) {
+      \textbf{Padding}\\
+      Length = $T_{\max}$
+    };
+    
+    % Stage 5: Embedding (below)
+    \node[box, fill=purple!15, minimum width=4cm] (embed) at (0.5, -2.5) {
+      \textbf{Embedding Layer}\\
+      $\mathbf{X} \in \mathbb{R}^{T \times d_{\text{emb}}}$
+    };
+    
+    % Arrows
+    \draw[arrow] (raw) -- (token);
+    \draw[arrow] (token) -- (vocab);
+    \draw[arrow] (vocab) -- (pad);
+    \draw[arrow] (pad.south) -- ++(0, -0.5) -| (embed.north);
+    
+    % Dimension annotations
+    \node[font=\tiny, gray] at (-6, -0.9) {String};
+    \node[font=\tiny, gray] at (-1.5, -0.9) {List};
+    \node[font=\tiny, gray] at (3, -0.9) {Integers};
+    \node[font=\tiny, gray] at (7.5, -0.9) {Fixed length};
+    \node[font=\tiny, gray] at (0.5, -3.4) {Dense vectors};
+    
+  \end{tikzpicture}
+  \caption{SMILES processing pipeline for neural network input. Raw SMILES strings are tokenized, mapped to integers via a vocabulary, padded to fixed length, and embedded into dense vector representations.}
+  \label{fig:smiles_pipeline}
+\end{figure}
+
+\tikzstyle{startstop} = [rectangle, rounded corners, minimum width=3cm, minimum height=1cm,text centered, draw=black]
+\tikzstyle{process} = [rectangle, minimum width=3cm, minimum height=1cm, text centered, draw=black]
+\tikzstyle{arrow} = [thick,->,>=stealth]
+
+
+The model consists of the following components:
+
+\begin{enumerate}
+    \item \textbf{Embedding Layer}: Maps tokenized SMILES characters to dense vectors of dimension 50.
+    
+    \item \textbf{Bidirectional GRU Layer 1}: Processes embedded sequences bidirectionally with 128 hidden units per direction, outputting 128-dimensional hidden states.
+    
+    \item \textbf{Bidirectional GRU Layer 2}: Further processes the sequence with another BiGRU layer (128 units per direction), capturing higher-level sequential patterns.
+    
+    \item \textbf{Global Average Pooling}: Aggregates variable-length sequences into fixed-length vectors by averaging across time steps.
+    
+    \item \textbf{Dense Layer}: A fully connected layer with 128 units and ReLU activation transforms the pooled representation.
+    
+    \item \textbf{Dropout Layer}: Applies dropout with rate 0.2 for regularization.
+    
+    \item \textbf{Output Layer}: A linear layer produces the final property prediction.
+\end{enumerate}
+
+% ============================================================================
+% FIGURE: Complete Model Architecture
+% ============================================================================
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}[scale=0.85, transform shape,
+    layer/.style={draw, rounded corners=5pt, minimum width=10cm, minimum height=1cm, align=center},
+    arrow/.style={-{Stealth[length=3mm]}, thick}
+  ]
+    
+    % Input
+    \node[layer, fill=gray!20] (input) at (0, 0) {
+      \textbf{SMILES Input}: \texttt{CC(=O)Oc1ccccc1C(=O)O}
+    };
+    
+    % Tokenization
+    \node[layer, fill=blue!10] (token) at (0, -1.5) {
+      \textbf{Character Tokenization} $\rightarrow$ $T$ tokens
+    };
+    
+    % Embedding
+    \node[layer, fill=blue!25] (embed) at (0, -3) {
+      \textbf{Embedding Layer} ($d_{\text{emb}} = 50$) $\rightarrow$ $T \times 50$
+    };
+    
+    % BiGRU 1
+    \node[layer, fill=green!20] (bigru1) at (0, -4.5) {
+      \textbf{Bidirectional GRU Layer 1} (128 units $\times$ 2) $\rightarrow$ $T \times 256$
+    };
+    
+    % BiGRU 2
+    \node[layer, fill=green!35] (bigru2) at (0, -6) {
+      \textbf{Bidirectional GRU Layer 2} (128 units $\times$ 2) $\rightarrow$ $T \times 256$
+    };
+    
+    % Global Pooling
+    \node[layer, fill=cyan!25] (pool) at (0, -7.5) {
+      \textbf{Global Average Pooling} $\rightarrow$ 256
+    };
+    
+    % Dense
+    \node[layer, fill=purple!20] (dense) at (0, -9) {
+      \textbf{Dense Layer} (128 units, ReLU activation) $\rightarrow$ 128
+    };
+    
+    % Dropout
+    \node[layer, fill=orange!20] (dropout) at (0, -10.5) {
+      \textbf{Dropout Layer} (rate = 0.2) $\rightarrow$ 128
+    };
+    
+    % Output
+    \node[layer, fill=red!20] (output) at (0, -12) {
+      \textbf{Output Layer} (Linear activation) $\rightarrow$ 1 (Predicted Property)
+    };
+    
+    % Arrows
+    \draw[arrow] (input) -- (token);
+    \draw[arrow] (token) -- (embed);
+    \draw[arrow] (embed) -- (bigru1);
+    \draw[arrow] (bigru1) -- (bigru2);
+    \draw[arrow] (bigru2) -- (pool);
+    \draw[arrow] (pool) -- (dense);
+    \draw[arrow] (dense) -- (dropout);
+    \draw[arrow] (dropout) -- (output);
+    
+    % Dimension annotations (right side)
+    \node[font=\scriptsize, gray, right] at (5.3, 0) {String};
+    \node[font=\scriptsize, gray, right] at (5.3, -1.5) {Token list};
+    \node[font=\scriptsize, gray, right] at (5.3, -3) {Dense vectors};
+    \node[font=\scriptsize, gray, right] at (5.3, -4.5) {Bidirectional context};
+    \node[font=\scriptsize, gray, right] at (5.3, -6) {Higher-level features};
+    \node[font=\scriptsize, gray, right] at (5.3, -7.5) {Fixed-length vector};
+    \node[font=\scriptsize, gray, right] at (5.3, -9) {Transformed features};
+    \node[font=\scriptsize, gray, right] at (5.3, -10.5) {Regularization};
+    \node[font=\scriptsize, gray, right] at (5.3, -12) {Property value};
+    
+  \end{tikzpicture}
+  \caption{Complete model architecture for SMILES-based molecular property prediction. The model processes SMILES strings through embedding, stacked bidirectional GRU layers, global average pooling, and fully connected layers with dropout regularization.}
+  \label{fig:complete_architecture}
+\end{figure}
+
+\tikzstyle{startstop} = [rectangle, rounded corners, minimum width=3cm, minimum height=1cm, text centered, draw=black]
+\tikzstyle{process} = [rectangle, minimum width=3cm, minimum height=1cm, text centered, draw=black]
+\tikzstyle{arrow} = [thick,->,>=stealth]
+
+\begin{figure}[H]
+\centering
+
+% Top row - two figures side by side
+\begin{minipage}[t]{0.48\textwidth}
+\centering
+\begin{tikzpicture}[node distance=1.5cm, scale=0.85, transform shape]
+\node (start) [startstop] {Embedding Layer - 50};
+\node (pro1) [process, below of=start] {Bidirectional GRU Layer - 128};
+\node (pro2) [process, below of=pro1] {Bidirectional GRU Layer - 128};
+\node (pro3) [process, below of=pro2] {Dense Layer (ReLU) - 128};
+\node (pro4) [process, below of=pro3] {Dropout Layer - 0.2};
+\node (pro5) [process, below of=pro4] {Dense Layer (Linear) - 128};
+\draw [arrow] (start) -- (pro1);
+\draw [arrow] (pro1) -- (pro2);
+\draw [arrow] (pro2) -- (pro3);
+\draw [arrow] (pro3) -- (pro4);
+\draw [arrow] (pro4) -- (pro5);
+\end{tikzpicture}
+\subcaption{BiGRU Architecture}
+\label{fig:bigru}
+\end{minipage}
+\hfill
+\begin{minipage}[t]{0.48\textwidth}
+\centering
+\begin{tikzpicture}[node distance=1.5cm, scale=0.85, transform shape]
+\node (start) [startstop] {Embedding Layer - 50};
+\node (pro1) [process, below of=start] {Bidirectional LSTM Layer - 128};
+\node (pro2) [process, below of=pro1] {Bidirectional LSTM Layer - 128};
+\node (pro3) [process, below of=pro2] {Dense Layer (ReLU) - 128};
+\node (pro4) [process, below of=pro3] {Dropout Layer - 0.2};
+\node (pro5) [process, below of=pro4] {Dense Layer (Linear) - 128};
+\draw [arrow] (start) -- (pro1);
+\draw [arrow] (pro1) -- (pro2);
+\draw [arrow] (pro2) -- (pro3);
+\draw [arrow] (pro3) -- (pro4);
+\draw [arrow] (pro4) -- (pro5);
+\end{tikzpicture}
+\subcaption{BiLSTM Architecture}
+\label{fig:bilstm}
+\end{minipage}
+
+\vspace{1cm}
+
+% Bottom row - one figure centered
+\begin{minipage}[t]{0.5\textwidth}
+\centering
+\begin{tikzpicture}[node distance=1.5cm, scale=0.85, transform shape]
+\node (start) [startstop] {Embedding Layer - 50};
+\node (pro1) [process, below of=start] {Conv1D Layer - 192, 3};
+\node (pro2) [process, below of=pro1] {Bidirectional GRU Layer - 128};
+\node (pro3) [process, below of=pro2] {Bidirectional GRU Layer - 128};
+\node (pro4) [process, below of=pro3] {Dense Layer (ReLU) - 128};
+\node (pro5) [process, below of=pro4] {Dropout Layer - 0.2};
+\node (pro6) [process, below of=pro5] {Dense Layer (Linear) - 128};
+\draw [arrow] (start) -- (pro1);
+\draw [arrow] (pro1) -- (pro2);
+\draw [arrow] (pro2) -- (pro3);
+\draw [arrow] (pro3) -- (pro4);
+\draw [arrow] (pro4) -- (pro5);
+\draw [arrow] (pro5) -- (pro6);
+\end{tikzpicture}
+\subcaption{CNN-BiGRU Architecture}
+\label{fig:cnn-bigru}
+\end{minipage}
+
+\caption{Neural network architectures tested for SMILES-based regression predictions of UV absorption max: (a) Bidirectional GRU, (b) Bidirectional LSTM, and (c) CNN-Bidirectional GRU hybrid.}
+\label{fig:architectures}
+\end{figure}
+
+\subsection{Integration of Solvent Information into the Model}
+
+Solubility prediction is inherently a system-dependent property that depends not only on the molecular structure of the solute but also critically on the nature of the solvent \cite{skyner2015review, llinas2008solubility}. Traditional machine learning approaches for solubility prediction often neglect explicit solvent information, treating solubility as an intrinsic molecular property or focusing exclusively on aqueous solubility. However, pharmaceutical development, chemical synthesis, and formulation science frequently require accurate predictions across diverse solvent systems \cite{alsenz2007high, balakin2006silico}.
+
+
+Several strategies have been proposed for incorporating solvent information into deep learning models for property prediction:
+
+\paragraph{Descriptor-Based Approaches.} Traditional methods concatenate handcrafted molecular descriptors of the solute with solvent descriptors or physical properties such as dielectric constant, dipole moment, and hydrogen bond donor/acceptor counts \cite{lusci2013deep, boobier2020machine}. While effective, these approaches require feature engineering and may not capture all relevant molecular interactions.
+
+
+\paragraph{Sequence Concatenation.} An alternative approach involves concatenating the SMILES representations of solute and solvent into a single input sequence, separated by a special delimiter token \cite{schwaller2019molecular, irwin2022chemformer}. This method leverages the sequential processing capabilities of recurrent neural networks or transformers to implicitly learn solute-solvent interactions.
+
+In this work, we adopt a sequence concatenation approach that integrates solvent information directly into the SMILES input representation. The concatenated sequence takes the form:
+
+\begin{equation}
+    S_{input} = \texttt{!} \oplus S_{molecule} \oplus \texttt{|} \oplus S_{solvent} \oplus \texttt{\#}
+\end{equation}
+
+\noindent where $S_{molecule}$ and $S_{solvent}$ represent the SMILES strings of the solute molecule and solvent, respectively, and $\oplus$ denotes string concatenation. Three special tokens are introduced:
+
+\begin{itemize}
+    \item \texttt{!} (Start token): Marks the beginning of the input sequence
+    \item \texttt{|}  (Separator token): Delineates the boundary between solute and solvent
+    \item \texttt{\#} (End token): Signals the termination of the input sequence
+\end{itemize}
+
+For example, acetic acid (CC(=O)O) in ethanol (CCO) would be represented as:
+
+\begin{center}
+    \texttt{!CC(=O)O|CCO\#}
+\end{center}
+
+This representation is then processed through the tokenization pipeline described below, where each character or multi-character token (e.g., Cl, Br) is mapped to an integer index and subsequently embedded into a continuous vector space.
+
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{solvent_to_model.png}
+    \caption{Molecule-Solvent concatenation example }
+    \label{fig:example}
+\end{figure}
+
+The proposed concatenation strategy offers several advantages over alternative methods.
+
+\paragraph{End-to-End Learning.} By encoding both solute and solvent within a single sequence, the model can learn representations that capture solute-solvent interactions directly from data without requiring explicit feature engineering. The recurrent architecture processes the concatenated sequence sequentially.
+
+\paragraph{Unified Vocabulary.} Since both solute and solvent are represented using SMILES notation, they share a common tokenization vocabulary. This eliminates the need for separate encoding schemes and allows the embedding layer to learn unified representations of chemical tokens regardless of whether they appear in the solute or solvent context.
+
+
+
+\subsection{Training Configuration}
+
+The model was implemented using TensorFlow and Keras. SMILES strings were tokenized at the character level using a vocabulary of 57 unique tokens and padded to a maximum sequence length of 650. The two source databases total over 38,000 records; after merging, removing duplicates, and filtering, the final dataset comprised approximately 16,020 solute--solvent pairs.
+
+The dataset was partitioned into training (90\%) and test (10\%) sets using random splitting with a fixed seed for reproducibility. The test set was also used to monitor validation loss during training. The model was optimized using RMSprop (learning rate $= 0.001$, $\rho = 0.9$, $\epsilon = 10^{-8}$) with mean absolute error (MAE) as the loss function. Training proceeded with a batch size of 32 for up to 250 epochs, with early stopping (patience = 25 epochs, $\delta_{\min} = 10^{-5}$) restoring the best weights. The model contains approximately 470,000 trainable parameters and was trained on a single NVIDIA GPU.
+
+\section{Results and Discussion}
+
+\subsection{RNN Model with SMILES Without Solvent Information}
+
+The baseline model was trained using only canonical SMILES representations of the solute molecules, without any explicit encoding of solvent information. This approach treats UV absorption wavelength ($\lambda_{max}$) as an intrinsic molecular property, dependent solely on the electronic structure of the absorbing molecule.
+
+\begin{figure}[H]
+    \centering\includegraphics[scale=0.7]{canonwithoutsolvent.png}
+    \caption{Training and validation RMSE as a function of epochs for the RNN model without solvent information. The model achieves convergence after approximately 130 epochs.}
+    \label{fig:rmse_without_solvent}
+\end{figure}
+
+A minimum RMSE value of 24.36 nm was achieved after approximately 130 epochs.
+
+While this baseline performance is reasonable, the RMSE of 24.36 nm indicates that relying solely on molecular structure has inherent limitations for predicting $\lambda_{max}$. This is expected from a theoretical standpoint, as solvatochromic effects shift in absorption wavelength due to solute-solvent interactions—are well-documented phenomena in spectroscopy \cite{reichardt2011solvents}. The magnitude of these shifts can range from a few to tens of nanometers, depending on the polarity and hydrogen-bonding characteristics of both the solute and solvent.
+
+\subsection{RNN Model with SMILES and Solvent Information}
+
+To address the limitations of the solvent-agnostic baseline, we implemented the concatenation strategy described, where SMILES representations of both the solute molecule and its corresponding solvent are combined into a single input sequence using special delimiter tokens. This approach enables the model to learn representations that capture solute-solvent interactions directly from the data.
+
+\begin{figure}[H]
+    \centering\includegraphics[scale=0.7]{canon1withsolvent.png}
+    \caption{Training and validation RMSE as a function of epochs for the RNN model with solvent information incorporated via SMILES concatenation. The model achieves improved convergence with a lower minimum RMSE compared to the baseline.}
+    \label{fig:rmse_with_solvent}
+\end{figure}
+
+Figure~\ref{fig:rmse_with_solvent} presents the learning curves for the solvent-aware model. The incorporation of solvent information substantially improved predictive performance, achieving a minimum RMSE of 20.34 nm after approximately 150 epochs. This represents a reduction of 4.02 nm on average (16.5\%) compared to the baseline model without solvent information.
+
+The significant reduction in RMSE validates the importance of considering solute-solvent interactions for accurate $\lambda_{max}$ prediction. This finding aligns with established spectroscopic theory, where solvent polarity, hydrogen bonding capacity, and dielectric properties are known to influence electronic transition energies \cite{reichardt2011solvents, abraham1993scales}. The solvent-aware model required approximately 20 additional epochs to reach convergence compared to the baseline, which is expected given the longer concatenated input sequences containing more complex patterns. The additional training time is a reasonable trade-off for the substantial improvement in predictive accuracy.
+
+From a practical standpoint, an RMSE of 20.34~nm is within a useful range for many pharmaceutical and chemical applications. For screening purposes, where the goal is to identify molecules with absorption in specific wavelength ranges (e.g., UVA, UVB, or visible), this level of accuracy can effectively prioritize candidates for experimental validation.
+
+The remaining prediction error may be attributed to several factors: (1) limitations in the SMILES representation, which does not explicitly encode three-dimensional conformational information; (2) the absence of concentration and temperature effects in the model; (3) potential noise or experimental uncertainty in the training data; and (4) complex multi-solvent or aggregation effects not captured by the simple concatenation approach.
+
+To further validate the model's predictive capability and assess its generalization to novel compounds, we conducted experimental UV-Vis spectroscopy measurements on a set of molecules not included in the training dataset. The experimentally determined $\lambda_{max}$ values were then compared against the model's predictions, as summarized in Table~\ref{tab:mytable}.
+\begin{longtable}{|>{\raggedright\arraybackslash}p{4.2cm}|>{\centering\arraybackslash}p{3.5cm}|c|c|}
+\caption{Input Molecules and the corresponding prediction of $\lambda_{\max}$ value against their experimental measurements in the solvent ethanol}
+\label{tab:mytable} \\
+\hline
+\textbf{Molecule} & \textbf{Drawing of 2D Molecules} & \textbf{Exp $\lambda_{\max}$} & \textbf{Pred $\lambda_{\max}$} \\ \hline
+\endfirsthead
+\hline
+\textbf{Molecule} & \textbf{Drawing of 2D Molecules} & \textbf{Exp $\lambda_{\max}$} & \textbf{Pred $\lambda_{\max}$} \\ \hline
+\endhead
+\hline
+\endfoot
+\textcolor{blue}{Avobenzone} \newline \texttt{\scriptsize O=C(c1ccc(cc1)C(C)(C)C)\allowbreak CC(=O)c2ccc(OC)cc2} & \includegraphics[width=3.3cm]{avobezone.png} & 358nm & 349nm\\ \hline
+\textcolor{blue}{Ferulic Acid} \newline \texttt{\scriptsize COC1=C(C=CC(=C1)\allowbreak C=CC(=O)O)O} & \includegraphics[width=3.3cm]{FerulicAcid.png} & 324nm & 335nm \\ \hline
+\textcolor{blue}{Homosalate} \newline \texttt{\scriptsize O=C(OC1CC(CC(C1)(C)C)C)\allowbreak c2ccccc2O} & \includegraphics[width=3.3cm]{homosalate.png} & 308nm & 302nm\\ \hline
+\textcolor{blue}{Octisalate} \newline \texttt{\scriptsize CCCCC(CC)COC(=O)\allowbreak C1=CC=CC=C1O} & \includegraphics[width=3.3cm]{octisalate.png} & 308nm & 299nm\\ \hline
+\textcolor{blue}{Oxybenzone} \newline \texttt{\scriptsize O=C(c1ccc(OC)cc1O)\allowbreak c2ccccc2} & \includegraphics[width=3.3cm]{oxybenzone.png} & 287nm & 292nm \\ \hline
+\end{longtable}
+
+
+\section{Conclusion}
+
+This work presented a sequential deep learning framework based on bidirectional GRU networks 
+for predicting the maximum UV absorption wavelength ($\lambda_{\max}$) of organic molecules 
+directly from their SMILES representations. By combining two large-scale experimental UV/Vis 
+absorption databases totaling over 38,000 records, we assembled a chemically diverse training 
+corpus spanning thousands of unique chromophores across hundreds of solvent conditions.
+
+A central contribution of this work is the demonstration that incorporating solvent information 
+via a simple yet effective SMILES concatenation strategy where solute and solvent 
+representations are joined with special delimiter tokens into a single input sequence yields 
+substantial improvements in prediction accuracy. The solvent-aware BiGRU model achieved an 
+RMSE of 20.34~nm, a 16.5\% reduction compared to the solvent-agnostic baseline (RMSE = 
+24.36~nm), confirming that solvent effects are a significant source of variability in 
+$\lambda_{\max}$ that must be explicitly accounted for in predictive models.
+
+Experimental validation on a set of commercially relevant UV-absorbing molecules---including 
+avobenzone ($\Delta = 9$~nm), ferulic acid ($\Delta = 11$~nm), homosalate ($\Delta = 6$~nm), 
+octisalate ($\Delta = 9$~nm), and oxybenzone ($\Delta = 5$~nm)---demonstrated that the model 
+generalizes well to compounds outside the training distribution, with prediction errors consistent 
+with the overall model RMSE.
+
+The choice of RNN-based architectures over Transformer models was motivated by the local 
+nature of UV absorption, which is primarily governed by chromophoric groups and their immediate 
+electronic environments rather than long-range molecular dependencies. Empirical evidence from 
+comparative studies supports that RNNs are well-suited for this property regime, particularly 
+for moderate-length SMILES sequences typical of small to medium-sized organic chromophores.
+
+Several directions for future work emerge from this study. First, the solvent encoding strategy 
+could be extended to incorporate additional environmental parameters such as temperature, pH, 
+and concentration. Second, attention mechanisms could be integrated into the BiGRU architecture 
+to provide interpretability by identifying which molecular substructures contribute most to the 
+predicted $\lambda_{\max}$, potentially offering chemical insight into structure-property 
+relationships. Third, the trained prediction model serves as a natural component in a broader 
+molecular design pipeline, specifically as a property filter within a Conditional Variational 
+Autoencoder (CVAE) framework for the targeted generation of novel UV-absorbing molecules. 
+Finally, expanding the training data to include computationally derived absorption spectra from 
+time-dependent density functional theory (TD-DFT) calculations could further improve model 
+coverage across underrepresented regions of chemical space.
+
+In summary, this work demonstrates that sequential RNN deep networks with solvent-aware 
+SMILES encoding provide an accurate, efficient, and practically deployable approach for 
+predicting UV absorption properties, contributing to the accelerated computational design of 
+UV-absorbing molecules for industrial and pharmaceutical applications.
+
+
+\section*{Data and Code Availability}
+% TODO: Add statement about where the code and processed datasets can be accessed
+% (e.g., GitHub repository URL, dataset DOIs)
+
+\bibliographystyle{unsrtnat}
+\bibliography{Proposal}
+
+% ===== Supplementary Information =====
+
+\end{document}
