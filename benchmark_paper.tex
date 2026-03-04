@@ -801,9 +801,9 @@ Figure~\ref{fig:learning_curves} shows the training and validation MAE curves fo
 Both models converge within 75--125 epochs, with early stopping preventing overfitting.
 The gap between training and validation curves indicates mild overfitting, consistent with the relatively small dataset size (12K training samples per fold).
 
-\begin{figure}[h]
+\begin{figure}[htbp]
     \centering
-    \includegraphics[width=\textwidth]{results/learning_curves.png}
+    \includegraphics[width=0.9\textwidth]{results/learning_curves.png}
     \caption{BiGRU training curves showing training and validation MAE vs.\ epoch, averaged across folds. Shaded regions denote $\pm 1$ standard deviation. Left: BiGRU with solvent encoding. Right: BiGRU with solute only.}
     \label{fig:learning_curves}
 \end{figure}

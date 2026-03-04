@@ -49,13 +49,13 @@ MODEL_NAME = "seyonec/ChemBERTa-zinc-base-v1"
 MAX_LEN = 256  # Reduced from 512 — longest primary SMILES is 229 chars
 SEED = 7
 N_FOLDS = 5
-EPOCHS = 50
+EPOCHS = 100
 BATCH_SIZE = 8  # Reduced from 32 to lower peak GPU power/temp
 GRAD_ACCUM_STEPS = 4  # Effective batch size = 8 * 4 = 32
 LR = 5e-5
 WEIGHT_DECAY = 0.01
 WARMUP_STEPS = 200
-PATIENCE = 10
+PATIENCE = 15
 
 os.makedirs(RESULTS_DIR, exist_ok=True)
 
