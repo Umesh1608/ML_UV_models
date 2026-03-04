@@ -1,0 +1,11 @@
+{
+  "RMSE_mean": 39.03,
+  "RMSE_std": 1.37,
+  "MAE_mean": 22.53,
+  "MAE_std": 0.32,
+  "R2_mean": 0.87,
+  "R2_std": 0.01,
+  "Pearson_r_mean": 0.93,
+  "Pearson_r_std": 0.01,
+  "n_folds_found": 5
+}

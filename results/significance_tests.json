@@ -1,0 +1,32 @@
+[
+  {
+    "comparison": "RF vs BiGRU",
+    "t_stat": -7.081,
+    "p_value": 0.0021,
+    "significant": true
+  },
+  {
+    "comparison": "RF vs XGBoost",
+    "t_stat": -8.938,
+    "p_value": 0.0009,
+    "significant": true
+  },
+  {
+    "comparison": "RF solvent ablation",
+    "t_stat": -11.463,
+    "p_value": 0.0003,
+    "significant": true
+  },
+  {
+    "comparison": "BiGRU solvent ablation",
+    "t_stat": -3.899,
+    "p_value": 0.0176,
+    "significant": true
+  },
+  {
+    "comparison": "XGBoost vs BiGRU",
+    "t_stat": -4.381,
+    "p_value": 0.0119,
+    "significant": true
+  }
+]
