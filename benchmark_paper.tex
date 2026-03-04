@@ -54,7 +54,7 @@ We present a systematic benchmark of machine learning approaches for $\lambda_{\
 Models are evaluated on a primary dataset of 18,755 solute--solvent pairs (Joung + Beard) using stratified 5-fold cross-validation, with external validation on three independent datasets totaling over 70,000 molecules using each dataset's published split protocol for direct comparison with prior work.
 RF with concatenated solute--solvent Morgan fingerprints achieves the best cross-validated performance (RMSE = $31.34 \pm 1.82$ nm, $R^2 = 0.914$), outperforming BiGRU (RMSE = $36.45 \pm 1.12$ nm, $R^2 = 0.884$) and matching or exceeding published deep learning baselines on external datasets, including GCNN on Deep4Chem (our RMSE = 22.70 vs.\ 26.6 nm) and GBFS on Jung et al.\ (our RMSE = 29.82 vs.\ 32.2 nm).
 However, experimental validation on 16 novel UV-absorbing compounds reveals that BiGRU generalizes better to out-of-distribution molecules (MAE = 28.6 vs.\ 38.5 nm for RF), suggesting that sequence models learn transferable patterns beyond fixed substructural features.
-We introduce a solvent concatenation strategy encoding solute and solvent as a single representation, yielding consistent improvement across both model families (8\% RMSE reduction for RF).
+We introduce a solvent concatenation strategy encoding solute and solvent as a single representation, yielding consistent improvement across both model families (8\% RMSE reduction for RF, 7\% for BiGRU).
 Comparison with 3D graph neural networks on nablaColors (our MAE = 34.62 vs.\ UniProp MAE = 15.97 nm) reveals the fundamental ceiling of 1D molecular representations.
 These complementary strengths---RF for interpolation within known chemical space, BiGRU for extrapolation to novel scaffolds---provide practical guidance for model selection in UV property prediction.
 \end{abstract}
@@ -375,13 +375,12 @@ RF + Solvent          & \textbf{31.34 $\pm$ 1.82} & \textbf{15.16 $\pm$ 0.44} & 
 RF Solute only        & 34.13 $\pm$ 1.44          & 16.45 $\pm$ 0.33          & 0.900 $\pm$ 0.010          & 0.950 $\pm$ 0.004 \\
 \midrule
 BiGRU + Solvent       & 36.45 $\pm$ 1.12          & 20.70 $\pm$ 0.51          & 0.884 $\pm$ 0.006          & 0.940 $\pm$ 0.003 \\
-BiGRU Solute only     & --- & --- & --- & --- \\
+BiGRU Solute only     & 39.03 $\pm$ 1.37          & 22.53 $\pm$ 0.32          & 0.870 $\pm$ 0.010          & 0.930 $\pm$ 0.010 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Incorporating solvent information reduces RF RMSE by 8\% (34.13 $\to$ 31.34~nm), confirming that the solvent concatenation strategy effectively captures solvatochromic effects for fingerprint-based models.
-The BiGRU solvent ablation (v2, no data leakage) is currently running; the placeholder will be filled upon completion.
+Incorporating solvent information reduces RF RMSE by 8\% (34.13 $\to$ 31.34~nm) and BiGRU RMSE by 7\% (39.03 $\to$ 36.45~nm), confirming that the solvent concatenation strategy effectively captures solvatochromic effects across both model families.
 
 The improvement from solvent encoding is modest relative to the total prediction error, reflecting the fact that chromophore structure dominates UV absorption, with solvatochromic shifts typically contributing 5--20~nm variation.
 Nevertheless, for applications such as photosafety screening where boundary effects matter, this improvement can be practically significant.
@@ -641,7 +640,7 @@ Our key findings are:
     This indicates that RF excels at interpolation within known chemical space, while BiGRU learns transferable sequential patterns that extend beyond fixed substructural features.
 
     \item \textbf{Solvent encoding improves both model families.}
-    The solvent concatenation strategy---encoding solute and solvent as a single representation---reduces RF RMSE by 8\% (34.13 $\to$ 31.34~nm).
+    The solvent concatenation strategy---encoding solute and solvent as a single representation---reduces RF RMSE by 8\% (34.13 $\to$ 31.34~nm) and BiGRU RMSE by 7\% (39.03 $\to$ 36.45~nm).
     This simple approach requires no domain-specific descriptor engineering and is applicable to any model that accepts molecular representations.
 
     \item \textbf{1D representations have a fundamental ceiling.}

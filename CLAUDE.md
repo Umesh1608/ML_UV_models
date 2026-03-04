@@ -39,7 +39,7 @@ All grammar, affiliation, and package fixes applied to `ml_chemistry_template.te
 | Model | Folds | RMSE | MAE | R² | r | Status |
 |-------|-------|------|-----|-----|---|--------|
 | BiGRU + Solvent v2 | 5/5 | 36.45 ± 1.12 | 20.70 ± 0.51 | 0.8836 ± 0.0058 | 0.9402 ± 0.0031 | ✅ Aggregate done |
-| BiGRU no solvent v2 | 4/5 | ~38.42 ± 0.65 | ~22.41 ± 0.23 | ~0.8701 | ~0.9333 | 🔄 Fold 4 running |
+| BiGRU no solvent v2 | 5/5 | 39.03 ± 1.37 | 22.53 ± 0.32 | 0.870 ± 0.010 | 0.930 ± 0.010 | ✅ Aggregate done |
 | **RF TUNED** (B=1000,mf=0.3) | 5/5 | **31.34 ± 1.82** | **15.16 ± 0.44** | 0.914 ± 0.010 | 0.956 ± 0.005 | ✅ Aggregate done |
 | RF TUNED no solvent | 5/5 | 34.13 ± 1.44 | 16.45 ± 0.33 | 0.900 ± 0.010 | 0.950 ± 0.004 | ✅ Aggregate done |
 | RF v2 (MAE) | 3/5 | fold0: 33.27, fold1: 31.86, fold2: 30.17 | — | — | — | ❌ Folds 3-4 missing |
@@ -68,21 +68,18 @@ Single train/val/test splits matching each paper's published protocol. Val used 
 
 ### What Still Needs To Be Done
 
-#### Step 1 — BiGRU no-solvent v2 (4/5 folds done, fold 4 running)
-🔄 `python3 run_baselines.py --model bigru_nosolvent --v2` — needed for solvent ablation table.
-After fold 4 completes: run `--summary`, fill in Table 2 + abstract "X%" in `benchmark_paper.tex`.
-
-#### Step 2 — Polish `benchmark_paper.tex`
-- Fill in BiGRU no-solvent v2 numbers in Table 2 and abstract
+#### Step 1 — Polish `benchmark_paper.tex`
 - Verify all citations compile against `Proposal.bib`
 - Write supplementary material (per-fold breakdown)
 - Proofread and final formatting
 
-#### Step 3 (Optional) — Statistical Significance Tests
+#### Step 2 (Optional) — Statistical Significance Tests
 - Paired t-tests across 5 folds: RF vs BiGRU, solvent vs no-solvent
 - Reviewers will likely ask for this
 
 #### Completed
+- ✅ BiGRU no-solvent v2: 5/5 folds done, RMSE 39.03±1.37 (solvent improvement = 7%)
+- ✅ Table 2 + abstract placeholders filled in benchmark_paper.tex
 - ✅ RF hyperparameter tuning (432 configs → B=1000, max_features=0.3)
 - ✅ Tuned RF 5-fold CV: RMSE 31.34±1.82 (was 32.18)
 - ✅ Tuned RF no-solvent 5-fold CV: RMSE 34.13±1.44

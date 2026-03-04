@@ -72,7 +72,7 @@ RF tuned + Solvent       & \textbf{31.34 $\pm$ 1.82} & \textbf{15.16 $\pm$ 0.44}
 XGBoost + Solvent        & 33.70 $\pm$ 1.61 & 20.05 $\pm$ 0.48 & 0.900 & 0.950 \\
 RF tuned, Solute only    & 34.13 $\pm$ 1.44 & 16.45 $\pm$ 0.33 & 0.900 & 0.950 \\
 BiGRU + Solvent          & 36.45 $\pm$ 1.12 & 20.70 $\pm$ 0.51 & 0.884 & 0.940 \\
-BiGRU Solute only        & $\sim$38.42 $\pm$ 0.70 & $\sim$22.41 $\pm$ 0.23 & $\sim$0.870 & --- \\
+BiGRU Solute only        & 39.03 $\pm$ 1.37 & 22.53 $\pm$ 0.32 & 0.870 & 0.930 \\
 XGBoost (MAE loss)       & 40.75 $\pm$ 1.58 & 21.99 $\pm$ 0.47 & 0.854 & 0.927 \\
 \bottomrule
 \end{tabular}
@@ -117,8 +117,8 @@ Our RF on reconstructed Reaxys: Accuracy 0.879, Sens 0.876, Spec 0.882. Mamede p
 % ======================================================================
 
 \begin{enumerate}
-    \item \TODO{Table 2 (Solvent Ablation): BiGRU Solute only row is ``---''. Fill in after BiGRU no-solvent v2 fold 4 completes (currently running). Estimated values: RMSE $\sim$38.4, MAE $\sim$22.4. Solvent improvement $\sim$5\%.}
-    \item \TODO{Abstract line: ``and X\% for BiGRU'' --- replace X with actual percentage once BiGRU no-solvent v2 is complete. Estimated $\sim$5\%.}
+    \item \DONE{Table 2 (Solvent Ablation): BiGRU Solute only = RMSE 39.03 $\pm$ 1.37, MAE 22.53 $\pm$ 0.32, $R^2$ = 0.870. Solvent improvement = 7\%.}
+    \item \DONE{Abstract updated: ``8\% RMSE reduction for RF, 7\% for BiGRU''.}
 \end{enumerate}
 
 
@@ -196,7 +196,7 @@ Our RF on reconstructed Reaxys: Accuracy 0.879, Sens 0.876, Spec 0.882. Mamede p
     \TODO{Add supplementary table with per-fold RMSE, MAE, $R^2$ for all models.}
 
     \item \textbf{``What about the solvent improvement for BiGRU?''}\\
-    \TODO{Waiting for BiGRU no-solvent v2 to complete (fold 4 running). Estimated $\sim$5\% improvement with solvent encoding.}
+    \DONE{BiGRU no-solvent v2 complete: RMSE 39.03 $\pm$ 1.37 $\to$ 36.45 $\pm$ 1.12 with solvent = 7\% improvement. Consistent with RF's 8\% improvement, confirming solvent concatenation benefits both model families.}
 \end{enumerate}
 
 
@@ -248,7 +248,7 @@ Our RF on reconstructed Reaxys: Accuracy 0.879, Sens 0.876, Spec 0.882. Mamede p
     \item[\DONE{}] Mathematical model descriptions (RF, XGBoost, BiGRU, GNN)
     \item[\DONE{}] Cross-dataset results with published baselines
     \item[\DONE{}] Classification validation
-    \item[\TODO{}] Fill in BiGRU no-solvent v2 numbers (Table 2 + abstract)
+    \item[\DONE{}] Fill in BiGRU no-solvent v2 numbers (Table 2 + abstract)
     \item[\TODO{}] Verify all \texttt{\\cite\{\}} keys exist in \texttt{Proposal.bib}
     \item[\TODO{}] Add supplementary material (per-fold tables)
     \item[\TODO{}] Statistical significance tests (paired t-tests)
