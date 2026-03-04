@@ -121,6 +121,58 @@ def predict_rf(df):
     return ensemble_pred
 
 
+def predict_chemberta(df):
+    """Predict λ_max using ChemBERTa ensemble (average across folds)."""
+    import torch
+    from transformers import AutoModelForSequenceClassification, AutoTokenizer
+
+    MODEL_NAME = "seyonec/ChemBERTa-zinc-base-v1"
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
+
+    # Combined SMILES with "." separator
+    combined = (df["smiles"] + "." + df["solvent_smiles"]).values.tolist()
+
+    # Tokenize
+    encodings = tokenizer(
+        combined, add_special_tokens=True, max_length=512,
+        padding="max_length", truncation=True, return_tensors="pt"
+    )
+    input_ids = encodings["input_ids"].to(device)
+    attention_mask = encodings["attention_mask"].to(device)
+
+    all_preds = []
+    for fold in range(N_FOLDS):
+        model_path = os.path.join(RESULTS_DIR, f"chemberta_fold{fold}_best.pt")
+        if not os.path.exists(model_path):
+            print(f"  WARNING: Missing fold {fold} model: {model_path}")
+            continue
+
+        model = AutoModelForSequenceClassification.from_pretrained(
+            MODEL_NAME, num_labels=1, problem_type="regression"
+        )
+        model.load_state_dict(torch.load(model_path, weights_only=True,
+                                         map_location=device))
+        model.to(device)
+        model.eval()
+
+        with torch.no_grad():
+            outputs = model(input_ids=input_ids, attention_mask=attention_mask)
+            preds = outputs.logits.squeeze(-1).cpu().numpy()
+
+        all_preds.append(preds)
+        del model
+        torch.cuda.empty_cache() if torch.cuda.is_available() else None
+
+    if not all_preds:
+        print("  ERROR: No ChemBERTa fold models found!")
+        return None
+
+    ensemble_pred = np.mean(all_preds, axis=0)
+    print(f"  ChemBERTa: ensembled {len(all_preds)} fold models")
+    return ensemble_pred
+
+
 def check_training_overlap(df):
     """Check which wetlab molecules appear in the training dataset."""
     train_path = os.path.join(SCRIPT_DIR, "previous_code", "UV_canonical_full_dataset.csv")
@@ -172,7 +224,7 @@ def main():
 
     y_true = df["lambda_max_exp"].values
 
-    # Predict with both models
+    # Predict with all models
     print(f"\n{'─' * 70}")
     print("  Loading BiGRU+Solvent v2 models...")
     bigru_pred = predict_bigru(df)
@@ -180,6 +232,10 @@ def main():
     print(f"\n{'─' * 70}")
     print("  Loading RF v2 models...")
     rf_pred = predict_rf(df)
+
+    print(f"\n{'─' * 70}")
+    print("  Loading ChemBERTa models...")
+    chemberta_pred = predict_chemberta(df)
 
     # Build results table
     results = df[["molecule", "solvent_name", "lambda_max_exp"]].copy()
@@ -192,6 +248,10 @@ def main():
         results["RF_pred"] = np.round(rf_pred, 1)
         results["RF_error"] = np.round(rf_pred - y_true, 1)
 
+    if chemberta_pred is not None:
+        results["ChemBERTa_pred"] = np.round(chemberta_pred, 1)
+        results["ChemBERTa_error"] = np.round(chemberta_pred - y_true, 1)
+
     print(f"\n{'=' * 70}")
     print("  RESULTS")
     print(f"{'=' * 70}")
@@ -202,7 +262,8 @@ def main():
     print("  AGGREGATE METRICS")
     print(f"{'─' * 70}")
 
-    for name, pred in [("BiGRU+Solvent v2", bigru_pred), ("RF v2", rf_pred)]:
+    for name, pred in [("BiGRU+Solvent v2", bigru_pred), ("RF v2", rf_pred),
+                        ("ChemBERTa", chemberta_pred)]:
         if pred is None:
             continue
         rmse, mae, errors, abs_errors = compute_metrics(y_true, pred)
@@ -249,6 +310,10 @@ def main():
                 rf_diff = abs(rf_pred[etoh_idx] - rf_pred[meoh_idx])
                 row["RF |Δ|"] = round(rf_diff, 1)
 
+            if chemberta_pred is not None:
+                cb_diff = abs(chemberta_pred[etoh_idx] - chemberta_pred[meoh_idx])
+                row["ChemBERTa |Δ|"] = round(cb_diff, 1)
+
             sens_rows.append(row)
 
     sens_df = pd.DataFrame(sens_rows)
@@ -265,7 +330,8 @@ def main():
         "n_predictions": len(df),
         "solvents": ["EtOH", "MeOH"],
     }
-    for name, pred in [("bigru", bigru_pred), ("rf", rf_pred)]:
+    for name, pred in [("bigru", bigru_pred), ("rf", rf_pred),
+                        ("chemberta", chemberta_pred)]:
         if pred is None:
             continue
         rmse, mae, _, _ = compute_metrics(y_true, pred)

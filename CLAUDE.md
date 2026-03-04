@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**Benchmark paper with "complementary strengths" narrative** (March 2026): Systematic benchmark of ML approaches (RF, XGBoost, BiGRU) for UV λ_max prediction. Key findings: (1) RF+Morgan FP wins on cross-validated benchmarks, (2) BiGRU generalizes better to novel out-of-distribution molecules (wetlab MAE 28.6 vs 38.5), (3) solvent concatenation helps both families, (4) 1D approaches have fundamental ceiling vs 3D GNNs. The paper argues model selection depends on the task: RF for interpolation/screening, BiGRU for novel compound exploration.
+**Benchmark paper with "complementary strengths" narrative** (March 2026): Systematic benchmark of ML approaches (RF, XGBoost, BiGRU, ChemBERTa) for UV λ_max prediction. Key findings: (1) RF+Morgan FP wins on cross-validated benchmarks, (2) BiGRU generalizes better to novel out-of-distribution molecules (wetlab MAE 28.6 vs 38.5), (3) solvent concatenation helps both families, (4) ChemBERTa pretrained Transformer baseline adds modern context. The paper argues model selection depends on the task: RF for interpolation/screening, BiGRU for novel compound exploration.
 
 **New LaTeX file**: `benchmark_paper.tex` (benchmark framing). Original `ml_chemistry_template.tex` preserved.
 
@@ -68,16 +68,28 @@ Single train/val/test splits matching each paper's published protocol. Val used 
 
 ### What Still Needs To Be Done
 
-#### Step 1 — Polish `benchmark_paper.tex`
-- Verify all citations compile against `Proposal.bib`
-- Write supplementary material (per-fold breakdown)
-- Proofread and final formatting
+#### Current Phase — Transformer Baseline + nablaColors Removal (March 2026)
+- ✅ Created `run_chemberta.py` — ChemBERTa fine-tuning script (PyTorch)
+- 🔄 Run ChemBERTa on primary dataset (5-fold CV)
+- 🔄 Run ChemBERTa on cross-dataset benchmarks (Deep4Chem, Jung 2024)
+- 🔄 Add ChemBERTa to eval_wetlab.py
+- 🔄 Remove nablaColors from paper
+- 🔄 Add ChemBERTa results to paper
+- 🔄 Apply text fixes (tuning asymmetry, Reaxys, XGBoost MAE, bootstrap CIs)
+- 🔄 Add BibTeX entries + learning curves
 
-#### Step 2 (Optional) — Statistical Significance Tests
-- Paired t-tests across 5 folds: RF vs BiGRU, solvent vs no-solvent
-- Reviewers will likely ask for this
+#### Step 1 — Final Polish
+- Proofread entire paper
+- Format for target journal (J. Cheminformatics, Digital Discovery, or Mol. Informatics)
+- Ensure all figures render correctly on Overleaf
 
 #### Completed
+- ✅ Paper expanded: 35 citations (was 13), 792 lines, ~7200 words
+- ✅ All citations verified against Proposal.bib (27 new bib entries added)
+- ✅ Statistical significance tests: all paired t-tests significant (p < 0.02)
+- ✅ Supplementary material: per-fold tables, significance table, RF tuning analysis
+- ✅ Figures 3-4 regenerated with v2 data (was showing old v1 RMSE)
+- ✅ Related Work expanded (6 subsections, comprehensive literature coverage)
 - ✅ BiGRU no-solvent v2: 5/5 folds done, RMSE 39.03±1.37 (solvent improvement = 7%)
 - ✅ Table 2 + abstract placeholders filled in benchmark_paper.tex
 - ✅ RF hyperparameter tuning (432 configs → B=1000, max_features=0.3)
@@ -131,7 +143,8 @@ Files: `ml_chemistry_template.tex`, `Proposal.bib` (77K tokens — read with off
 - **`run_cross_dataset.py`** — Cross-dataset benchmarks (CLI: `--dataset`, `--split`, `--summary`)
 - **`run_selfies_experiment.py`** — SELFIES vs SMILES on nablaColors
 - **`eval_classification.py`** — Mamede photosafety classification (CLI: `--model`, `--threshold`)
-- **`eval_wetlab.py`** — Wetlab experimental validation (16 molecules × 2 solvents)
+- **`eval_wetlab.py`** — Wetlab experimental validation (16 molecules × 2 solvents, RF + BiGRU + ChemBERTa)
+- **`run_chemberta.py`** — ChemBERTa fine-tuning (PyTorch, HuggingFace) for primary + cross-dataset
 - **`download_datasets.py`** — Download external datasets (CLI: `--dataset`)
 - **`convert_reaxys_web_export.py`** — Reaxys TSV → raw CSV
 - **`postprocess_reaxys.py`** — Raw Reaxys → clean regression + classification datasets (CLI: `--solvent`)
