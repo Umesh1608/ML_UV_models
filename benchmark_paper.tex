@@ -456,14 +456,14 @@ Across both external datasets, RF consistently outperforms BiGRU, reinforcing th
 \subsection{Error Analysis}
 \label{sec:error_analysis}
 
-\begin{figure}[t]
+\begin{figure}[htbp]
     \centering
-    \begin{subfigure}[b]{0.48\textwidth}
+    \begin{subfigure}[t]{0.48\textwidth}
         \includegraphics[width=\textwidth]{results/parity_plot.png}
         \caption{Parity plot: predicted vs.\ experimental $\lambda_{\max}$ for BiGRU + Solvent (pooled 5-fold CV predictions).}
     \end{subfigure}
     \hfill
-    \begin{subfigure}[b]{0.48\textwidth}
+    \begin{subfigure}[t]{0.48\textwidth}
         \includegraphics[width=\textwidth]{results/error_distribution.png}
         \caption{Error distribution showing slight positive bias (mean error $>$ 0).}
     \end{subfigure}
@@ -471,14 +471,14 @@ Across both external datasets, RF consistently outperforms BiGRU, reinforcing th
     \label{fig:error_analysis}
 \end{figure}
 
-\begin{figure}[t]
+\begin{figure}[htbp]
     \centering
-    \begin{subfigure}[b]{0.48\textwidth}
+    \begin{subfigure}[t]{0.48\textwidth}
         \includegraphics[width=\textwidth]{results/error_by_wavelength.png}
         \caption{MAE by wavelength range. Prediction accuracy is highest for $\lambda_{\max} < 400$~nm where training data is most abundant.}
     \end{subfigure}
     \hfill
-    \begin{subfigure}[b]{0.48\textwidth}
+    \begin{subfigure}[t]{0.48\textwidth}
         \includegraphics[width=\textwidth]{results/error_by_solvent.png}
         \caption{MAE by solvent type for the five most common solvents in the dataset.}
     \end{subfigure}
@@ -503,14 +503,14 @@ In contrast to deep learning models, which operate as black-box function approxi
 Since each bit in a Morgan fingerprint corresponds to a specific molecular substructure (a circular neighborhood of radius $\leq 2$ around each atom), high-importance bits can be decoded back to chemically meaningful structural motifs.
 We averaged Gini importances across all five fold models and decoded the top features using RDKit.
 
-\begin{figure}[t]
+\begin{figure}[htbp]
     \centering
-    \begin{subfigure}[b]{0.48\textwidth}
+    \begin{subfigure}[t]{0.48\textwidth}
         \includegraphics[width=\textwidth]{results/rf_feature_importance.pdf}
         \caption{Top 15 Morgan fingerprint bits ranked by Gini importance, with mean $\Delta\lambda_{\max}$ annotations (bathochromic shifts in red, hypsochromic in blue).}
     \end{subfigure}
     \hfill
-    \begin{subfigure}[b]{0.48\textwidth}
+    \begin{subfigure}[t]{0.48\textwidth}
         \includegraphics[width=\textwidth]{results/rf_solute_vs_solvent.pdf}
         \caption{Relative importance of solute vs.\ solvent fingerprint bits. Solute structure accounts for 96.1\% of total feature importance.}
     \end{subfigure}
@@ -518,14 +518,14 @@ We averaged Gini importances across all five fold models and decoded the top fea
     \label{fig:rf_interpretability}
 \end{figure}
 
-\begin{figure}[t]
+\begin{figure}[htbp]
     \centering
-    \begin{subfigure}[b]{0.48\textwidth}
+    \begin{subfigure}[t]{0.48\textwidth}
         \includegraphics[width=\textwidth]{results/rf_cumulative_importance.pdf}
         \caption{Cumulative feature importance. The top 20 features (out of 4096) account for 50.6\% of total importance, indicating a sparse, interpretable model.}
     \end{subfigure}
     \hfill
-    \begin{subfigure}[b]{0.48\textwidth}
+    \begin{subfigure}[t]{0.48\textwidth}
         \includegraphics[width=\textwidth]{results/rf_training_comparison.pdf}
         \caption{Training time vs.\ performance comparison. RF achieves better RMSE in 15 minutes compared to BiGRU's 25 hours (100$\times$ faster).}
     \end{subfigure}
