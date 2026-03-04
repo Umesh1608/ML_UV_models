@@ -832,7 +832,7 @@ def generate_summary(v2=False):
     bigru_rmse = bigru_agg.get("RMSE_mean", 0)
 
     # Parity plot
-    fig, ax = plt.subplots(1, 1, figsize=(6, 6))
+    fig, ax = plt.subplots(1, 1, figsize=(7, 5))
     ax.scatter(y_test, y_pred_bigru, alpha=0.3, s=10, c="steelblue", edgecolors="none")
     lims = [min(y_test.min(), y_pred_bigru.min()) - 10,
             max(y_test.max(), y_pred_bigru.max()) + 10]
@@ -849,7 +849,7 @@ def generate_summary(v2=False):
 
     # Error distribution
     errors_bigru = y_pred_bigru - y_test
-    fig, ax = plt.subplots(1, 1, figsize=(7, 4))
+    fig, ax = plt.subplots(1, 1, figsize=(7, 5))
     ax.hist(errors_bigru, bins=80, color="steelblue", edgecolor="white", alpha=0.85)
     ax.axvline(0, color="red", linestyle="--", lw=1)
     ax.set_xlabel("Prediction Error (nm)", fontsize=12)
@@ -875,7 +875,7 @@ def generate_summary(v2=False):
             range_stds.append(abs_errors[mask].std())
             range_counts.append(mask.sum())
 
-    fig, ax = plt.subplots(1, 1, figsize=(7, 4))
+    fig, ax = plt.subplots(1, 1, figsize=(7, 5))
     bars = ax.bar(range_labels, range_means, yerr=range_stds, capsize=5,
                   color="steelblue", edgecolor="white", alpha=0.85)
     for bar, count in zip(bars, range_counts):
@@ -914,7 +914,7 @@ def generate_summary(v2=False):
             sol_labels.append(solvent_names.get(sol, sol[:15]))
             sol_errors.append(abs_errors[mask])
 
-        fig, ax = plt.subplots(1, 1, figsize=(8, 4))
+        fig, ax = plt.subplots(1, 1, figsize=(7, 5))
         bp = ax.boxplot(sol_errors, labels=sol_labels, patch_artist=True)
         for patch in bp["boxes"]:
             patch.set_facecolor("steelblue")

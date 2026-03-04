@@ -140,7 +140,7 @@ def plot_feature_importance(avg_imp, std_imp, bit_data):
         # Color by whether feature shifts λ_max red (positive) or blue (negative)
         colors.append("#c0392b" if delta > 20 else "#2980b9" if delta < -20 else "#7f8c8d")
 
-    fig, ax = plt.subplots(figsize=(10, 6))
+    fig, ax = plt.subplots(figsize=(8, 5))
     y_pos = np.arange(len(labels))
 
     bars = ax.barh(y_pos, importances, xerr=stds, height=0.7,
@@ -176,8 +176,8 @@ def plot_solute_vs_solvent(avg_imp):
     solute_sum = avg_imp[:2048].sum()
     solvent_sum = avg_imp[2048:].sum()
 
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(11, 4.5),
-                                    gridspec_kw={"width_ratios": [1, 1.5]})
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(8, 5),
+                                    gridspec_kw={"width_ratios": [1, 1.2]})
 
     # Pie chart
     wedges, texts, autotexts = ax1.pie(
@@ -224,7 +224,7 @@ def plot_cumulative_importance(avg_imp):
     sorted_imp = np.sort(avg_imp)[::-1]
     cumsum = np.cumsum(sorted_imp) * 100
 
-    fig, ax = plt.subplots(figsize=(7, 4.5))
+    fig, ax = plt.subplots(figsize=(8, 5))
     ax.plot(range(1, len(cumsum) + 1), cumsum, color="#2c3e50", lw=2)
 
     # Annotate key thresholds
@@ -272,7 +272,7 @@ def plot_training_comparison():
         },
     }
 
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(11, 4.5))
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(8, 5))
 
     names = list(models.keys())
     rmse_vals = [models[n]["rmse"] for n in names]

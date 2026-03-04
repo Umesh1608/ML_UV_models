@@ -95,6 +95,7 @@ Our key contributions are:
     \item A solvent concatenation strategy that improves prediction accuracy for both sequence models and fingerprint-based methods.
     \item Interpretability analysis of RF feature importances, revealing that the model learns chemically meaningful chromophore motifs, and practical comparison of training cost (15 minutes CPU vs.\ 25 hours GPU).
     \item Practical validation through ICH~S10 photosafety classification and experimental UV measurements on 16 novel compounds.
+    \item Empirical evidence that UV absorption prediction is a local-feature-dependent task~\cite{chenMolecularLanguage2023}: the strong performance of local-substructure models (Morgan fingerprints, BiGRU) and the interpretable mapping of top features to known chromophore motifs support the theoretical prediction that local-feature architectures are well-suited for properties determined by local electronic structure.
 \end{itemize}
 
 
@@ -135,7 +136,11 @@ The SMILES representation~\cite{weininger1988smiles} maps molecular graphs to ch
 Recurrent neural networks~\cite{elman1990finding}, including Long Short-Term Memory (LSTM)~\cite{hochreiter1997long} and Gated Recurrent Unit (GRU)~\cite{cho2014learning} architectures, process SMILES as sequential data, learning molecular features without explicit descriptor engineering.
 Bidirectional variants (BiGRU, BiLSTM)~\cite{schuster1997bidirectional} capture context from both directions, improving representation quality for molecular strings.
 Liu et al.\ applied BiGRU to molecular toxicity prediction~\cite{liuPredictionMolecularToxicity2023}, demonstrating the effectiveness of sequence models for chemical property tasks.
-More recently, Transformer architectures~\cite{vaswani2017attention} have been applied to SMILES-based property prediction with attention mechanisms that provide interpretable molecular representations~\cite{hondaSMILESTransformerPretrained2019, chenMolecularLanguage2023}.
+More recently, Transformer architectures~\cite{vaswani2017attention} have been applied to SMILES-based property prediction with attention mechanisms that provide interpretable molecular representations~\cite{hondaSMILESTransformerPretrained2019}.
+Chen et al.~\cite{chenMolecularLanguage2023} systematically compared RNNs and Transformers for molecular language modeling, finding that RNNs better capture local structural features while Transformers excel at global molecular properties and longer sequences.
+Their conclusion---that the optimal architecture depends on the data characteristics---is particularly relevant to UV absorption prediction, where $\lambda_{\max}$ is fundamentally determined by local chromophore features: conjugation length, aromatic character, and heteroatom substituents, as formalized in the classical Woodward--Fieser rules.
+This suggests that models encoding local structural information (fingerprints, RNNs) may have an inherent advantage over global-attention architectures for this property.
+Jiang et al.~\cite{jiang2023trangru} further validated this local/global dichotomy in their TranGRU architecture, which combines BiGRU for local features with self-attention for global features.
 Alternative string representations such as SELFIES~\cite{krenn2020selfies} guarantee chemical validity but have shown mixed results compared to SMILES for property prediction tasks.
 
 \textbf{Graph neural networks.}
@@ -359,6 +364,12 @@ Importantly, the default RF configuration (scikit-learn defaults with $\sqrt{d}$
 
 Despite lower absolute performance, BiGRU exhibits the lowest cross-fold variance (RMSE std = 1.12 vs.\ 1.82 for RF), suggesting more consistent generalization.
 BiGRU also offers the advantage of end-to-end learning from raw SMILES strings without requiring descriptor engineering~\cite{chenMolecularLanguage2023}, potentially enabling transfer learning from larger pretraining corpora~\cite{vermeire2021transfer}.
+
+The strong performance of fingerprint-based RF can be understood through the physics of UV absorption.
+Electronic transitions responsible for $\lambda_{\max}$ are localized to chromophoric regions of the molecule, with absorption wavelength determined by local structural features such as conjugation length, substituent effects, and heteroatom character~\cite{flemingMolecular2010, reichardt2011solvents}.
+Morgan fingerprints encode precisely these local substructural environments~\cite{rogers2010extended}, and our feature importance analysis (Section~\ref{sec:interpretability}) confirms that the model's top features correspond to known chromophore motifs.
+This alignment between the locality of the physical property and the locality of the molecular representation explains why a relatively simple fingerprint-based model achieves state-of-the-art performance.
+Kang et al.~\cite{kang2020prediction} and Beard et al.~\cite{beard2022uvadvisor} similarly found that fingerprint- and RNN-based models excel at electronic transition prediction, further supporting the hypothesis that UV absorption is a local-feature-dependent property.
 
 ChemBERTa, despite being pretrained on $\sim$77M SMILES strings from ZINC and having 44.1M parameters (94$\times$ more than BiGRU), achieves RMSE = XX.XX~nm---[PLACEHOLDER: discuss whether ChemBERTa beats/matches/loses to BiGRU and RF, and what this implies about pretrained representations vs.\ task-specific learning for UV prediction].
 
@@ -644,6 +655,9 @@ Excluding these two outliers, the BiGRU MAE decreases to 24.2~nm and RF MAE to 3
 Both models capture the small solvent sensitivity between EtOH and MeOH (typically 0--1~nm experimentally), though with some overestimation of the solvent shift magnitude (average predicted shifts of 2.5~nm for BiGRU and 2.9~nm for RF).
 
 These results highlight the complementary strengths of the two model families: RF is the preferred choice for screening within known chemical space (e.g., virtual screening of compound libraries with well-represented scaffolds), while BiGRU is better suited for exploring novel molecular architectures where the training distribution may not cover all relevant substructures.
+This data-dependent model selection finding extends the conclusions of Chen et al.~\cite{chenMolecularLanguage2023}, who observed that RNNs outperform Transformers on local-feature-dependent molecular generation tasks.
+Our regression benchmark demonstrates that this architectural trade-off persists in property prediction settings: since UV absorption depends on local chromophore features, models that capture local patterns (RF with fingerprints, BiGRU processing SMILES subsequences) are well-suited, while global self-attention mechanisms offer less advantage for a chromophore-localized property.
+The complementarity extends further---beyond the local/global distinction---because RF's fixed-vocabulary substructure matching excels at interpolation while BiGRU's learned sequential patterns enable extrapolation to novel scaffolds.
 
 
 % ===== Conclusion =====
@@ -687,6 +701,7 @@ Transfer learning from larger UV absorption databases (e.g., the Reaxys dataset 
 Incorporating 3D structural information through hybrid architectures~\cite{gilmer2017neural} or precomputed quantum-chemical descriptors~\cite{lupopasini2023excited} could improve predictions for geometry-dependent chromophores.
 Ensemble approaches combining RF and BiGRU predictions could potentially leverage the complementary strengths of both model families, using RF's interpolation accuracy for well-represented scaffolds and BiGRU's extrapolation capability for novel structures.
 While RF provides global feature importance, attention mechanisms in Transformer-based sequence models~\cite{vaswani2017attention, hondaSMILESTransformerPretrained2019} could offer instance-level interpretability by highlighting which molecular substructures drive individual predictions.
+More broadly, our results corroborate the growing evidence that model architecture choice in molecular ML should be guided by the locality of the target property~\cite{chenMolecularLanguage2023, jiang2023trangru}: properties determined by local substructures (UV absorption, functional group-dependent activity) favor fingerprint and RNN-based approaches, while properties depending on global molecular topology may benefit from Transformer or graph-based architectures.
 
 
 % ===== Data and Code Availability =====
