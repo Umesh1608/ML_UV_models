@@ -135,7 +135,7 @@ def predict_chemberta(df):
 
     # Tokenize
     encodings = tokenizer(
-        combined, add_special_tokens=True, max_length=512,
+        combined, add_special_tokens=True, max_length=256,
         padding="max_length", truncation=True, return_tensors="pt"
     )
     input_ids = encodings["input_ids"].to(device)

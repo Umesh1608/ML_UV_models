@@ -68,15 +68,18 @@ Single train/val/test splits matching each paper's published protocol. Val used 
 
 ### What Still Needs To Be Done
 
-#### Current Phase — Transformer Baseline + nablaColors Removal (March 2026)
+#### Current Phase — Transformer Baseline + Paper Improvements (March 2026)
 - ✅ Created `run_chemberta.py` — ChemBERTa fine-tuning script (PyTorch)
-- 🔄 Run ChemBERTa on primary dataset (5-fold CV)
-- 🔄 Run ChemBERTa on cross-dataset benchmarks (Deep4Chem, Jung 2024)
-- 🔄 Add ChemBERTa to eval_wetlab.py
+- ✅ Fixed thermal shutdown: MAX_LEN 512→256 (4x attention savings), BATCH_SIZE 32→8 + grad_accum=4, num_workers=0, gpu_cooldown between folds
+- 🔄 Running ChemBERTa fold 0 (training in progress, GPU stable at 77°C)
+- 🔄 Run remaining ChemBERTa folds 1-4 + cross-dataset + wetlab
+- 🔄 Fix figure alignment: Figs 3-6 have mismatched subfigure sizes (regenerate with consistent figsize)
+- 🔄 Add "UV = local features" argument: Woodward-Fieser rules, Kasha's rule → local chromophore determines λ_max → explains why RF/BiGRU outperform Transformers
+- 🔄 Strengthen Chen et al. (2023) connection: RNNs capture local features, Transformers capture global → our results corroborate for property prediction
+- 🔄 Add 3 new BibTeX entries (Kang 2020, Beard 2022, Jiang 2023 TranGRU)
+- 🔄 Update contributions list with local-feature finding
 - 🔄 Remove nablaColors from paper
-- 🔄 Add ChemBERTa results to paper
 - 🔄 Apply text fixes (tuning asymmetry, Reaxys, XGBoost MAE, bootstrap CIs)
-- 🔄 Add BibTeX entries + learning curves
 
 #### Step 1 — Final Polish
 - Proofread entire paper
@@ -125,7 +128,9 @@ ln -sf ~/.local/lib/python3.12/site-packages/triton/backends/nvidia/lib/libdevic
 
 ## Training Config
 
-batch_size=32, lr=0.001, mixed_float16, epochs=250, patience=25, RMSprop, loss=MAE
+**BiGRU**: batch_size=32, lr=0.001, mixed_float16, epochs=250, patience=25, RMSprop, loss=MAE
+
+**ChemBERTa** (thermal-safe config): MAX_LEN=256, batch_size=8, grad_accum=4 (effective=32), lr=5e-5, AdamW, fp16, epochs=50, patience=10, num_workers=0, gpu_cooldown=10s between folds. RTX 4090 Laptop idles at 71°C — the old config (batch=32, MAX_LEN=512, 12 worker processes) caused thermal shutdown.
 
 ## Overleaf + Git
 

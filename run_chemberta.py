@@ -20,7 +20,9 @@ Usage:
 import argparse
 import gc
 import json
+import math
 import os
+import subprocess
 import sys
 import time
 
@@ -44,11 +46,12 @@ DATA_PATH = os.path.join(SCRIPT_DIR, "previous_code", "UV_canonical_full_dataset
 DATA_DIR = os.path.join(SCRIPT_DIR, "data")
 
 MODEL_NAME = "seyonec/ChemBERTa-zinc-base-v1"
-MAX_LEN = 512  # ChemBERTa max position embeddings
+MAX_LEN = 256  # Reduced from 512 — longest primary SMILES is 229 chars
 SEED = 7
 N_FOLDS = 5
 EPOCHS = 50
-BATCH_SIZE = 32
+BATCH_SIZE = 8  # Reduced from 32 to lower peak GPU power/temp
+GRAD_ACCUM_STEPS = 4  # Effective batch size = 8 * 4 = 32
 LR = 5e-5
 WEIGHT_DECAY = 0.01
 WARMUP_STEPS = 200
@@ -109,37 +112,43 @@ def get_lr_scheduler(optimizer, warmup_steps, total_steps):
 
 
 def train_one_epoch(model, dataloader, optimizer, scheduler, device, scaler):
-    """Train for one epoch, return mean MAE loss."""
+    """Train for one epoch with gradient accumulation. Returns mean loss."""
     model.train()
     total_loss = 0.0
     n_batches = 0
+    optimizer.zero_grad()
 
-    for batch in dataloader:
+    for i, batch in enumerate(dataloader):
         input_ids = batch["input_ids"].to(device)
         attention_mask = batch["attention_mask"].to(device)
         targets = batch["target"].to(device)
-
-        optimizer.zero_grad()
 
         with torch.amp.autocast("cuda", enabled=scaler is not None):
             outputs = model(input_ids=input_ids, attention_mask=attention_mask)
             preds = outputs.logits.squeeze(-1)
             loss = nn.SmoothL1Loss(beta=10.0)(preds, targets)
+            loss = loss / GRAD_ACCUM_STEPS  # Scale for accumulation
 
         if scaler is not None:
             scaler.scale(loss).backward()
-            scaler.unscale_(optimizer)
-            torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
-            scaler.step(optimizer)
-            scaler.update()
         else:
             loss.backward()
-            torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
-            optimizer.step()
 
-        scheduler.step()
-        total_loss += loss.item()
+        total_loss += loss.item() * GRAD_ACCUM_STEPS  # Unscaled for logging
         n_batches += 1
+
+        # Step every GRAD_ACCUM_STEPS micro-batches, or at end of epoch
+        if (i + 1) % GRAD_ACCUM_STEPS == 0 or (i + 1) == len(dataloader):
+            if scaler is not None:
+                scaler.unscale_(optimizer)
+                torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+                scaler.step(optimizer)
+                scaler.update()
+            else:
+                torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+                optimizer.step()
+            scheduler.step()
+            optimizer.zero_grad()
 
     return total_loss / n_batches
 
@@ -168,6 +177,22 @@ def evaluate(model, dataloader, device):
     return all_preds, mae
 
 
+def gpu_cooldown(seconds=10):
+    """Empty CUDA cache, log GPU temp, and pause between folds."""
+    torch.cuda.empty_cache()
+    gc.collect()
+    try:
+        result = subprocess.run(
+            ["nvidia-smi", "--query-gpu=temperature.gpu", "--format=csv,noheader,nounits"],
+            capture_output=True, text=True, timeout=5
+        )
+        temp = result.stdout.strip()
+        print(f"  >> GPU temp: {temp}°C — cooling down {seconds}s...")
+    except Exception:
+        print(f"  >> Cooling down {seconds}s...")
+    time.sleep(seconds)
+
+
 def train_chemberta(train_smiles, val_smiles, test_smiles,
                     y_train, y_val, y_test,
                     name="chemberta", results_dir=RESULTS_DIR):
@@ -186,11 +211,11 @@ def train_chemberta(train_smiles, val_smiles, test_smiles,
     test_ds = SMILESDataset(test_smiles, y_test, tokenizer)
 
     train_loader = DataLoader(train_ds, batch_size=BATCH_SIZE, shuffle=True,
-                              num_workers=4, pin_memory=True)
-    val_loader = DataLoader(val_ds, batch_size=BATCH_SIZE * 2, shuffle=False,
-                            num_workers=4, pin_memory=True)
-    test_loader = DataLoader(test_ds, batch_size=BATCH_SIZE * 2, shuffle=False,
-                             num_workers=4, pin_memory=True)
+                              num_workers=0, pin_memory=True)
+    val_loader = DataLoader(val_ds, batch_size=32, shuffle=False,
+                            num_workers=0, pin_memory=True)
+    test_loader = DataLoader(test_ds, batch_size=32, shuffle=False,
+                             num_workers=0, pin_memory=True)
 
     model = create_model(device)
     n_params = sum(p.numel() for p in model.parameters())
@@ -198,7 +223,8 @@ def train_chemberta(train_smiles, val_smiles, test_smiles,
     print(f"  >> Parameters: {n_params:,} total, {n_trainable:,} trainable")
 
     optimizer = torch.optim.AdamW(model.parameters(), lr=LR, weight_decay=WEIGHT_DECAY)
-    total_steps = len(train_loader) * EPOCHS
+    optimizer_steps_per_epoch = math.ceil(len(train_loader) / GRAD_ACCUM_STEPS)
+    total_steps = optimizer_steps_per_epoch * EPOCHS
     scheduler = get_lr_scheduler(optimizer, WARMUP_STEPS, total_steps)
 
     use_amp = torch.cuda.is_available()
@@ -348,6 +374,10 @@ def run_primary_cv(fold_id=None):
             json.dump(metrics, f, indent=2)
 
         all_metrics.append(metrics)
+
+        # Cool down GPU between folds
+        if fold != fold_range[-1]:
+            gpu_cooldown()
 
     if len(all_metrics) == N_FOLDS:
         print_aggregate(all_metrics, "ChemBERTa (primary v2)")
