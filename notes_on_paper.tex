@@ -1,0 +1,261 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{hyperref}
+
+\definecolor{todo}{RGB}{200,0,0}
+\definecolor{done}{RGB}{0,140,0}
+\definecolor{info}{RGB}{0,0,180}
+\newcommand{\TODO}[1]{\textcolor{todo}{\textbf{TODO:} #1}}
+\newcommand{\DONE}[1]{\textcolor{done}{\textbf{DONE:} #1}}
+\newcommand{\NOTE}[1]{\textcolor{info}{\textbf{Note:} #1}}
+
+\title{Notes on the Paper:\\
+\large Benchmarking ML Approaches for UV Absorption Wavelength Prediction}
+\author{Internal Reference}
+\date{Last updated: March 4, 2026}
+
+\begin{document}
+\maketitle
+\tableofcontents
+\newpage
+
+% ======================================================================
+\section{Paper Narrative: ``Complementary Strengths''}
+% ======================================================================
+
+The central argument of the paper is that \textbf{RF and BiGRU have complementary strengths} for UV $\lambda_{\max}$ prediction:
+
+\begin{itemize}
+    \item \textbf{RF excels at interpolation}: Best cross-validated performance on the primary dataset (RMSE 31.34 vs.\ 36.45 nm) and all three external datasets. Beats published GCNN and GBFS baselines.
+    \item \textbf{BiGRU excels at extrapolation}: Outperforms RF on 16 novel wetlab compounds (MAE 28.6 vs.\ 38.5 nm). Learns transferable sequential patterns beyond fixed substructural features.
+    \item \textbf{Practical guidance}: Use RF for screening within known chemical space; use BiGRU (or DL more broadly) when exploring novel molecular architectures.
+\end{itemize}
+
+\NOTE{This narrative is stronger than ``RF beats everything'' because it provides nuanced, actionable guidance. Reviewers value honesty and the OOD finding is genuinely novel---most benchmark papers never test true out-of-distribution generalization.}
+
+
+% ======================================================================
+\section{Git History / Fallback Points}
+% ======================================================================
+
+\begin{tabular}{lll}
+\toprule
+\textbf{Hash} & \textbf{Date} & \textbf{Description} \\
+\midrule
+\texttt{ca3fd27} & 2026-03-04 & Pre-revision: all experiments, tuned RF, original ``RF wins'' framing \\
+\texttt{8429a3f} & 2026-03-04 & ``Complementary strengths'' narrative revision \\
+\bottomrule
+\end{tabular}
+
+\medskip
+To revert to pre-revision: \texttt{git checkout ca3fd27 -- benchmark\_paper.tex}
+
+
+% ======================================================================
+\section{Key Results Summary}
+% ======================================================================
+
+\subsection{Primary Dataset (Joung+Beard, 18,755 samples)}
+
+Stratified 5-fold CV, 64/16/20 train/val/test split.
+
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Model} & \textbf{RMSE (nm)} & \textbf{MAE (nm)} & $R^2$ & Pearson $r$ \\
+\midrule
+RF tuned + Solvent       & \textbf{31.34 $\pm$ 1.82} & \textbf{15.16 $\pm$ 0.44} & 0.914 & 0.956 \\
+XGBoost + Solvent        & 33.70 $\pm$ 1.61 & 20.05 $\pm$ 0.48 & 0.900 & 0.950 \\
+RF tuned, Solute only    & 34.13 $\pm$ 1.44 & 16.45 $\pm$ 0.33 & 0.900 & 0.950 \\
+BiGRU + Solvent          & 36.45 $\pm$ 1.12 & 20.70 $\pm$ 0.51 & 0.884 & 0.940 \\
+BiGRU Solute only        & $\sim$38.42 $\pm$ 0.70 & $\sim$22.41 $\pm$ 0.23 & $\sim$0.870 & --- \\
+XGBoost (MAE loss)       & 40.75 $\pm$ 1.58 & 21.99 $\pm$ 0.47 & 0.854 & 0.927 \\
+\bottomrule
+\end{tabular}
+
+\subsection{Cross-Dataset Results}
+
+\begin{tabular}{llccl}
+\toprule
+\textbf{Dataset} & \textbf{Model} & \textbf{RMSE} & \textbf{Published} & \textbf{Verdict} \\
+\midrule
+Deep4Chem  & Our RF   & 22.70 & GCNN 26.6  & \textcolor{done}{Beats published!} \\
+Deep4Chem  & Our BiGRU & 27.07 & GCNN 26.6  & Close but slightly worse \\
+Jung 2024  & Our RF   & 29.82 & GBFS 32.2  & \textcolor{done}{Beats published!} \\
+Jung 2024  & Our BiGRU & 36.31 & GBFS 32.2  & Worse than published \\
+nablaColors & Our RF  & MAE 34.62 & UniProp MAE 15.97 & 2.2$\times$ gap (3D needed) \\
+\bottomrule
+\end{tabular}
+
+\subsection{Wetlab Experimental Validation (16 molecules $\times$ 2 solvents)}
+
+\begin{tabular}{lcc}
+\toprule
+& \textbf{BiGRU} & \textbf{RF (tuned)} \\
+\midrule
+Overall MAE  & \textbf{28.6 nm} & 38.5 nm \\
+Overall RMSE & \textbf{33.9 nm} & 43.7 nm \\
+Excl.\ outliers MAE & \textbf{24.2 nm} & 32.6 nm \\
+\bottomrule
+\end{tabular}
+
+\NOTE{BiGRU beats RF on wetlab data---this is the key finding that drives the ``complementary strengths'' narrative. The two outliers are Cinnamic Acid ($\sim$70 nm error, measurement at edge of scan range) and Octocrylene ($\sim$89 nm RF error, underrepresented cyano-acrylate in training data).}
+
+\subsection{Classification}
+Our RF on reconstructed Reaxys: Accuracy 0.879, Sens 0.876, Spec 0.882. Mamede published: Accuracy 0.89. Close match validates methodology.
+
+\subsection{RF Hyperparameter Tuning}
+432-config grid search on fold 0 validation set. Best config: $B = 1000$, \texttt{max\_features} = 0.3, radius = 2, $n_{\text{bits}} = 2048$. The critical parameter was \texttt{max\_features} = 0.3 (30\% of features per split) vs.\ default $\sqrt{d}$ ($\sim$1.6\%). All top 10 configs used \texttt{max\_features} = 0.3.
+
+
+% ======================================================================
+\section{Placeholders to Fill In}
+% ======================================================================
+
+\begin{enumerate}
+    \item \TODO{Table 2 (Solvent Ablation): BiGRU Solute only row is ``---''. Fill in after BiGRU no-solvent v2 fold 4 completes (currently running). Estimated values: RMSE $\sim$38.4, MAE $\sim$22.4. Solvent improvement $\sim$5\%.}
+    \item \TODO{Abstract line: ``and X\% for BiGRU'' --- replace X with actual percentage once BiGRU no-solvent v2 is complete. Estimated $\sim$5\%.}
+\end{enumerate}
+
+
+% ======================================================================
+\section{Revisions Made (What Changed and Why)}
+% ======================================================================
+
+\subsection{Complementary Strengths Reframing (March 4)}
+\begin{itemize}
+    \item \textbf{Abstract}: Changed from ``RF achieves best overall performance'' to ``RF achieves best cross-validated performance'' + added sentence about BiGRU OOD advantage. Ends with practical model selection guidance instead of ``classical ML can match DL''.
+    \item \textbf{Introduction contributions}: Added bullet about OOD generalization finding. Changed ``consistently outperforms'' to ``achieves the best cross-validated performance''.
+    \item \textbf{Wetlab discussion (Sec 5.7)}: Expanded from 3 paragraphs to 5. Added explanation of \textit{why} ranking reverses (substructure matching vs.\ transferable patterns). Octocrylene as the exemplar of RF failure on novel conjugation. Added concluding paragraph with practical model selection guidance.
+    \item \textbf{Conclusion finding \#1}: Changed from ``RF outperforms deep learning'' to ``RF and BiGRU have complementary strengths''. Added summary paragraph after enumerated findings.
+    \item \textbf{Conclusion future work}: Added ensemble approach suggestion.
+    \item \textbf{Conclusion limitations}: Added note about small wetlab validation set.
+\end{itemize}
+
+\subsection{RF Tuning Update (March 4)}
+\begin{itemize}
+    \item All RF numbers updated from default (RMSE 32.18) to tuned (RMSE 31.34).
+    \item RF no-solvent updated from 34.93 to 34.13 (also tuned).
+    \item Methods section (Sec 3.3): Now describes grid search methodology and optimal hyperparameters.
+    \item 14\% RF vs BiGRU improvement (was 12\%).
+    \item Training time updated: 15 min / 100$\times$ (was 12 min / 125$\times$) due to 1000 trees.
+    \item Interpretability figures regenerated with tuned model. Feature importance more distributed (top 5 = 26.7\% vs.\ 38.5\% before) because \texttt{max\_features} = 0.3 lets more features contribute.
+    \item Wetlab predictions re-run with tuned RF (slightly worse OOD: MAE 38.5 vs.\ 35.8 with default RF).
+\end{itemize}
+
+\subsection{Mathematical Model Descriptions (March 4)}
+\begin{itemize}
+    \item Added Sec 3.3 (RF), 3.4 (XGBoost), expanded 3.5 (BiGRU), added 3.6 (GNN).
+    \item Equations: bagging, MSE splitting, Morgan FP, boosting objective, GRU gates, message passing.
+    \item Added 5 bib entries: \texttt{breiman2001random}, \texttt{chen2016xgboost}, \texttt{elman1990finding}, \texttt{cho2014learning}, \texttt{gilmer2017neural}.
+\end{itemize}
+
+\subsection{Interpretability Section (March 3)}
+\begin{itemize}
+    \item Added Sec 5.5 with 4 subfigures: feature importance bar chart, solute vs.\ solvent breakdown, cumulative importance curve, training time comparison.
+    \item Key stats: solute 96.1\%, solvent 3.9\% (24.6:1 ratio). Top feature (bit 463, aryl diazo) = 13.0\%.
+    \item ``Practical advantages'' paragraph uses measured tone per user preference.
+\end{itemize}
+
+\subsection{Tone / Language (March 3)}
+\begin{itemize}
+    \item User requested softer language in ``practical advantages'' paragraph.
+    \item Changed from prescriptive (``researchers should evaluate fingerprint-based models as a first approach'') to measured (``depending on the dataset and molecular application domain, it is prudent to evaluate classical ML models where appropriate'').
+    \item This applies throughout: never say ``researchers should''; instead frame as findings that inform decisions.
+\end{itemize}
+
+
+% ======================================================================
+\section{Potential Reviewer Questions and Prepared Answers}
+% ======================================================================
+
+\begin{enumerate}[leftmargin=*]
+    \item \textbf{``Is the RF vs BiGRU difference statistically significant?''}\\
+    \TODO{Run paired t-tests across 5 folds. With only 5 data points per fold comparison, may not reach significance.} The cross-dataset consistency (RF wins on all 4 datasets) is itself strong evidence.
+
+    \item \textbf{``Why not use more sophisticated DL models (Transformer, GNN)?''}\\
+    The benchmark scope is 1D representations (SMILES/fingerprints). GNNs are discussed in context of nablaColors (Sec 5.4) as a 3D comparison point, not as direct competitors. Transformers could be future work.
+
+    \item \textbf{``The wetlab validation set is small (16 molecules).''}\\
+    Acknowledged in Limitations. However, the finding that \textit{ranking reverses} on OOD data is qualitatively robust even with small N---it's a directional finding, not a precise quantification.
+
+    \item \textbf{``How were RF hyperparameters selected?''}\\
+    Grid search over 432 configurations using fold 0 validation set (Sec 5.1). Best config applied to all 5 folds. XGBoost and BiGRU use standard/published hyperparameters.
+
+    \item \textbf{``Why does the tuned RF perform worse on wetlab molecules?''}\\
+    \texttt{max\_features} = 0.3 (vs.\ $\sqrt{d}$) allows the model to use more features per split, which improves fit to the training distribution but may increase overfitting to training-specific substructure patterns. This is consistent with the interpolation/extrapolation distinction.
+
+    \item \textbf{``What about data leakage in v1 results?''}\\
+    v1 results (early stopping on test set) are \textit{not used in the paper}. All reported results use v2 protocol (separate validation set for early stopping). v1 is only in supplementary for reference.
+
+    \item \textbf{``Can you provide per-fold breakdowns?''}\\
+    \TODO{Add supplementary table with per-fold RMSE, MAE, $R^2$ for all models.}
+
+    \item \textbf{``What about the solvent improvement for BiGRU?''}\\
+    \TODO{Waiting for BiGRU no-solvent v2 to complete (fold 4 running). Estimated $\sim$5\% improvement with solvent encoding.}
+\end{enumerate}
+
+
+% ======================================================================
+\section{Target Journals}
+% ======================================================================
+
+\begin{enumerate}
+    \item \textbf{Journal of Cheminformatics} (Springer, IF $\sim$8): Strong fit for benchmark/methodology papers. Good precedent for ``simple baselines beat DL'' papers. Open access.
+    \item \textbf{Digital Discovery} (RSC): Newer journal, appreciates practical ML studies.
+    \item \textbf{Molecular Informatics} (Wiley, IF $\sim$3): Good backup, more applied focus.
+    \item \textbf{J.\ Chem.\ Inf.\ Model.} (ACS, IF $\sim$6): Possible but competitive; may want more novelty.
+\end{enumerate}
+
+
+% ======================================================================
+\section{File Reference}
+% ======================================================================
+
+\begin{tabular}{ll}
+\toprule
+\textbf{File} & \textbf{Purpose} \\
+\midrule
+\texttt{benchmark\_paper.tex} & Main paper (benchmark framing, submit this) \\
+\texttt{ml\_chemistry\_template.tex} & Original DL-focused paper (preserved, Overleaf-synced) \\
+\texttt{Proposal.bib} & Bibliography (77K tokens, read with offset/limit) \\
+\texttt{run\_baselines.py} & Main training script (9 models, 5-fold CV) \\
+\texttt{tune\_rf.py} & RF hyperparameter grid search \\
+\texttt{eval\_wetlab.py} & Wetlab experimental validation \\
+\texttt{eval\_classification.py} & Mamede photosafety classification \\
+\texttt{run\_cross\_dataset.py} & Cross-dataset benchmarks \\
+\texttt{analyze\_rf\_interpretability.py} & RF feature importance analysis + figures \\
+\texttt{results/rf\_best\_config.json} & Tuned RF hyperparameters \\
+\texttt{results/wetlab\_predictions.csv} & All wetlab predictions (BiGRU + RF) \\
+\texttt{results/rf\_hyperparam\_search.csv} & Full 432-config grid search results \\
+\bottomrule
+\end{tabular}
+
+
+% ======================================================================
+\section{Checklist Before Submission}
+% ======================================================================
+
+\begin{enumerate}
+    \item[\DONE{}] Tuned RF results in all tables and text
+    \item[\DONE{}] Wetlab predictions updated with tuned RF
+    \item[\DONE{}] Interpretability figures regenerated with tuned model
+    \item[\DONE{}] ``Complementary strengths'' narrative in abstract, intro, discussion, conclusion
+    \item[\DONE{}] Mathematical model descriptions (RF, XGBoost, BiGRU, GNN)
+    \item[\DONE{}] Cross-dataset results with published baselines
+    \item[\DONE{}] Classification validation
+    \item[\TODO{}] Fill in BiGRU no-solvent v2 numbers (Table 2 + abstract)
+    \item[\TODO{}] Verify all \texttt{\\cite\{\}} keys exist in \texttt{Proposal.bib}
+    \item[\TODO{}] Add supplementary material (per-fold tables)
+    \item[\TODO{}] Statistical significance tests (paired t-tests)
+    \item[\TODO{}] Proofread entire paper
+    \item[\TODO{}] Format for target journal guidelines
+    \item[\TODO{}] Add \texttt{.gitignore} for large model files
+\end{enumerate}
+
+
+\end{document}

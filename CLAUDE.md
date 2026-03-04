@@ -139,7 +139,9 @@ Files: `ml_chemistry_template.tex`, `Proposal.bib` (77K tokens — read with off
 - **`convert_reaxys_web_export.py`** — Reaxys TSV → raw CSV
 - **`postprocess_reaxys.py`** — Raw Reaxys → clean regression + classification datasets (CLI: `--solvent`)
 - **`benchmark_paper.tex`** — NEW benchmark-framed paper (preferred for submission)
+- **`notes_on_paper.tex`** — Revision notes, reviewer Q&A, submission checklist, fallback git hashes
 - **`ml_chemistry_template.tex`** — Original DL-focused paper (preserved, Overleaf-synced)
+- **`tune_rf.py`** — RF hyperparameter grid search (432 configs)
 - **`results/`** — All outputs. **`data/`** — Datasets. **`previous_code/`** — Original work.
 
 ## Datasets
