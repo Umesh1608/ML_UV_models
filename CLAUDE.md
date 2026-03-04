@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**Reframed as benchmark paper** (March 2026): Systematic benchmark of ML approaches (RF, XGBoost, BiGRU) for UV λ_max prediction from 1D molecular representations. Key findings: (1) RF+Morgan FP beats BiGRU on every benchmark, (2) solvent concatenation helps both model families, (3) 1D approaches have fundamental ceiling vs 3D GNNs. Secondary contribution: solvent concatenation strategy.
+**Benchmark paper with "complementary strengths" narrative** (March 2026): Systematic benchmark of ML approaches (RF, XGBoost, BiGRU) for UV λ_max prediction. Key findings: (1) RF+Morgan FP wins on cross-validated benchmarks, (2) BiGRU generalizes better to novel out-of-distribution molecules (wetlab MAE 28.6 vs 38.5), (3) solvent concatenation helps both families, (4) 1D approaches have fundamental ceiling vs 3D GNNs. The paper argues model selection depends on the task: RF for interpolation/screening, BiGRU for novel compound exploration.
 
 **New LaTeX file**: `benchmark_paper.tex` (benchmark framing). Original `ml_chemistry_template.tex` preserved.
 
@@ -39,9 +39,9 @@ All grammar, affiliation, and package fixes applied to `ml_chemistry_template.te
 | Model | Folds | RMSE | MAE | R² | r | Status |
 |-------|-------|------|-----|-----|---|--------|
 | BiGRU + Solvent v2 | 5/5 | 36.45 ± 1.12 | 20.70 ± 0.51 | 0.8836 ± 0.0058 | 0.9402 ± 0.0031 | ✅ Aggregate done |
-| BiGRU no solvent v2 | 0/5 | — | — | — | — | 🔄 Running (started 2026-03-01) |
-| RF v2 (MSE) | 5/5 | 32.18 ± 1.74 | 15.42 ± 0.47 | 0.9091 ± 0.0095 | 0.9538 ± 0.0049 | ✅ Aggregate done |
-| RF v2 no solvent | 5/5 | 34.93 ± 1.40 | 16.77 ± 0.37 | 0.8930 ± 0.0082 | 0.9453 ± 0.0042 | ✅ Aggregate done |
+| BiGRU no solvent v2 | 4/5 | ~38.42 ± 0.65 | ~22.41 ± 0.23 | ~0.8701 | ~0.9333 | 🔄 Fold 4 running |
+| **RF TUNED** (B=1000,mf=0.3) | 5/5 | **31.34 ± 1.82** | **15.16 ± 0.44** | 0.914 ± 0.010 | 0.956 ± 0.005 | ✅ Aggregate done |
+| RF TUNED no solvent | 5/5 | 34.13 ± 1.44 | 16.45 ± 0.33 | 0.900 ± 0.010 | 0.950 ± 0.004 | ✅ Aggregate done |
 | RF v2 (MAE) | 3/5 | fold0: 33.27, fold1: 31.86, fold2: 30.17 | — | — | — | ❌ Folds 3-4 missing |
 | XGBoost v2 (MSE) | 5/5 | 33.70 ± 1.61 | 20.05 ± 0.48 | 0.9003 ± 0.0094 | 0.9496 ± 0.0049 | ✅ Aggregate done |
 | XGBoost v2 (MAE) | 5/5 | 40.75 ± 1.58 | 21.99 ± 0.47 | 0.8544 ± 0.0105 | 0.9272 ± 0.0055 | ✅ Aggregate done |
@@ -66,22 +66,29 @@ Single train/val/test splits matching each paper's published protocol. Val used 
 
 ---
 
-### What Still Needs To Be Done (Benchmark Reframing)
+### What Still Needs To Be Done
 
-#### Step 1 — BiGRU no-solvent v2 (RUNNING)
+#### Step 1 — BiGRU no-solvent v2 (4/5 folds done, fold 4 running)
 🔄 `python3 run_baselines.py --model bigru_nosolvent --v2` — needed for solvent ablation table.
-~15-25 hrs GPU. After completion: fill in Table 2 in `benchmark_paper.tex`.
+After fold 4 completes: run `--summary`, fill in Table 2 + abstract "X%" in `benchmark_paper.tex`.
 
 #### Step 2 — Polish `benchmark_paper.tex`
-- Fill in BiGRU no-solvent v2 numbers in Table 2
+- Fill in BiGRU no-solvent v2 numbers in Table 2 and abstract
 - Verify all citations compile against `Proposal.bib`
-- Add any missing BibTeX entries
 - Write supplementary material (per-fold breakdown)
 - Proofread and final formatting
 
 #### Step 3 (Optional) — Statistical Significance Tests
 - Paired t-tests across 5 folds: RF vs BiGRU, solvent vs no-solvent
 - Reviewers will likely ask for this
+
+#### Completed
+- ✅ RF hyperparameter tuning (432 configs → B=1000, max_features=0.3)
+- ✅ Tuned RF 5-fold CV: RMSE 31.34±1.82 (was 32.18)
+- ✅ Tuned RF no-solvent 5-fold CV: RMSE 34.13±1.44
+- ✅ Wetlab predictions with tuned RF models
+- ✅ "Complementary strengths" narrative revision
+- ✅ RF interpretability figures regenerated with tuned model
 
 #### Dropped from Plan
 - Transfer learning (high risk, uncertain payoff)

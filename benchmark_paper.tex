@@ -52,12 +52,11 @@
 Accurate prediction of UV absorption wavelengths ($\lambda_{\max}$) from molecular structure is essential for photosafety screening, materials design, and photochemistry.
 We present a systematic benchmark of machine learning approaches for $\lambda_{\max}$ prediction, comparing Random Forest (RF) with Morgan fingerprints, XGBoost, and a Bidirectional GRU (BiGRU) sequence model operating on tokenized SMILES strings.
 Models are evaluated on a primary dataset of 18,755 solute--solvent pairs (Joung + Beard) using stratified 5-fold cross-validation, with external validation on three independent datasets totaling over 70,000 molecules using each dataset's published split protocol for direct comparison with prior work.
-RF with concatenated solute--solvent Morgan fingerprints achieves the best overall performance (RMSE = $31.34 \pm 1.82$ nm, $R^2 = 0.914$), outperforming BiGRU (RMSE = $36.45 \pm 1.12$ nm, $R^2 = 0.884$) and matching or exceeding published deep learning baselines on external datasets, including GCNN on Deep4Chem (our RMSE = 22.70 vs.\ 26.6 nm) and GBFS on Jung et al.\ (our RMSE = 29.82 vs.\ 32.2 nm).
-We introduce a solvent concatenation strategy for sequence models, encoding solute and solvent as a single SMILES string with delimiters, yielding a consistent improvement across both BiGRU and RF.
-Ablation studies show that incorporating solvent information reduces RMSE by 8\% for RF (31.34 vs.\ 34.13 nm) and X\% for BiGRU.
+RF with concatenated solute--solvent Morgan fingerprints achieves the best cross-validated performance (RMSE = $31.34 \pm 1.82$ nm, $R^2 = 0.914$), outperforming BiGRU (RMSE = $36.45 \pm 1.12$ nm, $R^2 = 0.884$) and matching or exceeding published deep learning baselines on external datasets, including GCNN on Deep4Chem (our RMSE = 22.70 vs.\ 26.6 nm) and GBFS on Jung et al.\ (our RMSE = 29.82 vs.\ 32.2 nm).
+However, experimental validation on 16 novel UV-absorbing compounds reveals that BiGRU generalizes better to out-of-distribution molecules (MAE = 28.6 vs.\ 38.5 nm for RF), suggesting that sequence models learn transferable patterns beyond fixed substructural features.
+We introduce a solvent concatenation strategy encoding solute and solvent as a single representation, yielding consistent improvement across both model families (8\% RMSE reduction for RF).
 Comparison with 3D graph neural networks on nablaColors (our MAE = 34.62 vs.\ UniProp MAE = 15.97 nm) reveals the fundamental ceiling of 1D molecular representations.
-We further validate our models through ICH~S10 photosafety classification, matching published results (accuracy 0.879 vs.\ 0.89), and experimental validation on 16 UV-absorbing compounds measured in two solvents.
-These results demonstrate that well-engineered classical ML can match or exceed deep learning for UV property prediction from 1D molecular representations, while highlighting scenarios where 3D structural information is essential.
+These complementary strengths---RF for interpolation within known chemical space, BiGRU for extrapolation to novel scaffolds---provide practical guidance for model selection in UV property prediction.
 \end{abstract}
 
 \textbf{Keywords:} machine learning, UV absorption, molecular property prediction, SMILES, random forest, benchmarking, solvent effects
@@ -91,11 +90,12 @@ In this work, we present a rigorous benchmark study comparing three ML approache
 Our key contributions are:
 \begin{itemize}
     \item A comprehensive comparison across four datasets using each dataset's published evaluation protocol, enabling direct comparison with prior work.
-    \item Demonstration that RF with Morgan fingerprints consistently outperforms deep learning baselines, achieving state-of-the-art results on two external datasets.
+    \item Demonstration that RF with Morgan fingerprints achieves the best cross-validated performance, reaching state-of-the-art results on two external datasets.
+    \item Evidence that BiGRU generalizes better to novel out-of-distribution compounds, revealing complementary strengths between fingerprint-based and sequence-based approaches.
     \item A solvent concatenation strategy that improves prediction accuracy for both sequence models and fingerprint-based methods.
     \item Quantification of the performance ceiling of 1D molecular representations through comparison with 3D graph neural networks.
     \item Interpretability analysis of RF feature importances, revealing that the model learns chemically meaningful chromophore motifs, and practical comparison of training cost (15 minutes CPU vs.\ 25 hours GPU).
-    \item Practical validation through ICH~S10 photosafety classification and experimental UV measurements.
+    \item Practical validation through ICH~S10 photosafety classification and experimental UV measurements on 16 novel compounds.
 \end{itemize}
 
 
@@ -611,16 +611,19 @@ Sulisobenzone   & 287 & 346 & 355 & 286 & 346 & 352 \\
 \end{tabular}
 \end{table}
 
-Interestingly, BiGRU outperforms RF on this experimental validation set (MAE = 28.6 vs.\ 38.5~nm overall), reversing the ranking observed on the cross-validated primary dataset.
-This may reflect BiGRU's ability to generalize from learned sequential patterns to novel molecular structures, whereas RF is constrained by the specific substructural patterns present in its training fingerprints.
-However, both models show substantially higher errors than their cross-validated performance, indicating that these 16 compounds are genuinely challenging out-of-distribution examples.
+Notably, BiGRU outperforms RF on this experimental validation set (MAE = 28.6 vs.\ 38.5~nm overall), \textit{reversing} the ranking observed on the cross-validated primary dataset.
+This reversal reveals a fundamental distinction between the two approaches: RF relies on exact substructure matching through Morgan fingerprint bits, so it excels at interpolation within the training distribution but struggles when novel functional groups or conjugation patterns are underrepresented in the training data.
+BiGRU, by contrast, learns sequential patterns from SMILES strings that can generalize to unseen molecular motifs.
+Both models show substantially higher errors than their cross-validated performance (BiGRU: 28.6 vs.\ 20.7~nm MAE; RF: 38.5 vs.\ 15.2~nm MAE), confirming that these 16 compounds are genuinely challenging out-of-distribution examples.
 
 Cinnamic Acid (experimental $\lambda_{\max}$ = 275--276~nm) is a notable outlier: both models overpredict by $\sim$70~nm.
 The experimental peak lies at the edge of the 270--400~nm scan range, suggesting measurement limitations.
-Octocrylene is particularly problematic for RF (error $\sim$89~nm), likely because its extended cyano-acrylate conjugation is underrepresented in the training data.
+Octocrylene is particularly problematic for RF (error $\sim$89~nm vs.\ 43~nm for BiGRU), likely because its extended cyano-acrylate conjugation is underrepresented in the training data---precisely the scenario where fingerprint-based models are expected to fail.
 Excluding these two outliers, the BiGRU MAE decreases to 24.2~nm and RF MAE to 32.6~nm.
 
 Both models capture the small solvent sensitivity between EtOH and MeOH (typically 0--1~nm experimentally), though with some overestimation of the solvent shift magnitude (average predicted shifts of 2.5~nm for BiGRU and 2.9~nm for RF).
+
+These results highlight the complementary strengths of the two model families: RF is the preferred choice for screening within known chemical space (e.g., virtual screening of compound libraries with well-represented scaffolds), while BiGRU is better suited for exploring novel molecular architectures where the training distribution may not cover all relevant substructures.
 
 
 % ===== Conclusion =====
@@ -632,9 +635,10 @@ We have presented a systematic benchmark of ML approaches for UV absorption wave
 Our key findings are:
 
 \begin{enumerate}
-    \item \textbf{RF outperforms deep learning on 1D representations.}
-    RF with Morgan fingerprints achieves the best performance on the primary Joung+Beard dataset (RMSE = 31.34~nm vs.\ 36.45~nm for BiGRU) and on all three external datasets.
-    On Deep4Chem and Jung 2024, RF surpasses the published deep learning baselines (RMSE = 22.70 vs.\ GCNN 26.6; RMSE = 29.82 vs.\ GBFS 32.2), demonstrating that careful application of classical ML can yield state-of-the-art results.
+    \item \textbf{RF and BiGRU have complementary strengths.}
+    RF with Morgan fingerprints achieves the best cross-validated performance on the primary Joung+Beard dataset (RMSE = 31.34~nm vs.\ 36.45~nm for BiGRU) and on all three external datasets, surpassing published deep learning baselines on Deep4Chem (RMSE = 22.70 vs.\ GCNN 26.6) and Jung 2024 (RMSE = 29.82 vs.\ GBFS 32.2).
+    However, experimental validation on 16 novel compounds reverses this ranking: BiGRU generalizes better to out-of-distribution molecules (MAE = 28.6 vs.\ 38.5~nm for RF).
+    This indicates that RF excels at interpolation within known chemical space, while BiGRU learns transferable sequential patterns that extend beyond fixed substructural features.
 
     \item \textbf{Solvent encoding improves both model families.}
     The solvent concatenation strategy---encoding solute and solvent as a single representation---reduces RF RMSE by 8\% (34.13 $\to$ 31.34~nm).
@@ -647,20 +651,24 @@ Our key findings are:
     \item \textbf{RF provides interpretable, efficient predictions.}
     Feature importance analysis reveals that the RF model learns chemically meaningful patterns: the top features correspond to known chromophore motifs (aryl diazo, BODIPY, enamine) that produce large bathochromic shifts.
     The top 20 features (out of 4096) explain over 41\% of importance, providing transparency that deep learning models cannot offer.
-    Furthermore, RF trains 100$\times$ faster than BiGRU (15 minutes CPU vs.\ 25 hours GPU) while achieving better accuracy, underscoring the value of evaluating classical models alongside deep learning to understand relative performance before committing to more complex architectures.
+    RF also trains 100$\times$ faster than BiGRU (15 minutes CPU vs.\ 25 hours GPU), making it the practical first choice when the target chemical space is well-represented in training data.
 
     \item \textbf{Practical classification matches published results.}
     RF-based photosafety classification (accuracy = 0.879) closely reproduces the published Mamede benchmark (accuracy = 0.89), validating both the methodology and dataset reconstruction.
 \end{enumerate}
 
+Taken together, these findings suggest that model selection for UV absorption prediction should be guided by the relationship between target compounds and available training data: RF is preferred for screening within well-characterized chemical libraries, while BiGRU (or deep learning more broadly) is better suited for exploration of novel molecular architectures.
+
 \subsection*{Limitations}
 Our models use only 1D molecular representations, lacking 3D conformational information that the nablaColors comparison shows is important for diverse chromophores.
 Solvents are encoded purely through their molecular structure (SMILES or fingerprints), without explicit physical properties such as dielectric constant or refractive index.
 The BiGRU model uses character-level tokenization, which may miss chemically meaningful substructures compared to more sophisticated tokenization schemes.
+The experimental validation set (16 molecules) is small; larger out-of-distribution evaluations would strengthen the generalization finding.
 
 \subsection*{Future Work}
-Transfer learning from larger UV absorption databases (e.g., the Reaxys dataset of $\sim$70K records) may improve BiGRU performance and narrow the gap with RF, leveraging deep learning's capacity for pretraining---an advantage that classical ML cannot replicate.
+Transfer learning from larger UV absorption databases (e.g., the Reaxys dataset of $\sim$70K records) may improve BiGRU performance and narrow the gap with RF on cross-validated benchmarks, leveraging deep learning's capacity for pretraining---an advantage that classical ML cannot replicate.
 Incorporating 3D structural information through hybrid architectures or precomputed descriptors could address the limitations revealed by the nablaColors benchmark.
+Ensemble approaches combining RF and BiGRU predictions could potentially leverage the complementary strengths of both model families.
 While RF provides global feature importance, attention mechanisms in sequence models could offer instance-level interpretability by highlighting which molecular substructures drive individual predictions.
 
 
