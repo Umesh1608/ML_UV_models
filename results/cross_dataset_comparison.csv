@@ -1,0 +1,9 @@
+Dataset,Model,Split,RMSE,MAE,R2,Published
+Joung+Beard (18.7K),BiGRU,Random 5-CV,33.48 +/- 0.77,18.46 +/- 0.11,0.9017 +/- 0.0054,This work
+Deep4Chem (Joung 2020),BiGRU,Random 80%/10%/10%,27.07,17.22,0.9339,GCNN: RMSE 26.6
+Deep4Chem (Joung 2020),RF,Random 80%/10%/10%,22.70,11.32,0.9535,GCNN: RMSE 26.6
+Jung et al. 2024,BiGRU,Random 72%/18%/10%,36.31,21.54,0.8868,GBFS: RMSE 32.2
+Jung et al. 2024,RF,Random 72%/18%/10%,29.82,15.31,0.9237,GBFS: RMSE 32.2
+Jung et al. 2024,BiGRU,Scaffold 80/10/10,67.56,46.77,0.5993,GBFS: RMSE 32.2
+nablaColors (Potapov 2026),BiGRU,Precomputed (author),56.38,39.48,0.6958,"UniProp (3D GNN, 27.7M params): MAE 15.97"
+nablaColors (Potapov 2026),RF,Precomputed (author),52.43,34.62,0.7370,"UniProp (3D GNN, 27.7M params): MAE 15.97"

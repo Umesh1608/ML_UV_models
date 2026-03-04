@@ -1,0 +1,29 @@
+{
+  "n_folds_found": 1,
+  "RMSE_mean": 33.43,
+  "RMSE_std": 0.0,
+  "RMSE_values": [
+    33.43
+  ],
+  "MAE_mean": 18.09,
+  "MAE_std": 0.0,
+  "MAE_values": [
+    18.09
+  ],
+  "R2_mean": 0.9003,
+  "R2_std": 0.0,
+  "R2_values": [
+    0.9003
+  ],
+  "Pearson_r_mean": 0.9491,
+  "Pearson_r_std": 0.0,
+  "Pearson_r_values": [
+    0.9491
+  ],
+  "pooled_metrics": {
+    "RMSE": 33.43,
+    "MAE": 18.09,
+    "R2": 0.9003,
+    "Pearson_r": 0.9491
+  }
+}

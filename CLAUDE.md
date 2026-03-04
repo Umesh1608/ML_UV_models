@@ -4,188 +4,151 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This repository supports a research paper on **ML-based UV absorption (λ_max) prediction** using SMILES molecular representations. The key contribution is a **solvent concatenation strategy** — encoding solute+solvent as a single SMILES sequence with delimiters — which achieves a 16.5% RMSE improvement over solute-only models. The model architecture is a **BiGRU** (bidirectional GRU) operating on tokenized SMILES.
+**Reframed as benchmark paper** (March 2026): Systematic benchmark of ML approaches (RF, XGBoost, BiGRU) for UV λ_max prediction from 1D molecular representations. Key findings: (1) RF+Morgan FP beats BiGRU on every benchmark, (2) solvent concatenation helps both model families, (3) 1D approaches have fundamental ceiling vs 3D GNNs. Secondary contribution: solvent concatenation strategy.
 
-The paper includes experimental validation with real UV-Vis spectra on compounds like avobenzone, ferulic acid, oxybenzone, octisalate, and homosalate.
+**New LaTeX file**: `benchmark_paper.tex` (benchmark framing). Original `ml_chemistry_template.tex` preserved.
 
-**Target journals** (in order of fit): Journal of Chemical Information and Modeling (ACS), Journal of Cheminformatics (Springer), Molecular Informatics (Wiley), Digital Discovery (RSC).
+**Target journals**: J. Cheminformatics (Springer), Digital Discovery (RSC), Mol. Informatics (Wiley).
 
-## Overleaf + Git Workflow
+---
 
-The paper LaTeX source lives on Overleaf with Git sync enabled. The workflow is:
+## FULL PROJECT PLAN
+
+### What's Been Achieved
+
+#### Phase 1 — LaTeX Quick Fixes ✅ COMPLETE
+All grammar, affiliation, and package fixes applied to `ml_chemistry_template.tex`.
+
+#### Phase 2a — Baseline Experiments on Joung+Beard (18,755 samples)
+
+**v1 results (KFold 80/20, early stopping on test — has data leakage for DL models):**
+
+| Model | Folds | RMSE | MAE | R² | r | Status |
+|-------|-------|------|-----|-----|---|--------|
+| BiGRU + Solvent | 5/5 | 33.48 ± 0.77 | 18.46 ± 0.11 | 0.9017 ± 0.0054 | 0.9497 ± 0.0029 | ✅ Aggregate done |
+| BiGRU no solvent | 5/5 | ~37.85 ± 1.19 | ~20.81 ± 0.56 | ~0.8745 | ~0.9355 | ✅ Folds done, needs `--summary` |
+| BiLSTM + Solvent | 2/5 | fold0: 34.41, fold1: 40.71 | — | — | — | ❌ Folds 2-4 missing |
+| CNN-BiGRU + Solvent | 1/5 | fold0: 33.43 | — | — | — | ❌ Folds 1-4 missing |
+| RF (MSE) | 5/5 | 30.85 ± 0.71 | 14.24 ± 0.27 | 0.9166 ± 0.0040 | 0.9577 ± 0.0019 | ✅ Aggregate done |
+| RF (MAE) | 5/5 | 30.92 ± 0.74 | 14.35 ± 0.14 | 0.9162 ± 0.0035 | 0.9576 ± 0.0016 | ✅ Aggregate done |
+| XGBoost (MSE) | 5/5 | 32.71 ± 1.14 | 19.51 ± 0.43 | 0.9062 ± 0.0052 | 0.9529 ± 0.0025 | ✅ Aggregate done |
+| XGBoost (MAE) | 5/5 | 40.12 ± 2.27 | 21.41 ± 0.77 | 0.8587 ± 0.0148 | 0.9295 ± 0.0074 | ✅ Aggregate done |
+
+**v2 results (StratifiedKFold 64/16/20 train/val/test, proper early stopping — preferred for paper):**
+
+| Model | Folds | RMSE | MAE | R² | r | Status |
+|-------|-------|------|-----|-----|---|--------|
+| BiGRU + Solvent v2 | 5/5 | 36.45 ± 1.12 | 20.70 ± 0.51 | 0.8836 ± 0.0058 | 0.9402 ± 0.0031 | ✅ Aggregate done |
+| BiGRU no solvent v2 | 0/5 | — | — | — | — | 🔄 Running (started 2026-03-01) |
+| RF v2 (MSE) | 5/5 | 32.18 ± 1.74 | 15.42 ± 0.47 | 0.9091 ± 0.0095 | 0.9538 ± 0.0049 | ✅ Aggregate done |
+| RF v2 no solvent | 5/5 | 34.93 ± 1.40 | 16.77 ± 0.37 | 0.8930 ± 0.0082 | 0.9453 ± 0.0042 | ✅ Aggregate done |
+| RF v2 (MAE) | 3/5 | fold0: 33.27, fold1: 31.86, fold2: 30.17 | — | — | — | ❌ Folds 3-4 missing |
+| XGBoost v2 (MSE) | 5/5 | 33.70 ± 1.61 | 20.05 ± 0.48 | 0.9003 ± 0.0094 | 0.9496 ± 0.0049 | ✅ Aggregate done |
+| XGBoost v2 (MAE) | 5/5 | 40.75 ± 1.58 | 21.99 ± 0.47 | 0.8544 ± 0.0105 | 0.9272 ± 0.0055 | ✅ Aggregate done |
+
+#### Phase 2b — Cross-Dataset Benchmarking (verified from result files)
+
+Single train/val/test splits matching each paper's published protocol. Val used for early stopping (no data leakage).
+
+| Dataset | Split | Published | Our RMSE | Our MAE | Our R² | Status |
+|---------|-------|-----------|----------|---------|--------|--------|
+| Deep4Chem | random 80/10/10 | GCNN RMSE 26.6 (Joung 2020) | 27.07 | 17.22 | 0.9339 | ✅ Done (very close to published!) |
+| Jung 2024 | random 72/18/10 | GBFS RMSE 32.2 (Jung 2024) | 36.31 | 21.54 | 0.8868 | ✅ Done |
+| Jung 2024 | scaffold 80/10/10 | GBFS RMSE 32.2 (Jung 2024) | 67.56 | 46.77 | 0.5993 | ✅ Done (scaffold is much harder for 1D models) |
+| nablaColors | precomputed scaffold | UniMol+ MAE 15.97 (3D GNN, 27.7M params) | 56.38 | 39.48 | 0.6958 | ✅ Done (3D models have huge advantage) |
+| nablaColors SELFIES | precomputed scaffold | — | 56.57 | 40.42 | 0.6938 | ✅ Done |
+
+#### Phase 2c — Classification Validation (verified from result files)
+
+| Task | Status | Result |
+|------|--------|--------|
+| Mamede classification (from v1 pooled) | ✅ Done | Sens=0.9904, Spec=0.5446, F1=0.9817, AUC=0.9215 (N=3751) |
+
+---
+
+### What Still Needs To Be Done (Benchmark Reframing)
+
+#### Step 1 — BiGRU no-solvent v2 (RUNNING)
+🔄 `python3 run_baselines.py --model bigru_nosolvent --v2` — needed for solvent ablation table.
+~15-25 hrs GPU. After completion: fill in Table 2 in `benchmark_paper.tex`.
+
+#### Step 2 — Polish `benchmark_paper.tex`
+- Fill in BiGRU no-solvent v2 numbers in Table 2
+- Verify all citations compile against `Proposal.bib`
+- Add any missing BibTeX entries
+- Write supplementary material (per-fold breakdown)
+- Proofread and final formatting
+
+#### Step 3 (Optional) — Statistical Significance Tests
+- Paired t-tests across 5 folds: RF vs BiGRU, solvent vs no-solvent
+- Reviewers will likely ask for this
+
+#### Dropped from Plan
+- Transfer learning (high risk, uncertain payoff)
+- BiLSTM/CNN-BiGRU v2 (incomplete, don't add to benchmark story)
+- ChemFluor external validation (no published benchmark)
+
+---
+
+## GPU Setup
+
+**Hardware**: RTX 4090 Laptop GPU, TF 2.20, CUDA 12.7
+
+```bash
+# libdevice fix (one-time):
+mkdir -p ~/.local/cuda_compat/nvvm/libdevice
+ln -sf ~/.local/lib/python3.12/site-packages/triton/backends/nvidia/lib/libdevice.10.bc ~/.local/cuda_compat/nvvm/libdevice/libdevice.10.bc
+```
+
+**Before DL training**: kill competing processes, check `nvidia-smi`. `verify_gpu_available()` runs automatically.
+
+**Expected epoch times** (batch_size=32, seq_len=649):
+- v2 (~12K train, 375 steps/epoch): **~70-85 sec/epoch**, ~3-5 hours per fold
+- 18% GPU utilization is NORMAL for RNNs (sequential timestep computation)
+- Tqdm callback prints detailed metrics every 10 epochs automatically
+
+## Training Config
+
+batch_size=32, lr=0.001, mixed_float16, epochs=250, patience=25, RMSprop, loss=MAE
+
+## Overleaf + Git
 
 ```
-git pull origin master   →   edit locally   →   git add/commit/push   →   changes appear in Overleaf
+git pull origin master → edit locally → git add/commit/push → changes in Overleaf
 ```
+Files: `ml_chemistry_template.tex`, `Proposal.bib` (77K tokens — read with offset/limit), `references_zo.bib`
 
-Key LaTeX files (from Overleaf):
-- `ml_chemistry_template.tex` — Main paper source
-- `Proposal.bib`, `references_zo.bib` — Bibliography files
-- Image assets: `p_1.png`, `UV.jpg`, various molecule/architecture diagrams
+## File Architecture
+
+- **`paper1_new_cl/`** — Python package
+  - `models.py` — compute_metrics, vectorize_smiles, create_dl_model, train_dl_model, verify_gpu_available, get_tqdm_callback
+  - `splits.py` — scaffold_split, create_solvent_bins, create_stratified_folds
+- **`run_baselines.py`** — 9 models (incl. rf_nosolvent), 5-fold CV, v1/v2 (CLI: `--model`, `--fold`, `--v2`, `--summary`)
+- **`run_cross_dataset.py`** — Cross-dataset benchmarks (CLI: `--dataset`, `--split`, `--summary`)
+- **`run_selfies_experiment.py`** — SELFIES vs SMILES on nablaColors
+- **`eval_classification.py`** — Mamede photosafety classification (CLI: `--model`, `--threshold`)
+- **`eval_wetlab.py`** — Wetlab experimental validation (16 molecules × 2 solvents)
+- **`download_datasets.py`** — Download external datasets (CLI: `--dataset`)
+- **`convert_reaxys_web_export.py`** — Reaxys TSV → raw CSV
+- **`postprocess_reaxys.py`** — Raw Reaxys → clean regression + classification datasets (CLI: `--solvent`)
+- **`benchmark_paper.tex`** — NEW benchmark-framed paper (preferred for submission)
+- **`ml_chemistry_template.tex`** — Original DL-focused paper (preserved, Overleaf-synced)
+- **`results/`** — All outputs. **`data/`** — Datasets. **`previous_code/`** — Original work.
 
 ## Datasets
 
-- **Joung 2020** and **Beard 2019** databases, merged into ~38,000+ UV absorption records
-- Each record: solute SMILES, solvent, measured λ_max (nm)
-- **Primary dataset file**: `previous_code/UV_canonical_full_dataset.csv` — columns: `smiles`, `lambda_max`, `canon`, `solvents` (18,755 rows after dropna)
-
-## Current Session State (Resume Here)
-
-### Next Steps (priority order)
-1. Finish bigru_solvent folds 2–4
-2. Run remaining 5 models × 5 folds
-3. `python3 run_baselines.py --summary` → comparison table + plots
-4. Export remaining 51 Reaxys batches → converter → postprocessor
-5. Transfer learning: pre-train on Reaxys, fine-tune on Joung+Beard (Phase 2b)
-6. `python3 eval_external.py` on ChemFluor
-7. `python3 eval_classification.py` on Mamede
-8. Phase 3: write results into paper
-9. Phase 4: polish
-
-### COMPLETED (Phase 1 — Quick LaTeX fixes)
-All applied to `ml_chemistry_template.tex`:
-- ✅ F1: Fixed "Solubility prediction" paragraph → rewritten about UV absorption/solvent effects (line ~509)
-- ✅ F2: Fixed author affiliation `$^1$` → `$^2$` for Midwest Bioprocessing Center (line 42)
-- ✅ F3a: Removed stray backslash after "(LSTM)" (line 94)
-- ✅ F3b: Fixed grammar "is depended on" → "depends on", double period, smart quotes (line 108)
-- ✅ F4: Fixed informal tone "and others we tried as well" → "as well as alternative architectures evaluated" (line 263)
-- ✅ F5: Removed unused `\usepackage{algorithm}` and `\usepackage{algpseudocode}` (lines 11-12)
-
-### IN PROGRESS (Phase 2 — Baseline Experiments with 5-Fold CV)
-
-**Script**: `run_baselines.py` — runs 6 models with 5-fold cross-validation (KFold, shuffle=True, seed=7)
-
-**GPU setup**: RTX 4090 Laptop GPU. Requires:
-```bash
-# libdevice fix for TF/XLA on this machine:
-mkdir -p ~/.local/cuda_compat/nvvm/libdevice
-ln -sf ~/.local/lib/python3.12/site-packages/triton/backends/nvidia/lib/libdevice.10.bc ~/.local/cuda_compat/nvvm/libdevice/libdevice.10.bc
-# The run_baselines.py script sets XLA_FLAGS automatically
-```
-
-**Current settings**: batch_size=80, lr=0.001, mixed_float16, epochs=250, patience=25
-
-**Progress**:
-- bigru_solvent: fold 0 ✅ (RMSE 33.2), fold 1 ✅ (RMSE 32.8), folds 2–4 pending
-- Other 5 models (bigru_nosolvent, bilstm, cnn_bigru, rf, xgboost): not started
-
-**To resume** (folds are fully independent and resumable; completed folds auto-skip):
-```bash
-python3 run_baselines.py --model bigru_solvent --fold 2   # next fold
-python3 run_baselines.py --model bigru_solvent             # remaining folds (auto-skips done ones)
-python3 run_baselines.py                                    # all 6 models, 5-fold CV
-python3 run_baselines.py --summary                          # regenerate table + plots
-```
-
-**External validation**: `eval_external.py` now uses ensemble of 5 fold models (mean prediction + uncertainty).
-
-### NOT STARTED (Phase 2b — Transfer Learning)
-
-**Concept**: Pre-train the best model (BiGRU+Solvent) on the larger ~74k Reaxys/Mamede dataset, then fine-tune on the curated 18.7k Joung+Beard dataset. Compare against training from scratch (Phase 2 baseline).
-
-**Prerequisites** (must be done first):
-1. All 75 Reaxys exports collected and converted (currently 24/75 done)
-2. `python3 postprocess_reaxys.py --solvent all` to get clean regression dataset
-3. Phase 2 complete (to establish the baseline to beat)
-
-**Implementation plan** (new script `run_transfer.py`):
-1. Load Reaxys dataset via `data/mamede_regression_dataset.csv` (output of postprocessor)
-2. Build charset as **superset** of Reaxys + Joung+Beard vocabularies (same embed_dim=50)
-3. Pre-train BiGRU+Solvent on Reaxys data (same architecture: 2×BiGRU-128, Dense-128, dropout 0.2)
-   - Optimizer: RMSprop, lr=0.001, loss=MAE
-   - Early stopping patience=25, max 250 epochs
-4. Fine-tune on Joung+Beard 18.7k dataset with **5-fold CV** (same folds as Phase 2 for fair comparison)
-   - Option A: Lower lr (e.g. 1e-4) on all layers
-   - Option B: Freeze embedding + first BiGRU, train rest at normal lr
-   - Try both, report best
-5. Compare RMSE/MAE/R² against Phase 2 baseline
-
-**Key constraint**: Tokenization must be compatible — the charset from pre-training must include all characters in the fine-tuning dataset. Use the union charset for both stages.
-
-### Reaxys Data Pipeline
-
-**Status**: 24/75 TSV exports converted → `data/raw/reaxys_uv_raw.csv` (114,699 records, 24,000 XRNs). 51 more exports needed (daily Reaxys limit ≈ 25).
-
-After all 75 exports are collected: re-run converter → postprocess → regression + classification datasets.
-
-```bash
-python3 convert_reaxys_web_export.py          # TSV → raw CSV
-python3 postprocess_reaxys.py --solvent all   # raw → clean datasets
-```
-
-### NOT STARTED (Phase 3 — Paper Writing Updates)
-After experiments finish, these changes go into `ml_chemistry_template.tex`:
-- Add comparison results table (all 6 models, RMSE/MAE/R²/r)
-- Add error analysis subsection with figures (parity plot, error distribution, error by wavelength, error by solvent)
-- Expand Related Work with UV-specific ML papers (Kneiding et al., Ju et al. 2021, etc.)
-- Add limitations paragraph (no 3D info, solvent representation limited to SMILES)
-- Fill in Data and Code Availability section
-- Add new BibTeX entries to `Proposal.bib`
-
-### NOT STARTED (Phase 4 — Final Polish)
-- Proofread entire paper
-- Verify all cross-references compile
-- Format for target journal
-
-## Baseline Experiments
-
-The `run_baselines.py` script in the repo root runs all comparison models with 5-fold CV:
-
-```bash
-# Run all 6 baselines, 5-fold CV (GPU recommended, ~29 hrs total)
-python3 run_baselines.py
-
-# Run one model, all 5 folds
-python3 run_baselines.py --model bigru_solvent
-
-# Run one model, one fold (for testing/resuming)
-python3 run_baselines.py --model bigru_solvent --fold 0
-
-# Regenerate summary table + plots from saved results
-python3 run_baselines.py --summary
-
-# Results go to results/ directory:
-#   results/cv_fold_indices.npz                    — fold splits for reproducibility
-#   results/{model_key}_config.json                — global config (once per model)
-#   results/{model_key}_fold{0-4}_metrics.json     — per-fold metrics
-#   results/{model_key}_fold{0-4}_model.keras      — per-fold Keras models
-#   results/{model_key}_fold{0-4}_model.joblib     — per-fold RF/XGB models
-#   results/{model_key}_cv_aggregate.json           — mean +/- std metrics
-#   results/{model_key}_cv_pooled.npz               — all predictions pooled
-#   results/baseline_comparison.csv                 — summary table (mean +/- std)
-#   results/parity_plot.png/pdf                     — from pooled predictions
-#   results/error_distribution.png/pdf
-#   results/error_by_wavelength.png/pdf
-#   results/error_by_solvent.png/pdf
-```
+- **Primary**: `previous_code/UV_canonical_full_dataset.csv` — 18,755 rows (smiles, lambda_max, canon, solvents)
+- **Deep4Chem**: `data/deep4chem_processed.csv` — ~20K (Joung 2020, Figshare)
+- **Jung 2024**: `data/jung2024_processed.csv` — ~26K (GitHub)
+- **nablaColors**: `data/nablacolors_processed.csv` — 24,567 (Zenodo), splits in `nablacolors_splits.npz`
+- **ChemFluor**: `data/chemfluor_processed.csv` — 4,232 entries
+- **Reaxys**: `data/raw/reaxys_uv_raw.csv` — 114,699 records (from 24/75 exports, needs re-run after all 75)
+- **Reaxys exports**: `data/raw/reaxys_exports/` — 48/75 TSV files collected
 
 ## Commands
 
 ```bash
-# Install package with dev dependencies
-pip install -e ".[dev]"
-
-# Run all tests
-pytest
-
-# Run a single test file/function
-pytest tests/test_example.py
-pytest tests/test_example.py::test_function_name
-
-# Lint and format
-ruff check .
-ruff format .
+pip install -e ".[dev]"      # Install
+pytest                        # Tests
+ruff check . && ruff format . # Lint
 ```
-
-## Architecture
-
-- **`paper1_new_cl/`** — Main Python package source
-- **`tests/`** — Test directory (pytest)
-- **`pyproject.toml`** — Build config, dependencies, tool settings
-- **`run_baselines.py`** — Baseline experiment script (6 models, 5-fold CV)
-- **`convert_reaxys_web_export.py`** — Converts Reaxys TSV web exports → `data/raw/reaxys_uv_raw.csv`
-- **`eval_external.py`** — External validation on ChemFluor (ensemble of 5 fold models)
-- **`eval_classification.py`** — Classification evaluation on Mamede dataset
-- **`results/`** — Experiment outputs (created by run_baselines.py)
-- **`data/`** — Processed datasets and raw data files
-- **`previous_code/`** — Original code and datasets from prior work

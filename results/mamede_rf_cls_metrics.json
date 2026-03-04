@@ -1,0 +1,60 @@
+{
+  "classification": {
+    "TP": 827,
+    "FP": 124,
+    "TN": 928,
+    "FN": 117,
+    "Sensitivity": 0.8761,
+    "Specificity": 0.8821,
+    "Accuracy": 0.8793,
+    "F1": 0.8728,
+    "MCC": 0.7579,
+    "ROC-AUC": 0.9424,
+    "N": 1996,
+    "N_POS": 944,
+    "N_NEG": 1052
+  },
+  "test_I": {
+    "TP": 417,
+    "FP": 62,
+    "TN": 464,
+    "FN": 55,
+    "Sensitivity": 0.8835,
+    "Specificity": 0.8821,
+    "Accuracy": 0.8828,
+    "F1": 0.877,
+    "MCC": 0.7651,
+    "ROC-AUC": 0.9447,
+    "N": 998,
+    "N_POS": 472,
+    "N_NEG": 526
+  },
+  "test_II": {
+    "TP": 410,
+    "FP": 62,
+    "TN": 464,
+    "FN": 62,
+    "Sensitivity": 0.8686,
+    "Specificity": 0.8821,
+    "Accuracy": 0.8758,
+    "F1": 0.8686,
+    "MCC": 0.7508,
+    "ROC-AUC": 0.9402,
+    "N": 998,
+    "N_POS": 472,
+    "N_NEG": 526
+  },
+  "oob_score": 0.8773,
+  "config": {
+    "model": "rf_cls",
+    "n_estimators": 500,
+    "fp_bits": 1024,
+    "fp_radius": 2,
+    "n_total": 74783,
+    "n_train": 72787,
+    "n_test1": 998,
+    "n_test2": 998,
+    "seed": 7,
+    "n_invalid_smiles": 0
+  }
+}

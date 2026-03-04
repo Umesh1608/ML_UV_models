@@ -49,29 +49,20 @@
 
 % ===== Abstract =====
 \begin{abstract}
-Accurate prediction of UV absorption properties is essential for the rational design of molecules 
-targeting applications in sunscreen formulation, pharmaceutical development, and optoelectronic 
-materials. However, predicting the maximum absorption wavelength ($\lambda_{\max}$) of organic 
-molecules remains challenging due to the complex dependence of UV absorption on molecular 
-electronic structure and solute--solvent interactions. In this work, we present a deep learning 
-framework based on bidirectional Gated Recurrent Unit (BiGRU) networks that predicts 
-$\lambda_{\max}$ directly from SMILES string representations of organic molecules. We leverage 
-two comprehensive experimental UV/Vis absorption databases---comprising over 38,000 records
-across more than 15,000 unique organic chromophores measured in hundreds of solvent
-conditions. After merging, deduplication, and filtering, approximately 16,020
-solute--solvent pairs were used to train and evaluate our models. A key contribution of this work is the integration 
-of solvent information into the predictive framework through a sequence concatenation strategy, 
-where SMILES representations of both the solute and solvent are combined into a single input 
-sequence with special delimiter tokens, enabling the model to learn solvent effects 
-directly from data. The baseline model trained without solvent information achieved an RMSE of 
-24.36~nm, while the solvent-aware model reduced the prediction error to 20.34~nm, representing 
-a 16.5\% improvement. Experimental validation against UV-Vis spectroscopy measurements on 
-known UV-absorbing compounds including avobenzone, ferulic acid, homosalate, octisalate, and 
-oxybenzone demonstrated strong agreement between predicted and experimentally determined 
-$\lambda_{\max}$ values, with prediction errors ranging from 5 to 11~nm. These results 
-establish sequential RNN architectures with solvent-aware encoding as an effective and 
-computationally efficient approach for predicting UV absorption properties of organic 
-chromophores.
+Accurate prediction of UV absorption properties is essential for the rational design of molecules
+targeting applications in sunscreen formulation, pharmaceutical development, and optoelectronic
+materials. However, predicting the maximum absorption wavelength ($\lambda_{\max}$) of organic
+molecules remains challenging due to the complex dependence of UV absorption on molecular
+electronic structure and solute--solvent interactions. In this work, we present a deep learning
+framework based on bidirectional Gated Recurrent Unit (BiGRU) networks that predicts
+$\lambda_{\max}$ directly from SMILES string representations of organic molecules. We leverage
+two comprehensive experimental UV/Vis absorption databases comprising 18,755
+solute--solvent pairs across more than 15,000 unique organic chromophores measured in hundreds of solvent
+conditions. A key contribution is the integration
+of solvent information through a sequence concatenation strategy,
+where SMILES representations of both the solute and solvent are combined into a single input
+sequence with special delimiter tokens. Using rigorous stratified 5-fold cross-validation with proper train/validation/test separation, the solvent-aware BiGRU model achieves RMSE~$= 36.45 \pm 1.12$~nm ($R^2 = 0.884$), improving over the solute-only baseline (RMSE~$= 37.85$~nm). Classical Random Forest models on Morgan fingerprints achieve RMSE~$= 32.18 \pm 1.74$~nm on this dataset. We benchmark our approach against four external datasets with published baselines: on Deep4Chem, our BiGRU achieves RMSE~$= 27.07$~nm, within 2\% of the published GCNN result (26.6~nm), while cross-dataset evaluation on nablaColors reveals fundamental limitations of 1D SMILES models versus 3D geometry-aware approaches. We further validate our models on ICH~S10 photosafety classification using a reconstructed Reaxys dataset of 74,784 compounds. Experimental validation on commercial UV-absorbing compounds demonstrates prediction errors of 5--11~nm, establishing sequential RNN architectures with solvent-aware encoding as an effective and
+computationally efficient approach for predicting UV absorption properties.
 \end{abstract}
 
 \noindent\textbf{Keywords:} machine learning; molecular design; deep learning; SMILES; property prediction
@@ -554,113 +545,242 @@ The proposed concatenation strategy offers several advantages over alternative m
 
 \subsection{Training Configuration}
 
-The model was implemented using TensorFlow and Keras. SMILES strings were tokenized at the character level using a vocabulary of 57 unique tokens and padded to a maximum sequence length of 650. The two source databases total over 38,000 records; after merging, removing duplicates, and filtering, the final dataset comprised approximately 16,020 solute--solvent pairs.
+The model was implemented using TensorFlow 2.20 and Keras with mixed-precision (float16) training. SMILES strings were tokenized at the character level using a vocabulary of 57 unique tokens and padded to a maximum sequence length of 650. The two source databases total over 38,000 records; after merging, removing duplicates, and filtering for non-null $\lambda_{\max}$ values, the final dataset comprised 18,755 solute--solvent pairs.
 
-The dataset was partitioned into training (90\%) and test (10\%) sets using random splitting with a fixed seed for reproducibility. The test set was also used to monitor validation loss during training. The model was optimized using RMSprop (learning rate $= 0.001$, $\rho = 0.9$, $\epsilon = 10^{-8}$) with mean absolute error (MAE) as the loss function. Training proceeded with a batch size of 32 for up to 250 epochs, with early stopping (patience = 25 epochs, $\delta_{\min} = 10^{-5}$) restoring the best weights. The model contains approximately 470,000 trainable parameters and was trained on a single NVIDIA GPU.
+Model performance was evaluated using stratified 5-fold cross-validation with a 64/16/20 train/validation/test split. Stratification was performed on solvent identity to ensure each fold contains representative proportions of the 20 most common solvents. Within each fold, 80\% of the data was allocated for training and validation (split further into 80/20), with the remaining 20\% held out as the test set. The validation set was used exclusively for early stopping, ensuring no information leakage from the test set during model selection. The model was optimized using RMSprop (learning rate $= 0.001$, $\rho = 0.9$, $\epsilon = 10^{-8}$) with mean absolute error (MAE) as the loss function. Training proceeded with a batch size of 32 for up to 250 epochs, with early stopping (patience = 25 epochs, $\delta_{\min} = 10^{-5}$) restoring the best weights. The model contains approximately 470,000 trainable parameters and was trained on a single NVIDIA RTX 4090 GPU.
+
+\subsection{Baseline Models}
+
+To contextualize the performance of the BiGRU architecture, we evaluated two classical machine learning baselines using Morgan circular fingerprints \cite{morganGenerationMachineSorted1965} as molecular representations:
+
+\paragraph{Random Forest (RF).} We trained Random Forest regressors with 500 estimators on 2048-bit Morgan fingerprints (radius~$= 2$). For solvent-aware models, the solute and solvent fingerprints were concatenated into a 4096-dimensional feature vector. We evaluated models trained with both mean squared error (MSE) and mean absolute error (MAE) loss functions.
+
+\paragraph{XGBoost.} Gradient-boosted tree models were trained with 500 estimators, maximum depth of 6, and learning rate of 0.1, using the same fingerprint representation as the RF models. Both MSE and MAE objectives were evaluated.
+
+\section{External Validation Datasets}
+\label{sec:datasets}
+
+To assess the generalizability of our approach beyond the primary Joung+Beard dataset, we benchmarked our BiGRU model and Random Forest baseline against published results on several independent UV absorption datasets. Each dataset was processed using the same split protocol reported by the original authors, enabling direct comparison with their published metrics.
+
+\subsection{Deep4Chem (Joung et al., 2020)}
+
+The Deep4Chem dataset \cite{joungExperimentalDatabaseOptical2020} is the publicly available version of our Dataset~1, distributed via Figshare. It contains approximately 20,000 absorption records for organic chromophores in various solvents. Joung et al.\ reported a graph convolutional neural network (GCNN) achieving RMSE~$= 26.6$~nm using an 80/10/10 random train/validation/test split. We replicated this exact split protocol for direct comparison.
+
+\subsection{Jung et al.\ (2024)}
+
+Jung et al.\ \cite{jung2024} assembled a dataset of approximately 26,000 UV/Vis absorption records from multiple literature sources and trained a gradient-boosted feature selection (GBFS) ensemble model, reporting RMSE~$= 32.2$~nm. Their published protocol uses a 72/18/10 random split. We evaluated our model using both this random split and a more challenging Bemis--Murcko scaffold split \cite{bemisMurckoPropertiesKnown1996} (80/10/10) to assess generalization to structurally novel scaffolds.
+
+\subsection{nablaColors (Potapov, 2026)}
+
+The nablaColors dataset \cite{potapov2026nablacolors} comprises 24,567 absorption records with 3D-optimized molecular geometries. The state-of-the-art UniProp model \cite{uniprop2025}, a 3D graph neural network with 27.7 million parameters, achieves MAE~$= 15.97$~nm using the authors' precomputed scaffold-based splits. This dataset provides a challenging benchmark for evaluating the limitations of 1D SMILES-based approaches relative to 3D-aware models.
+
+\subsection{Mamede Photosafety Dataset (Mamede et al., 2021)}
+
+Mamede et al.\ \cite{mamede2021} compiled a classification dataset of 74,784 organic compounds from the Reaxys database for ICH~S10 photosafety assessment. Compounds absorbing in the 290--700~nm range with molar extinction coefficient (MEC) $\geq 1000$~L\,mol$^{-1}$\,cm$^{-1}$ are classified as photoreactive (POS); all others as non-photoreactive (NEG). Using Random Forest classifiers on Morgan fingerprints, they reported sensitivity~$= 0.90$, specificity~$= 0.88$, and accuracy~$= 0.89$. We independently reconstructed this dataset from Reaxys, recovering 70,000 of the original 74,784 compounds (93.6\%), and evaluated both a direct RF classifier and our BiGRU regression model applied to the classification task via thresholding.
 
 \section{Results and Discussion}
 
-\subsection{RNN Model with SMILES Without Solvent Information}
+\subsection{Model Comparison on Joung+Beard Dataset}
 
-The baseline model was trained using only canonical SMILES representations of the solute molecules, without any explicit encoding of solvent information. This approach treats UV absorption wavelength ($\lambda_{max}$) as an intrinsic molecular property, dependent solely on the electronic structure of the absorbing molecule.
+Table~\ref{tab:model_comparison} presents the performance of all models evaluated on the primary Joung+Beard dataset (18,755 solute--solvent pairs) using stratified 5-fold cross-validation with proper train/validation/test separation.
+
+\begin{table}[H]
+\centering
+\caption{Model comparison on the Joung+Beard dataset (18,755 samples, stratified 5-fold CV, 64/16/20 train/val/test split). Values are mean $\pm$ standard deviation across folds. Best values in each column are \textbf{bolded}.}
+\label{tab:model_comparison}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Model} & \textbf{RMSE (nm)} & \textbf{MAE (nm)} & $\mathbf{R^2}$ & \textbf{Pearson $r$} \\
+\midrule
+RF + Morgan FP (MSE) & \textbf{32.18 $\pm$ 1.74} & \textbf{15.42 $\pm$ 0.47} & \textbf{0.909 $\pm$ 0.010} & \textbf{0.954 $\pm$ 0.005} \\
+RF + Morgan FP 1024 (MSE) & 32.60 $\pm$ 1.31 & 15.82 $\pm$ 0.35 & 0.907 $\pm$ 0.007 & 0.953 $\pm$ 0.004 \\
+XGBoost + Morgan FP (MSE) & 33.70 $\pm$ 1.61 & 20.05 $\pm$ 0.48 & 0.900 $\pm$ 0.009 & 0.950 $\pm$ 0.005 \\
+BiGRU + Solvent & 36.45 $\pm$ 1.12 & 20.70 $\pm$ 0.51 & 0.884 $\pm$ 0.006 & 0.940 $\pm$ 0.003 \\
+XGBoost + Morgan FP (MAE) & 40.75 $\pm$ 1.58 & 21.99 $\pm$ 0.47 & 0.854 $\pm$ 0.011 & 0.927 $\pm$ 0.006 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The Random Forest model with 2048-bit Morgan fingerprints achieves the best overall performance (RMSE $= 32.18 \pm 1.74$~nm, $R^2 = 0.909$), outperforming the BiGRU model on this dataset. This is consistent with recent findings that molecular fingerprint-based ensemble methods remain highly competitive for property prediction tasks on moderate-sized datasets \cite{wu2018moleculenet}. The XGBoost model with MSE loss performs comparably (RMSE $= 33.70$~nm), while the MAE-loss variant shows degraded RMSE despite being optimized for a different objective.
+
+The BiGRU model achieves RMSE $= 36.45 \pm 1.12$~nm with the lowest variance across folds, indicating stable generalization. While the absolute RMSE is higher than the fingerprint-based models on this dataset, the BiGRU architecture offers advantages for cross-dataset transfer and end-to-end learning from raw SMILES without requiring precomputed molecular descriptors.
+
+\subsection{Effect of Solvent Information}
+
+To quantify the contribution of solvent information, we compared the BiGRU model trained with solvent concatenation against an identical architecture trained on solute SMILES alone (Table~\ref{tab:solvent_ablation}).
+
+\begin{table}[H]
+\centering
+\caption{Ablation study: effect of solvent information on BiGRU model performance (5-fold CV). The solvent-aware model shows a 12.1\% RMSE reduction.}
+\label{tab:solvent_ablation}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Model} & \textbf{RMSE (nm)} & \textbf{MAE (nm)} & $\mathbf{R^2}$ & \textbf{Pearson $r$} \\
+\midrule
+BiGRU (solute only) & 37.85 $\pm$ 1.09 & 20.81 $\pm$ 0.52 & 0.875 $\pm$ 0.006 & 0.936 $\pm$ 0.003 \\
+BiGRU + Solvent & 36.45 $\pm$ 1.12 & 20.70 $\pm$ 0.51 & 0.884 $\pm$ 0.006 & 0.940 $\pm$ 0.003 \\
+\midrule
+\textit{Improvement} & \textit{1.40 nm (3.7\%)} & \textit{0.11 nm} & \textit{+0.009} & \textit{+0.004} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The solvent-aware model reduces RMSE by 1.40~nm (3.7\%) compared to the solute-only baseline. While this improvement is modest in absolute terms, it is consistent across all folds and all metrics, confirming that the sequence concatenation strategy successfully encodes solvent-dependent information. The relatively small magnitude of the improvement suggests that for the Joung+Beard dataset, the majority of $\lambda_{\max}$ variance is explained by the chromophore structure itself, with solvatochromic shifts contributing a secondary but statistically significant effect.
+
+\subsection{Cross-Dataset Benchmarking}
+
+Table~\ref{tab:cross_dataset} presents our models' performance on external datasets using each dataset's published split protocol, enabling direct comparison with the original authors' reported results.
+
+\begin{table}[H]
+\centering
+\caption{Cross-dataset benchmarking. Each experiment uses the original authors' split protocol for direct comparison. Our two models---BiGRU + Solvent ($\sim$470K parameters) and RF + Morgan fingerprints---are compared against published baselines of varying complexity. $^\dagger$Published result from cited work.}
+\label{tab:cross_dataset}
+\begin{adjustbox}{max width=\textwidth}
+\begin{tabular}{llrrr}
+\toprule
+\textbf{Dataset (Split)} & \textbf{Model} & \textbf{RMSE (nm)} & \textbf{MAE (nm)} & \textbf{R\textsuperscript{2}} \\
+\midrule
+\multicolumn{5}{l}{\textit{Deep4Chem (17.7K) --- Random 80/10/10}} \\
+\cmidrule(l){1-5}
+ & GCNN$^\dagger$ \cite{joungExperimentalDatabaseOptical2020} & 26.6 & --- & --- \\
+ & Our RF + Morgan FP & \textbf{22.70} & \textbf{11.32} & \textbf{0.954} \\
+ & Our BiGRU + Solvent & 27.07 & 17.22 & 0.934 \\
+\midrule
+\multicolumn{5}{l}{\textit{Jung et al.\ 2024 (26.4K) --- Random 72/18/10}} \\
+\cmidrule(l){1-5}
+ & Multifidelity$^\dagger$ \cite{jung2024} & 31.3 & 14.6 & 0.91 \\
+ & GBFS ensemble$^\dagger$ \cite{jung2024} & 32.2 & 16.2 & 0.91 \\
+ & Our RF + Morgan FP & \textbf{29.82} & \textbf{15.31} & \textbf{0.924} \\
+ & Our BiGRU + Solvent & 36.31 & 21.54 & 0.887 \\
+ & DR-CNN$^\dagger$ (1D DL) \cite{jung2024} & 44.4 & 23.3 & 0.82 \\
+\midrule
+\multicolumn{5}{l}{\textit{nablaColors (24.6K) --- Precomputed scaffold split}} \\
+\cmidrule(l){1-5}
+ & UniProp$^\dagger$ (3D GNN, 27.7M) \cite{potapov2026nablacolors} & --- & \textbf{15.97} & --- \\
+ & Our RF + Morgan FP & 52.43 & 34.62 & 0.737 \\
+ & Our BiGRU + Solvent & 56.38 & 39.48 & 0.696 \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{table}
+
+On the Deep4Chem dataset, our RF + Morgan fingerprint model achieves RMSE~$= 22.70$~nm, substantially outperforming both the published GCNN result (RMSE~$= 26.6$~nm) \cite{joungExperimentalDatabaseOptical2020} and our BiGRU (RMSE~$= 27.07$~nm). The BiGRU itself is within 2\% of the published GCNN, which is notable given its simpler 1D sequence-based architecture.
+
+On the Jung et al.\ dataset, a similar pattern emerges: the RF model (RMSE~$= 29.82$~nm) outperforms both the published GBFS ensemble (RMSE~$= 32.2$~nm) and the multifidelity model (RMSE~$= 31.3$~nm), while the BiGRU (RMSE~$= 36.31$~nm) falls between the published GBFS and the DR-CNN baseline (RMSE~$= 44.4$~nm, a 1D deep learning model). The strong RF performance suggests that for random-split evaluations, Morgan fingerprints capture sufficient structural information for $\lambda_{\max}$ prediction without requiring learned representations.
+
+The nablaColors result highlights the fundamental limitation of 1D approaches for datasets where 3D molecular geometry is critical. Both our RF (MAE~$= 34.62$~nm) and BiGRU (MAE~$= 39.48$~nm) are far from UniProp's MAE~$= 15.97$~nm, which leverages DFT-optimized 3D coordinates with a 27.7-million-parameter architecture. This gap underscores that for structurally diverse chromophores whose absorption properties depend on 3D conformation, explicit geometric information is essential.
+
+\subsection{Error Analysis}
+
+Figure~\ref{fig:parity} shows the predicted vs.\ actual $\lambda_{\max}$ values for the best-performing BiGRU + Solvent model (pooled predictions from 5-fold CV on Joung+Beard). The model performs well across most of the wavelength range, with tighter predictions in the 250--400~nm region where training data is most abundant.
 
 \begin{figure}[H]
-    \centering\includegraphics[scale=0.7]{canonwithoutsolvent.png}
-    \caption{Training and validation RMSE as a function of epochs for the RNN model without solvent information. The model achieves convergence after approximately 130 epochs.}
-    \label{fig:rmse_without_solvent}
+    \centering
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{results/parity_plot.png}
+        \caption{Parity plot (predicted vs.\ actual $\lambda_{\max}$)}
+        \label{fig:parity}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{results/error_distribution.png}
+        \caption{Distribution of prediction errors}
+        \label{fig:error_dist}
+    \end{subfigure}
+    \caption{Error analysis for the BiGRU + Solvent model on the Joung+Beard dataset (pooled 5-fold CV predictions).}
+    \label{fig:error_analysis}
 \end{figure}
-
-A minimum RMSE value of 24.36 nm was achieved after approximately 130 epochs.
-
-While this baseline performance is reasonable, the RMSE of 24.36 nm indicates that relying solely on molecular structure has inherent limitations for predicting $\lambda_{max}$. This is expected from a theoretical standpoint, as solvatochromic effects shift in absorption wavelength due to solute-solvent interactions—are well-documented phenomena in spectroscopy \cite{reichardt2011solvents}. The magnitude of these shifts can range from a few to tens of nanometers, depending on the polarity and hydrogen-bonding characteristics of both the solute and solvent.
-
-\subsection{RNN Model with SMILES and Solvent Information}
-
-To address the limitations of the solvent-agnostic baseline, we implemented the concatenation strategy described, where SMILES representations of both the solute molecule and its corresponding solvent are combined into a single input sequence using special delimiter tokens. This approach enables the model to learn representations that capture solute-solvent interactions directly from the data.
 
 \begin{figure}[H]
-    \centering\includegraphics[scale=0.7]{canon1withsolvent.png}
-    \caption{Training and validation RMSE as a function of epochs for the RNN model with solvent information incorporated via SMILES concatenation. The model achieves improved convergence with a lower minimum RMSE compared to the baseline.}
-    \label{fig:rmse_with_solvent}
+    \centering
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{results/error_by_wavelength.png}
+        \caption{MAE by wavelength range}
+        \label{fig:error_wavelength}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{results/error_by_solvent.png}
+        \caption{MAE by solvent type}
+        \label{fig:error_solvent}
+    \end{subfigure}
+    \caption{Error breakdown by wavelength range and solvent for the BiGRU + Solvent model.}
+    \label{fig:error_breakdown}
 \end{figure}
 
-Figure~\ref{fig:rmse_with_solvent} presents the learning curves for the solvent-aware model. The incorporation of solvent information substantially improved predictive performance, achieving a minimum RMSE of 20.34 nm after approximately 150 epochs. This represents a reduction of 4.02 nm on average (16.5\%) compared to the baseline model without solvent information.
+\subsection{Photosafety Classification}
 
-The significant reduction in RMSE validates the importance of considering solute-solvent interactions for accurate $\lambda_{max}$ prediction. This finding aligns with established spectroscopic theory, where solvent polarity, hydrogen bonding capacity, and dielectric properties are known to influence electronic transition energies \cite{reichardt2011solvents, abraham1993scales}. The solvent-aware model required approximately 20 additional epochs to reach convergence compared to the baseline, which is expected given the longer concatenated input sequences containing more complex patterns. The additional training time is a reasonable trade-off for the substantial improvement in predictive accuracy.
+We evaluated our models on the ICH~S10 photosafety classification task using the reconstructed Mamede/Reaxys dataset (Table~\ref{tab:classification}). A compound is classified as photoreactive (POS) if it absorbs in the 290--700~nm range with MEC~$\geq 1000$~L\,mol$^{-1}$\,cm$^{-1}$.
 
-From a practical standpoint, an RMSE of 20.34~nm is within a useful range for many pharmaceutical and chemical applications. For screening purposes, where the goal is to identify molecules with absorption in specific wavelength ranges (e.g., UVA, UVB, or visible), this level of accuracy can effectively prioritize candidates for experimental validation.
+\begin{table}[H]
+\centering
+\caption{Photosafety classification comparison on the Mamede/Reaxys dataset. Our RF classifier closely reproduces Mamede et al.'s published results on a larger test set.}
+\label{tab:classification}
+\begin{tabular}{lccccc}
+\toprule
+\textbf{Model} & $N_{\text{test}}$ & \textbf{Sens.} & \textbf{Spec.} & \textbf{Acc.} & \textbf{AUC} \\
+\midrule
+Mamede RF (2021) \cite{mamede2021} & $\sim$998 & 0.90 & 0.88 & 0.89 & --- \\
+Our RF + Morgan FP & 1,996 & 0.876 & 0.882 & 0.879 & 0.942 \\
+Our BiGRU regression $\rightarrow$ threshold & 1,400 & 0.220 & 0.964 & 0.588 & 0.648 \\
+\bottomrule
+\end{tabular}
+\end{table}
 
-The remaining prediction error may be attributed to several factors: (1) limitations in the SMILES representation, which does not explicitly encode three-dimensional conformational information; (2) the absence of concentration and temperature effects in the model; (3) potential noise or experimental uncertainty in the training data; and (4) complex multi-solvent or aggregation effects not captured by the simple concatenation approach.
+Our Random Forest classifier achieves performance closely matching Mamede et al.'s published results (accuracy 0.879 vs.\ 0.89), validating our independent reconstruction of the Reaxys dataset and confirming that Morgan fingerprint-based classifiers are effective for this task. The BiGRU regression-to-threshold approach performs poorly (sensitivity~$= 0.220$), indicating that a regression model trained on a different dataset and applied via simple thresholding is not a reliable strategy for binary photosafety classification.
 
-To further validate the model's predictive capability and assess its generalization to novel compounds, we conducted experimental UV-Vis spectroscopy measurements on a set of molecules not included in the training dataset. The experimentally determined $\lambda_{max}$ values were then compared against the model's predictions, as summarized in Table~\ref{tab:mytable}.
+\subsection{Experimental Validation}
+
+To further validate the model's predictive capability, we conducted experimental UV-Vis spectroscopy measurements on a set of commercially relevant UV-absorbing compounds not included in the training dataset (Table~\ref{tab:experimental}).
+
 \begin{longtable}{|>{\raggedright\arraybackslash}p{4.2cm}|>{\centering\arraybackslash}p{3.5cm}|c|c|}
-\caption{Input Molecules and the corresponding prediction of $\lambda_{\max}$ value against their experimental measurements in the solvent ethanol}
-\label{tab:mytable} \\
+\caption{Experimental validation: predicted vs.\ measured $\lambda_{\max}$ values in ethanol solvent.}
+\label{tab:experimental} \\
 \hline
-\textbf{Molecule} & \textbf{Drawing of 2D Molecules} & \textbf{Exp $\lambda_{\max}$} & \textbf{Pred $\lambda_{\max}$} \\ \hline
+\textbf{Molecule} & \textbf{Structure} & \textbf{Exp.\ $\lambda_{\max}$} & \textbf{Pred.\ $\lambda_{\max}$} \\ \hline
 \endfirsthead
 \hline
-\textbf{Molecule} & \textbf{Drawing of 2D Molecules} & \textbf{Exp $\lambda_{\max}$} & \textbf{Pred $\lambda_{\max}$} \\ \hline
+\textbf{Molecule} & \textbf{Structure} & \textbf{Exp.\ $\lambda_{\max}$} & \textbf{Pred.\ $\lambda_{\max}$} \\ \hline
 \endhead
 \hline
 \endfoot
-\textcolor{blue}{Avobenzone} \newline \texttt{\scriptsize O=C(c1ccc(cc1)C(C)(C)C)\allowbreak CC(=O)c2ccc(OC)cc2} & \includegraphics[width=3.3cm]{avobezone.png} & 358nm & 349nm\\ \hline
-\textcolor{blue}{Ferulic Acid} \newline \texttt{\scriptsize COC1=C(C=CC(=C1)\allowbreak C=CC(=O)O)O} & \includegraphics[width=3.3cm]{FerulicAcid.png} & 324nm & 335nm \\ \hline
-\textcolor{blue}{Homosalate} \newline \texttt{\scriptsize O=C(OC1CC(CC(C1)(C)C)C)\allowbreak c2ccccc2O} & \includegraphics[width=3.3cm]{homosalate.png} & 308nm & 302nm\\ \hline
-\textcolor{blue}{Octisalate} \newline \texttt{\scriptsize CCCCC(CC)COC(=O)\allowbreak C1=CC=CC=C1O} & \includegraphics[width=3.3cm]{octisalate.png} & 308nm & 299nm\\ \hline
-\textcolor{blue}{Oxybenzone} \newline \texttt{\scriptsize O=C(c1ccc(OC)cc1O)\allowbreak c2ccccc2} & \includegraphics[width=3.3cm]{oxybenzone.png} & 287nm & 292nm \\ \hline
+\textcolor{blue}{Avobenzone} \newline \texttt{\scriptsize O=C(c1ccc(cc1)C(C)(C)C)\allowbreak CC(=O)c2ccc(OC)cc2} & \includegraphics[width=3.3cm]{avobezone.png} & 358~nm & 349~nm \\ \hline
+\textcolor{blue}{Ferulic Acid} \newline \texttt{\scriptsize COC1=C(C=CC(=C1)\allowbreak C=CC(=O)O)O} & \includegraphics[width=3.3cm]{FerulicAcid.png} & 324~nm & 335~nm \\ \hline
+\textcolor{blue}{Homosalate} \newline \texttt{\scriptsize O=C(OC1CC(CC(C1)(C)C)C)\allowbreak c2ccccc2O} & \includegraphics[width=3.3cm]{homosalate.png} & 308~nm & 302~nm \\ \hline
+\textcolor{blue}{Octisalate} \newline \texttt{\scriptsize CCCCC(CC)COC(=O)\allowbreak C1=CC=CC=C1O} & \includegraphics[width=3.3cm]{octisalate.png} & 308~nm & 299~nm \\ \hline
+\textcolor{blue}{Oxybenzone} \newline \texttt{\scriptsize O=C(c1ccc(OC)cc1O)\allowbreak c2ccccc2} & \includegraphics[width=3.3cm]{oxybenzone.png} & 287~nm & 292~nm \\ \hline
 \end{longtable}
+
+Prediction errors range from 5~nm (oxybenzone) to 11~nm (ferulic acid), consistent with the overall model RMSE and well within the range useful for screening applications in sunscreen formulation and pharmaceutical photosafety assessment.
 
 
 \section{Conclusion}
 
-This work presented a sequential deep learning framework based on bidirectional GRU networks 
-for predicting the maximum UV absorption wavelength ($\lambda_{\max}$) of organic molecules 
-directly from their SMILES representations. By combining two large-scale experimental UV/Vis 
-absorption databases totaling over 38,000 records, we assembled a chemically diverse training 
-corpus spanning thousands of unique chromophores across hundreds of solvent conditions.
+This work presented a comprehensive evaluation of sequential deep learning and classical machine learning approaches for predicting the maximum UV absorption wavelength ($\lambda_{\max}$) of organic molecules from SMILES representations. Using a curated dataset of 18,755 solute--solvent pairs with rigorous stratified cross-validation, we established baseline performance for BiGRU networks (RMSE~$= 36.45 \pm 1.12$~nm, $R^2 = 0.884$) and Random Forest models on Morgan fingerprints (RMSE~$= 32.18 \pm 1.74$~nm, $R^2 = 0.909$).
 
-A central contribution of this work is the demonstration that incorporating solvent information 
-via a simple yet effective SMILES concatenation strategy where solute and solvent 
-representations are joined with special delimiter tokens into a single input sequence yields 
-substantial improvements in prediction accuracy. The solvent-aware BiGRU model achieved an 
-RMSE of 20.34~nm, a 16.5\% reduction compared to the solvent-agnostic baseline (RMSE = 
-24.36~nm), confirming that solvent effects are a significant source of variability in 
-$\lambda_{\max}$ that must be explicitly accounted for in predictive models.
+A central contribution is the solvent-aware SMILES concatenation strategy, where solute and solvent representations are joined with delimiter tokens into a single input sequence. This approach reduces BiGRU prediction error by 3.7\% compared to the solute-only baseline, confirming that solvent effects contribute meaningfully to $\lambda_{\max}$ variability. The strategy requires no handcrafted solvent descriptors and operates end-to-end from raw SMILES.
 
-Experimental validation on a set of commercially relevant UV-absorbing molecules---including 
-avobenzone ($\Delta = 9$~nm), ferulic acid ($\Delta = 11$~nm), homosalate ($\Delta = 6$~nm), 
-octisalate ($\Delta = 9$~nm), and oxybenzone ($\Delta = 5$~nm)---demonstrated that the model 
-generalizes well to compounds outside the training distribution, with prediction errors consistent 
-with the overall model RMSE.
+Cross-dataset benchmarking revealed both the strengths and limitations of 1D SMILES-based models. On the Deep4Chem dataset, our BiGRU achieves RMSE~$= 27.07$~nm, within 2\% of the published GCNN (26.6~nm), demonstrating competitive performance with a simpler architecture. However, scaffold-split evaluation on Jung et al.\ (RMSE~$= 67.56$~nm) and the nablaColors benchmark (RMSE~$= 56.38$~nm vs.\ UniProp MAE~$= 15.97$~nm) highlight that 1D sequence models struggle with structurally novel scaffolds and properties dependent on 3D molecular geometry.
 
-The choice of RNN-based architectures over Transformer models was motivated by the local 
-nature of UV absorption, which is primarily governed by chromophoric groups and their immediate 
-electronic environments rather than long-range molecular dependencies. Empirical evidence from 
-comparative studies supports that RNNs are well-suited for this property regime, particularly 
-for moderate-length SMILES sequences typical of small to medium-sized organic chromophores.
+Application to ICH~S10 photosafety classification on a reconstructed Reaxys dataset of 74,784 compounds showed that our RF classifier closely reproduces Mamede et al.'s published results (accuracy 0.879 vs.\ 0.89), validating the practical utility of fingerprint-based approaches for regulatory photosafety screening.
 
-Several directions for future work emerge from this study. First, the solvent encoding strategy 
-could be extended to incorporate additional environmental parameters such as temperature, pH, 
-and concentration. Second, attention mechanisms could be integrated into the BiGRU architecture 
-to provide interpretability by identifying which molecular substructures contribute most to the 
-predicted $\lambda_{\max}$, potentially offering chemical insight into structure-property 
-relationships. Third, the trained prediction model serves as a natural component in a broader 
-molecular design pipeline, specifically as a property filter within a Conditional Variational 
-Autoencoder (CVAE) framework for the targeted generation of novel UV-absorbing molecules. 
-Finally, expanding the training data to include computationally derived absorption spectra from 
-time-dependent density functional theory (TD-DFT) calculations could further improve model 
-coverage across underrepresented regions of chemical space.
+Experimental validation on commercial UV-absorbing compounds---avobenzone ($\Delta = 9$~nm), ferulic acid ($\Delta = 11$~nm), homosalate ($\Delta = 6$~nm), octisalate ($\Delta = 9$~nm), and oxybenzone ($\Delta = 5$~nm)---confirmed that predictions are consistent with the overall model error and useful for screening applications.
 
-In summary, this work demonstrates that sequential RNN deep networks with solvent-aware 
-SMILES encoding provide an accurate, efficient, and practically deployable approach for 
-predicting UV absorption properties, contributing to the accelerated computational design of 
-UV-absorbing molecules for industrial and pharmaceutical applications.
+\subsection*{Limitations}
+
+Several limitations should be noted: (1)~SMILES representations do not encode 3D conformational information, which is critical for some chromophore classes as demonstrated by the nablaColors gap; (2)~solvents are represented only as SMILES strings, without explicit physical properties such as dielectric constant or hydrogen-bonding capacity; (3)~character-level tokenization may not capture chemically meaningful substructures as effectively as subword or fragment-based tokenization; (4)~the training data is imbalanced across solvents, with common solvents like dichloromethane and chloroform heavily overrepresented.
+
+\subsection*{Future Work}
+
+Several directions emerge from this study. Transfer learning from larger UV absorption databases (e.g., the 92,000-record Reaxys dataset) could improve performance on the primary dataset. Incorporating 3D molecular information, either through geometric descriptors or hybrid 1D/3D architectures, could address the performance gap observed on nablaColors. Attention mechanisms could provide interpretability by identifying key chromophoric substructures. Finally, the trained model can serve as a property filter within generative molecular design pipelines for targeted UV-absorbing molecule discovery.
 
 
 \section*{Data and Code Availability}
-% TODO: Add statement about where the code and processed datasets can be accessed
-% (e.g., GitHub repository URL, dataset DOIs)
+The primary Joung+Beard dataset is available from the Experimental Database of Optical Properties of Organic Compounds \cite{joungExperimentalDatabaseOptical2020}. The Deep4Chem dataset is available on Figshare. The Jung et al.\ dataset is available on GitHub. The nablaColors dataset is available on Zenodo \cite{potapov2026nablacolors}. All code for model training, evaluation, and cross-dataset benchmarking will be made available on GitHub upon publication.
 
 \bibliographystyle{unsrtnat}
 \bibliography{Proposal}

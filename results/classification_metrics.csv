@@ -1,0 +1,2 @@
+model_key,model_name,threshold_lo,threshold_hi,TP,FP,TN,FN,Sensitivity,Specificity,Precision,F1,MCC,ROC-AUC,N,N_POS,N_NEG
+bigru_solvent,BiGRU + Solvent,290.0,700.0,3504,97,116,34,0.9904,0.5446,0.9731,0.9817,0.6319,0.9215,3751,3538,213

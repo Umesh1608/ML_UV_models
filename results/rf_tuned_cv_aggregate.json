@@ -1,0 +1,18 @@
+{
+  "RMSE_mean": 31.34,
+  "RMSE_std": 1.82,
+  "MAE_mean": 15.16,
+  "MAE_std": 0.44,
+  "R2_mean": 0.91,
+  "R2_std": 0.01,
+  "Pearson_r_mean": 0.96,
+  "Pearson_r_std": 0.0,
+  "config": {
+    "radius": 2,
+    "n_bits": 2048,
+    "n_estimators": 1000,
+    "max_depth": null,
+    "min_samples_leaf": 1,
+    "max_features": 0.3
+  }
+}

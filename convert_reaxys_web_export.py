@@ -41,7 +41,8 @@ BATCH_DIR = DATA_DIR / "reaxys_batches"
 EXPORT_DIR = RAW_DIR / "reaxys_exports"
 OUTPUT_FILE = RAW_DIR / "reaxys_uv_raw.csv"
 
-BATCH_SIZE = 1000  # Reaxys web import limit per .txt file
+BATCH_SIZE = 1000  # default batch size
+BATCH_DIR_LARGE = DATA_DIR / "reaxys_batches_25"  # larger batches for 25/day limit
 
 # ---------------------------------------------------------------------------
 # Column auto-detection mappings
@@ -60,6 +61,7 @@ COLUMN_ALIASES = {
         "ide_xrn",
     ],
     "wavelength_nm": [
+        "absorption maxima (uv/vis) [nm]",
         "absorption maximum",
         "uv/vis absorption maximum",
         "uv-vis absorption maximum",
@@ -75,6 +77,8 @@ COLUMN_ALIASES = {
         "abs_max",
     ],
     "mec": [
+        "ext./abs. coefficient [l·mol-1cm-1]",
+        "ext./abs. coefficient [l·mol 1cm 1]",
         "molar extinction coefficient",
         "extinction coefficient",
         "ε",
@@ -85,10 +89,11 @@ COLUMN_ALIASES = {
         "log_epsilon",
     ],
     "solvent": [
-        "solvent",
-        "sol",
+        "solvent (uv/vis spectroscopy)",
         "solvent (uv/vis)",
         "solvent (uv-vis)",
+        "solvent",
+        "sol",
     ],
     "smiles": [
         "smiles",
@@ -122,7 +127,7 @@ def auto_detect_columns(columns: list[str]) -> dict[str, str]:
 # ---------------------------------------------------------------------------
 # Mode 1: Generate batch query files
 # ---------------------------------------------------------------------------
-def generate_batches():
+def generate_batches(batch_size: int = BATCH_SIZE, batch_dir: Path = BATCH_DIR):
     """Generate .txt batch files for Reaxys web import."""
     if not MAMEDE_PARSED.exists():
         print(f"ERROR: {MAMEDE_PARSED} not found")
@@ -132,20 +137,20 @@ def generate_batches():
     xrns = mamede["xrn"].dropna().astype(int).unique()
     xrns.sort()
     n_total = len(xrns)
-    n_batches = math.ceil(n_total / BATCH_SIZE)
+    n_batches = math.ceil(n_total / batch_size)
 
     print(f"Generating batch query files for {n_total} XRNs...")
-    print(f"  Batch size: {BATCH_SIZE} XRNs per file")
+    print(f"  Batch size: {batch_size} XRNs per file")
     print(f"  Total batches: {n_batches}")
-    print(f"  Output directory: {BATCH_DIR}/")
+    print(f"  Output directory: {batch_dir}/")
 
-    BATCH_DIR.mkdir(parents=True, exist_ok=True)
+    batch_dir.mkdir(parents=True, exist_ok=True)
 
     for i in range(n_batches):
-        start = i * BATCH_SIZE
-        end = min(start + BATCH_SIZE, n_total)
+        start = i * batch_size
+        end = min(start + batch_size, n_total)
         batch_xrns = xrns[start:end]
-        batch_file = BATCH_DIR / f"batch_{i + 1:03d}.txt"
+        batch_file = batch_dir / f"batch_{i + 1:03d}.txt"
 
         with open(batch_file, "w") as f:
             for xrn in batch_xrns:
@@ -153,7 +158,7 @@ def generate_batches():
 
         print(f"  Written {batch_file} ({len(batch_xrns)} queries)")
 
-    print(f"\nDone! {n_batches} batch files in {BATCH_DIR}/")
+    print(f"\nDone! {n_batches} batch files in {batch_dir}/")
     print()
     print("=" * 60)
     print("REAXYS WEB INSTRUCTIONS")
@@ -295,6 +300,14 @@ def convert_exports(
         # Select and clean
         df = df[["xrn", "smiles", "wavelength_nm", "mec", "solvent"]].copy()
 
+        # Expand semicolon-separated multi-value fields into separate rows.
+        # Reaxys exports wavelength and MEC as e.g. "205; 232; 273" and
+        # "1774; 6; 14" — paired positionally.
+        before_expand = len(df)
+        df = _expand_multivalue_rows(df)
+        if len(df) > before_expand:
+            print(f"  Expanded multi-value fields: {before_expand} → {len(df)} rows")
+
         # Parse numeric fields (handle ranges like "350-400" → take first value)
         df["wavelength_nm"] = df["wavelength_nm"].apply(_parse_numeric)
         df["mec"] = df["mec"].apply(_parse_numeric)
@@ -356,6 +369,42 @@ def convert_exports(
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+def _expand_multivalue_rows(df: pd.DataFrame) -> pd.DataFrame:
+    """Expand semicolon-separated wavelength/MEC values into separate rows.
+
+    Reaxys exports multi-peak data as e.g.:
+        wavelength_nm = "205; 232; 273"
+        mec           = "1774; 6; 14"
+    These are paired positionally. This function splits them into individual rows.
+    """
+    expanded_rows = []
+    for _, row in df.iterrows():
+        wav_str = str(row["wavelength_nm"]) if pd.notna(row["wavelength_nm"]) else ""
+        mec_str = str(row["mec"]) if pd.notna(row["mec"]) else ""
+
+        # Split on semicolons
+        wavs = [w.strip() for w in wav_str.split(";")] if wav_str else [""]
+        mecs = [m.strip() for m in mec_str.split(";")] if mec_str else [""]
+
+        # If only one wavelength (no semicolons), keep as-is
+        if len(wavs) <= 1 and len(mecs) <= 1:
+            expanded_rows.append(row)
+            continue
+
+        # Pair wavelengths with MECs positionally; pad shorter list with empty
+        n = max(len(wavs), len(mecs))
+        wavs += [""] * (n - len(wavs))
+        mecs += [""] * (n - len(mecs))
+
+        for w, m in zip(wavs, mecs):
+            new_row = row.copy()
+            new_row["wavelength_nm"] = w if w else pd.NA
+            new_row["mec"] = m if m else pd.NA
+            expanded_rows.append(new_row)
+
+    return pd.DataFrame(expanded_rows, columns=df.columns).reset_index(drop=True)
+
+
 def _find_export_files() -> list[Path]:
     """Find all CSV/Excel files in the export directory."""
     if not EXPORT_DIR.exists():
@@ -458,6 +507,14 @@ def main():
         help="Generate .txt batch query files for Reaxys web import",
     )
     parser.add_argument(
+        "--batch-size", type=int, default=BATCH_SIZE,
+        help=f"XRNs per batch file (default: {BATCH_SIZE})",
+    )
+    parser.add_argument(
+        "--batch-dir", type=str, default=None,
+        help="Output directory for batch files (default: auto based on size)",
+    )
+    parser.add_argument(
         "--preview", action="store_true",
         help="Preview column detection on exported files (no output written)",
     )
@@ -473,7 +530,13 @@ def main():
     args = parser.parse_args()
 
     if args.generate_batches:
-        generate_batches()
+        if args.batch_dir:
+            batch_dir = Path(args.batch_dir)
+        elif args.batch_size != BATCH_SIZE:
+            batch_dir = DATA_DIR / f"reaxys_batches_{math.ceil(74784 / args.batch_size)}"
+        else:
+            batch_dir = BATCH_DIR
+        generate_batches(batch_size=args.batch_size, batch_dir=batch_dir)
         return
 
     input_files = [Path(p) for p in args.input] if args.input else None
