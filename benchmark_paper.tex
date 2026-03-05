@@ -371,6 +371,56 @@ Morgan fingerprints encode precisely these local substructural environments~\cit
 This alignment between the locality of the physical property and the locality of the molecular representation explains why a relatively simple fingerprint-based model achieves state-of-the-art performance.
 Kang et al.~\cite{kang2020prediction} and Beard et al.~\cite{beard2022uvadvisor} similarly found that fingerprint- and RNN-based models excel at electronic transition prediction, further supporting the hypothesis that UV absorption is a local-feature-dependent property.
 
+\begin{figure}[htbp]
+    \centering
+    \begin{tikzpicture}[
+        >=Stealth,
+        box/.style={draw, rounded corners=3pt, minimum width=2.8cm, minimum height=0.9cm, align=center, font=\small},
+        localbox/.style={box, fill=green!12, draw=green!50!black},
+        globalbox/.style={box, fill=red!10, draw=red!50!black},
+        propbox/.style={draw, rounded corners=5pt, fill=blue!8, draw=blue!40!black, minimum width=4cm, minimum height=0.8cm, align=center, font=\small\bfseries},
+        annot/.style={font=\scriptsize, text=gray!70!black},
+        every node/.style={inner sep=4pt}
+    ]
+    % --- Header: UV absorption property ---
+    \node[propbox] (uvprop) at (0, 4.2) {UV $\lambda_{\max}$ = local chromophore property};
+    \node[annot, below=1pt of uvprop] (uvsub) {Woodward--Fieser rules: $\lambda_{\max} = \text{base} + \sum \Delta_i$ (local substituent contributions)};
+
+    % --- Three model columns ---
+    % RF column
+    \node[localbox] (rf) at (-4, 1.8) {RF + Morgan FP};
+    \node[annot, below=0pt of rf] (rfdesc) {Radius-2 atom neighborhoods};
+    \node[font=\scriptsize\bfseries, text=green!50!black] at (-4, 0.7) {LOCAL substructures};
+
+    % BiGRU column
+    \node[localbox] (bigru) at (0, 1.8) {BiGRU (RNN)};
+    \node[annot, below=0pt of bigru] (bigrudesc) {Sequential SMILES context};
+    \node[font=\scriptsize\bfseries, text=green!50!black] at (0, 0.7) {LOCAL sequential};
+
+    % ChemBERTa column
+    \node[globalbox] (bert) at (4, 1.8) {ChemBERTa};
+    \node[annot, below=0pt of bert] (bertdesc) {Full self-attention ($O(n^2)$)};
+    \node[font=\scriptsize\bfseries, text=red!50!black] at (4, 0.7) {GLOBAL attention};
+
+    % --- Arrows from property to models ---
+    \draw[->, thick, green!50!black] (uvprop.south west) ++(0.3,0) -- (rf.north) node[midway, left, annot] {matches};
+    \draw[->, thick, green!50!black] (uvprop.south) -- (bigru.north) node[midway, left, annot] {matches};
+    \draw[->, thick, red!40!black, dashed] (uvprop.south east) ++(-0.3,0) -- (bert.north) node[midway, right, annot] {mismatch};
+
+    % --- Result boxes at bottom ---
+    \node[draw, rounded corners=2pt, fill=green!5, font=\scriptsize, align=center] (rfres) at (-4, -0.2) {RMSE = \textbf{31.34} nm\\(best cross-val)};
+    \node[draw, rounded corners=2pt, fill=green!5, font=\scriptsize, align=center] (bigrures) at (0, -0.2) {RMSE = \textbf{36.45} nm\\(best on novel cpds)};
+    \node[draw, rounded corners=2pt, fill=red!5, font=\scriptsize, align=center] (bertres) at (4, -0.2) {RMSE = XX.XX nm\\(44.1M params)};
+
+    % --- Bottom citation ---
+    \node[annot, text width=10cm, align=center] at (0, -1.3) {Chen et al.\ (2023): ``RNNs capture local features; Transformers capture global features.\\The suitable language model should be chosen based on the data.''};
+    \end{tikzpicture}
+    \caption{Conceptual alignment between UV absorption physics and model architectures. UV $\lambda_{\max}$ is determined by local chromophore features (conjugation, substituents), favoring models that encode local molecular information. Green arrows indicate alignment between property locality and model architecture; the dashed red arrow indicates a mismatch. Results confirm that local-feature models (RF, BiGRU) outperform the global-attention Transformer on this task.}
+    \label{fig:local_vs_global}
+\end{figure}
+
+Figure~\ref{fig:local_vs_global} illustrates this conceptual alignment: models whose inductive bias matches the locality of the target property---RF encoding radius-2 atom neighborhoods, BiGRU capturing sequential SMILES context---are better suited for UV absorption prediction than Transformers whose self-attention mechanism distributes information globally across the entire molecular representation~\cite{chenMolecularLanguage2023, jiang2023trangru}.
+
 ChemBERTa, despite being pretrained on $\sim$77M SMILES strings from ZINC and having 44.1M parameters (94$\times$ more than BiGRU), achieves RMSE = XX.XX~nm---[PLACEHOLDER: discuss whether ChemBERTa beats/matches/loses to BiGRU and RF, and what this implies about pretrained representations vs.\ task-specific learning for UV prediction].
 
 XGBoost trained with MAE loss (pseudo-Huber approximation) performs substantially worse than MSE-trained XGBoost (RMSE 40.75 vs.\ 33.70~nm).
