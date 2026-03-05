@@ -151,8 +151,11 @@ def predict_chemberta(df):
         model = AutoModelForSequenceClassification.from_pretrained(
             MODEL_NAME, num_labels=1, problem_type="regression"
         )
-        model.load_state_dict(torch.load(model_path, weights_only=True,
-                                         map_location=device))
+        ckpt = torch.load(model_path, weights_only=False, map_location=device)
+        if isinstance(ckpt, dict) and "model_state_dict" in ckpt:
+            model.load_state_dict(ckpt["model_state_dict"])
+        else:
+            model.load_state_dict(ckpt)
         model.to(device)
         model.eval()
 

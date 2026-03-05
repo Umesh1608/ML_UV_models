@@ -22,6 +22,7 @@ import gc
 import json
 import math
 import os
+import signal
 import subprocess
 import sys
 import time
@@ -195,8 +196,15 @@ def gpu_cooldown(seconds=10):
 
 def train_chemberta(train_smiles, val_smiles, test_smiles,
                     y_train, y_val, y_test,
-                    name="chemberta", results_dir=RESULTS_DIR):
-    """Full training loop with early stopping. Returns (y_pred, metrics)."""
+                    name="chemberta", results_dir=RESULTS_DIR,
+                    test_idx=None):
+    """Full training loop with early stopping, crash-resilient checkpointing.
+
+    Saves results (predictions, metrics, history) internally so a crash after
+    training but before the caller saves won't lose work.
+
+    Returns (y_pred, metrics).
+    """
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"\n  >> {name} — device: {device}")
 
@@ -234,30 +242,93 @@ def train_chemberta(train_smiles, val_smiles, test_smiles,
     best_epoch = -1
     patience_counter = 0
     checkpoint_path = os.path.join(results_dir, f"{name}_best.pt")
+    latest_checkpoint_path = os.path.join(results_dir, f"{name}_latest.pt")
     history = {"train_mae": [], "val_mae": []}
 
+    # ── Resume from checkpoint ────────────────────────────────────────────
+    start_epoch = 0
+    for ckpt_path in [checkpoint_path, latest_checkpoint_path]:
+        if os.path.exists(ckpt_path):
+            ckpt = torch.load(ckpt_path, weights_only=False)
+            if isinstance(ckpt, dict) and "epoch" in ckpt:
+                model.load_state_dict(ckpt["model_state_dict"])
+                optimizer.load_state_dict(ckpt["optimizer_state_dict"])
+                scheduler.load_state_dict(ckpt["scheduler_state_dict"])
+                if scaler and ckpt.get("scaler_state_dict"):
+                    scaler.load_state_dict(ckpt["scaler_state_dict"])
+                start_epoch = ckpt["epoch"]
+                best_val_mae = ckpt["best_val_mae"]
+                best_epoch = ckpt["best_epoch"]
+                patience_counter = ckpt["patience_counter"]
+                history = ckpt["history"]
+                print(f"  >> RESUMED from {os.path.basename(ckpt_path)} "
+                      f"epoch {start_epoch} (best_val_mae={best_val_mae:.2f} "
+                      f"@ep{best_epoch}, patience={patience_counter}/{PATIENCE})")
+                break
+            else:
+                print(f"  >> Found old checkpoint (weights only) at "
+                      f"{os.path.basename(ckpt_path)}, starting fresh")
+
+    # ── Signal handler for graceful shutdown ───────────────────────────────
+    interrupted = False
+
+    def handle_signal(signum, frame):
+        nonlocal interrupted
+        interrupted = True
+        print(f"\n  >> Signal {signum} received — will save checkpoint after "
+              f"current epoch and exit...", flush=True)
+
+    old_sigint = signal.signal(signal.SIGINT, handle_signal)
+    old_sigterm = signal.signal(signal.SIGTERM, handle_signal)
+
+    # ── Training loop ─────────────────────────────────────────────────────
     t0 = time.time()
-    for epoch in range(EPOCHS):
+    final_epoch = start_epoch  # Track last completed epoch
+
+    for epoch in range(start_epoch, EPOCHS):
         epoch_t0 = time.time()
-        train_mae = train_one_epoch(model, train_loader, optimizer, scheduler, device, scaler)
+        train_mae = train_one_epoch(model, train_loader, optimizer, scheduler,
+                                    device, scaler)
         _, val_mae = evaluate(model, val_loader, device)
 
         history["train_mae"].append(float(train_mae))
         history["val_mae"].append(float(val_mae))
 
         epoch_time = time.time() - epoch_t0
+        final_epoch = epoch + 1
 
-        if (epoch + 1) % 5 == 0 or epoch == 0:
+        # ── Progress reporting with ETA ───────────────────────────────
+        if (epoch + 1) % 5 == 0 or epoch == start_epoch:
+            elapsed_total = time.time() - t0
+            epochs_done = epoch + 1 - start_epoch
+            avg_epoch_time = elapsed_total / max(1, epochs_done)
+            remaining_epochs = EPOCHS - (epoch + 1)
+            eta_min = (avg_epoch_time * remaining_epochs) / 60
             print(f"  [{name}] Epoch {epoch+1}/{EPOCHS} — "
                   f"train_mae={train_mae:.2f}, val_mae={val_mae:.2f}, "
-                  f"lr={scheduler.get_last_lr()[0]:.2e}, {epoch_time:.1f}s",
+                  f"best={best_val_mae:.2f}@ep{best_epoch}, "
+                  f"patience={patience_counter}/{PATIENCE}, "
+                  f"lr={scheduler.get_last_lr()[0]:.2e}, {epoch_time:.1f}s/ep, "
+                  f"ETA: {eta_min:.0f}min",
                   flush=True)
 
+        # ── Best checkpoint (full format) ─────────────────────────────
         if val_mae < best_val_mae - 1e-4:
             best_val_mae = val_mae
             best_epoch = epoch + 1
             patience_counter = 0
-            torch.save(model.state_dict(), checkpoint_path)
+            checkpoint = {
+                "epoch": epoch + 1,
+                "model_state_dict": model.state_dict(),
+                "optimizer_state_dict": optimizer.state_dict(),
+                "scheduler_state_dict": scheduler.state_dict(),
+                "scaler_state_dict": scaler.state_dict() if scaler else None,
+                "best_val_mae": best_val_mae,
+                "best_epoch": best_epoch,
+                "patience_counter": patience_counter,
+                "history": history,
+            }
+            torch.save(checkpoint, checkpoint_path)
         else:
             patience_counter += 1
             if patience_counter >= PATIENCE:
@@ -266,24 +337,89 @@ def train_chemberta(train_smiles, val_smiles, test_smiles,
                       flush=True)
                 break
 
-    elapsed = time.time() - t0
-    print(f"  [{name}] Training complete — {epoch+1} epochs in {elapsed:.0f}s",
-          flush=True)
+        # ── Periodic checkpoint every 10 epochs ──────────────────────
+        if (epoch + 1) % 10 == 0:
+            latest_ckpt = {
+                "epoch": epoch + 1,
+                "model_state_dict": model.state_dict(),
+                "optimizer_state_dict": optimizer.state_dict(),
+                "scheduler_state_dict": scheduler.state_dict(),
+                "scaler_state_dict": scaler.state_dict() if scaler else None,
+                "best_val_mae": best_val_mae,
+                "best_epoch": best_epoch,
+                "patience_counter": patience_counter,
+                "history": history,
+            }
+            torch.save(latest_ckpt, latest_checkpoint_path)
+            hist_path = os.path.join(results_dir, f"{name}_history.json")
+            with open(hist_path, "w") as f:
+                json.dump(history, f)
 
-    # Load best model and evaluate on test set
-    model.load_state_dict(torch.load(checkpoint_path, weights_only=True))
+        # ── Check for interrupt ───────────────────────────────────────
+        if interrupted:
+            print(f"  [{name}] Interrupted at epoch {epoch+1} — saving state...",
+                  flush=True)
+            interrupt_ckpt = {
+                "epoch": epoch + 1,
+                "model_state_dict": model.state_dict(),
+                "optimizer_state_dict": optimizer.state_dict(),
+                "scheduler_state_dict": scheduler.state_dict(),
+                "scaler_state_dict": scaler.state_dict() if scaler else None,
+                "best_val_mae": best_val_mae,
+                "best_epoch": best_epoch,
+                "patience_counter": patience_counter,
+                "history": history,
+            }
+            torch.save(interrupt_ckpt, latest_checkpoint_path)
+            hist_path = os.path.join(results_dir, f"{name}_history.json")
+            with open(hist_path, "w") as f:
+                json.dump(history, f)
+            print(f"  >> Saved to {latest_checkpoint_path}")
+            break
+
+    # ── Restore signal handlers ───────────────────────────────────────────
+    signal.signal(signal.SIGINT, old_sigint)
+    signal.signal(signal.SIGTERM, old_sigterm)
+
+    elapsed = time.time() - t0
+    print(f"  [{name}] Training complete — {final_epoch} epochs "
+          f"({final_epoch - start_epoch} new) in {elapsed:.0f}s", flush=True)
+
+    if interrupted:
+        print(f"  >> Training interrupted. Resume with the same command.")
+        del model, optimizer, scheduler, scaler
+        torch.cuda.empty_cache()
+        gc.collect()
+        return None, None
+
+    # ── Load best model and evaluate on test set ──────────────────────────
+    best_ckpt = torch.load(checkpoint_path, weights_only=False)
+    if isinstance(best_ckpt, dict) and "model_state_dict" in best_ckpt:
+        model.load_state_dict(best_ckpt["model_state_dict"])
+    else:
+        model.load_state_dict(best_ckpt)  # Old format fallback
     y_pred, test_mae = evaluate(model, test_loader, device)
     metrics = compute_metrics(y_test, y_pred)
 
     print(f"  >> {name} — RMSE={metrics['RMSE']:.2f} MAE={metrics['MAE']:.2f} "
           f"R²={metrics['R2']:.4f} r={metrics['Pearson_r']:.4f}")
 
-    # Save history
+    # ── Save results immediately (crash-safe) ─────────────────────────────
+    np.save(os.path.join(results_dir, f"{name}_predictions.npy"), y_pred)
+    np.save(os.path.join(results_dir, f"{name}_y_test.npy"), y_test)
+    if test_idx is not None:
+        np.save(os.path.join(results_dir, f"{name}_test_indices.npy"), test_idx)
+    metrics_path = os.path.join(results_dir, f"{name}_metrics.json")
+    with open(metrics_path, "w") as f:
+        json.dump(metrics, f, indent=2)
     hist_path = os.path.join(results_dir, f"{name}_history.json")
     with open(hist_path, "w") as f:
         json.dump(history, f)
 
-    # Cleanup
+    # ── Cleanup latest checkpoint (keep best for model weights) ───────────
+    if os.path.exists(latest_checkpoint_path):
+        os.remove(latest_checkpoint_path)
+
     del model, optimizer, scheduler, scaler
     torch.cuda.empty_cache()
     gc.collect()
@@ -364,14 +500,13 @@ def run_primary_cv(fold_id=None):
             y_val=y[val_idx],
             y_test=y[test_idx],
             name=name,
+            test_idx=test_idx,
         )
 
-        # Save outputs
-        np.save(os.path.join(RESULTS_DIR, f"{name}_predictions.npy"), y_pred)
-        np.save(os.path.join(RESULTS_DIR, f"{name}_y_test.npy"), y[test_idx])
-        np.save(os.path.join(RESULTS_DIR, f"{name}_test_indices.npy"), test_idx)
-        with open(metrics_path, "w") as f:
-            json.dump(metrics, f, indent=2)
+        if y_pred is None:
+            # Training was interrupted — stop processing further folds
+            print(f"  >> Fold {fold} interrupted. Re-run to resume.")
+            return
 
         all_metrics.append(metrics)
 
@@ -499,14 +634,12 @@ def run_cross_dataset(dataset_key):
         y_test=y[test_idx],
         name=prefix,
         results_dir=results_dir,
+        test_idx=test_idx,
     )
 
-    # Save outputs
-    np.save(os.path.join(results_dir, f"{prefix}_predictions.npy"), y_pred)
-    np.save(os.path.join(results_dir, f"{prefix}_y_test.npy"), y[test_idx])
-    np.save(os.path.join(results_dir, f"{prefix}_test_indices.npy"), test_idx)
-    with open(metrics_path, "w") as f:
-        json.dump(metrics, f, indent=2)
+    if y_pred is None:
+        print(f"  >> Training interrupted. Re-run to resume.")
+        return None
 
     return metrics
 

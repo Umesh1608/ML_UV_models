@@ -71,13 +71,15 @@ Single train/val/test splits matching each paper's published protocol. Val used 
 #### Current Phase — Transformer Baseline + Paper Improvements (March 2026)
 - ✅ Created `run_chemberta.py` — ChemBERTa fine-tuning script (PyTorch)
 - ✅ Fixed thermal shutdown: MAX_LEN 512→256 (4x attention savings), BATCH_SIZE 32→8 + grad_accum=4, num_workers=0, gpu_cooldown between folds
-- 🔄 Running ChemBERTa fold 0 (training in progress, GPU stable at 77°C)
+- ✅ Fixed figure alignment: subfigure [b]→[t], figure [t]→[htbp], standardized figsize
+- ✅ Added "UV = local features" argument (Woodward-Fieser, Kasha's rule) in 5 paper locations
+- ✅ Strengthened Chen et al. (2023) connection: RNNs capture local features, Transformers capture global
+- ✅ Added 3 new BibTeX entries (Kang 2020, Beard 2022, Jiang 2023 TranGRU)
+- ✅ Updated contributions list with local-feature finding
+- ✅ Added TikZ diagram (fig:local_vs_global) — local vs global feature alignment
+- ✅ ChemBERTa EPOCHS increased 50→100, PATIENCE 10→15 (first run didn't converge)
+- 🔄 ChemBERTa fold 0 re-running (100 epochs) — first run RMSE=116.79 at 50 epochs, didn't converge
 - 🔄 Run remaining ChemBERTa folds 1-4 + cross-dataset + wetlab
-- 🔄 Fix figure alignment: Figs 3-6 have mismatched subfigure sizes (regenerate with consistent figsize)
-- 🔄 Add "UV = local features" argument: Woodward-Fieser rules, Kasha's rule → local chromophore determines λ_max → explains why RF/BiGRU outperform Transformers
-- 🔄 Strengthen Chen et al. (2023) connection: RNNs capture local features, Transformers capture global → our results corroborate for property prediction
-- 🔄 Add 3 new BibTeX entries (Kang 2020, Beard 2022, Jiang 2023 TranGRU)
-- 🔄 Update contributions list with local-feature finding
 - 🔄 Remove nablaColors from paper
 - 🔄 Apply text fixes (tuning asymmetry, Reaxys, XGBoost MAE, bootstrap CIs)
 
@@ -87,7 +89,7 @@ Single train/val/test splits matching each paper's published protocol. Val used 
 - Ensure all figures render correctly on Overleaf
 
 #### Completed
-- ✅ Paper expanded: 35 citations (was 13), 792 lines, ~7200 words
+- ✅ Paper expanded: ~38 citations (was 13), 792+ lines, ~7200 words
 - ✅ All citations verified against Proposal.bib (27 new bib entries added)
 - ✅ Statistical significance tests: all paired t-tests significant (p < 0.02)
 - ✅ Supplementary material: per-fold tables, significance table, RF tuning analysis
@@ -102,9 +104,17 @@ Single train/val/test splits matching each paper's published protocol. Val used 
 - ✅ "Complementary strengths" narrative revision
 - ✅ RF interpretability figures regenerated with tuned model
 
+#### Planned — RNN Architecture & HP Study (after ChemBERTa + polish)
+- Architecture comparison: BiGRU vs BiLSTM vs CNN-BiGRU (all implemented, `bilstm_v2` and `cnn_bigru_v2` registered in run_baselines.py)
+- BiGRU HP search: Optuna TPE, 30 trials on fold 0
+- Search space: units {64,128,256}, layers {1,2,3}, embed {32,50,100}, dropout {0.1-0.4}, lr [1e-4,3e-3], batch {32,64,128}
+- New script: `tune_bigru.py` (analogous to `tune_rf.py`)
+- Paper: new subsection "RNN Architecture and Hyperparameter Study" after Solvent Ablation
+- 5 new BibTeX: Chung 2014, Goh 2017, Grisoni 2020, Bergstra 2012, Akiba 2019
+- Addresses tuning asymmetry (RF had 432-config grid, BiGRU gets 30-trial Optuna)
+
 #### Dropped from Plan
 - Transfer learning (high risk, uncertain payoff)
-- BiLSTM/CNN-BiGRU v2 (incomplete, don't add to benchmark story)
 - ChemFluor external validation (no published benchmark)
 
 ---
@@ -130,7 +140,7 @@ ln -sf ~/.local/lib/python3.12/site-packages/triton/backends/nvidia/lib/libdevic
 
 **BiGRU**: batch_size=32, lr=0.001, mixed_float16, epochs=250, patience=25, RMSprop, loss=MAE
 
-**ChemBERTa** (thermal-safe config): MAX_LEN=256, batch_size=8, grad_accum=4 (effective=32), lr=5e-5, AdamW, fp16, epochs=50, patience=10, num_workers=0, gpu_cooldown=10s between folds. RTX 4090 Laptop idles at 71°C — the old config (batch=32, MAX_LEN=512, 12 worker processes) caused thermal shutdown.
+**ChemBERTa** (thermal-safe config): MAX_LEN=256, batch_size=8, grad_accum=4 (effective=32), lr=5e-5, AdamW, fp16, epochs=100, patience=15, num_workers=0, gpu_cooldown=10s between folds. RTX 4090 Laptop idles at 71°C — the old config (batch=32, MAX_LEN=512, 12 worker processes) caused thermal shutdown. First run (50 epochs, patience=10) didn't converge (RMSE=116.79).
 
 ## Overleaf + Git
 
