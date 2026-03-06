@@ -180,17 +180,31 @@ def run_search(n_trials=30):
     y_train = df["lambda_max"].values[train_idx].reshape(-1, 1)
     y_val = df["lambda_max"].values[val_idx].reshape(-1, 1)
 
+    # Use SQLite storage so trials persist across runs (stop/resume safe)
+    db_path = os.path.join(RESULTS_DIR, "bigru_hpo.db")
+    storage = f"sqlite:///{db_path}"
     study = optuna.create_study(
         direction="minimize",
         sampler=optuna.samplers.TPESampler(seed=SEED),
         study_name="bigru_hpo",
+        storage=storage,
+        load_if_exists=True,  # Resume from previous trials if DB exists
     )
 
-    study.optimize(
-        lambda trial: objective(trial, X_train, X_val, y_train, y_val, num_words, input_length),
-        n_trials=n_trials,
-        show_progress_bar=True,
-    )
+    completed = len([t for t in study.trials if t.state == optuna.trial.TrialState.COMPLETE])
+    remaining = max(0, n_trials - completed)
+    if completed > 0:
+        print(f"  Resuming: {completed} trials already done, {remaining} remaining")
+        print(f"  Current best: val RMSE = {study.best_value:.2f}")
+
+    if remaining > 0:
+        study.optimize(
+            lambda trial: objective(trial, X_train, X_val, y_train, y_val, num_words, input_length),
+            n_trials=remaining,
+            show_progress_bar=True,
+        )
+    else:
+        print(f"  All {n_trials} trials already complete.")
 
     # Report results
     print(f"\n{'='*60}")
