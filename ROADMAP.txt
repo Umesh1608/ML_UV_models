@@ -1,0 +1,100 @@
+==============================================================================
+  FULL PROJECT ROADMAP — UV Absorption Benchmark Paper
+  Last updated: March 6, 2026
+==============================================================================
+
+# Overview
+
+Two phases:
+1. Phase I: Complete `benchmark_paper.tex` (UV-only, submission-ready)
+2. Phase II: Create `benchmark_paper_v2.tex` with 3 additional properties
+
+==============================================================================
+# PHASE I: Complete Current Paper (`benchmark_paper.tex`)
+==============================================================================
+
+## What's DONE
+
+| Task | Commit |
+|------|--------|
+| A0.1 Factual errors (ChemBERTa params, multirow, TikZ) | 215736e |
+| A0.2 Citations (Chen et al. journal, Joung GCNN, scope caveats) | 215736e |
+| A0.3 Soften 6 overclaimed statements + confounders paragraph | 215736e |
+| A2 Supplementary (XGBoost+ChemBERTa per-fold, significance) | aa8800d |
+| A4 4-model parity plot (shared axes) | 3057f34 |
+| A6 Full proofread (12+ issues fixed) | aa8800d |
+| B3 Wetlab per-molecule figure (horizontal bars) | 0f8043d |
+| B4 ChemBERTa learning curves (supplementary) | 3f7b8cf |
+| Figure 7 fix (vertical layout) | 189c44e |
+
+## What REMAINS
+
+### A3: BiGRU HPO
+- Script: `tune_bigru.py --n-trials 30`
+- Storage: SQLite at `results/bigru_hpo.db` (stop/resume safe)
+- Check: python3 -c "import optuna; s=optuna.load_study(study_name='bigru_hpo',storage='sqlite:///results/bigru_hpo.db'); print(f'{len([t for t in s.trials if t.state.name==\"COMPLETE\"])}/30')"
+
+After A3 search completes:
+  1. Run best config: python3 tune_bigru.py --full-cv
+  2. Re-evaluate wetlab: python3 eval_wetlab.py
+  3. Update paper: Table 2, Table S5, TikZ, discussion
+  4. A5: GitHub repo + Zenodo DOI
+  5. Final compile + proofread
+
+==============================================================================
+# PHASE II: Multi-Property Expansion (`benchmark_paper_v2.tex`)
+==============================================================================
+
+## Data Files (all preprocessed and ready)
+- data/chemfluor_processed.csv        — Emission (4,232 rows, lambda_max = emission wavelength)
+- data/mamede_log_mec_processed.csv   — log10(MEC) (81,638 rows, MEC in [1, 500000])
+- data/lipophilicity_processed.csv    — LogP (4,200 rows, from MoleculeNet)
+
+## Experiment Runner: run_multi_property.py
+
+### Step 1: RF on all 3 properties (~30 min total CPU):
+  python3 run_multi_property.py --property emission --model rf
+  python3 run_multi_property.py --property log_mec --model rf
+  python3 run_multi_property.py --property lipophilicity --model rf
+
+### Step 2: BiGRU (~18h GPU total):
+  python3 run_multi_property.py --property emission --model bigru --fold 0
+  python3 run_multi_property.py --property emission --model bigru --fold 1
+  python3 run_multi_property.py --property emission --model bigru --fold 2
+  python3 run_multi_property.py --property emission --model bigru --fold 3
+  python3 run_multi_property.py --property emission --model bigru --fold 4
+  python3 run_multi_property.py --property lipophilicity --model bigru --fold 0
+  python3 run_multi_property.py --property lipophilicity --model bigru --fold 1
+  python3 run_multi_property.py --property lipophilicity --model bigru --fold 2
+  python3 run_multi_property.py --property lipophilicity --model bigru --fold 3
+  python3 run_multi_property.py --property lipophilicity --model bigru --fold 4
+
+### Step 3: ChemBERTa (~14h GPU total):
+  python3 run_multi_property.py --property emission --model chemberta --fold 0
+  python3 run_multi_property.py --property emission --model chemberta --fold 1
+  python3 run_multi_property.py --property emission --model chemberta --fold 2
+  python3 run_multi_property.py --property emission --model chemberta --fold 3
+  python3 run_multi_property.py --property emission --model chemberta --fold 4
+  python3 run_multi_property.py --property lipophilicity --model chemberta --fold 0
+  python3 run_multi_property.py --property lipophilicity --model chemberta --fold 1
+  python3 run_multi_property.py --property lipophilicity --model chemberta --fold 2
+  python3 run_multi_property.py --property lipophilicity --model chemberta --fold 3
+  python3 run_multi_property.py --property lipophilicity --model chemberta --fold 4
+
+### Step 4: Summary table:
+  python3 run_multi_property.py --summary
+
+## Stop/Resume Safety
+
+| Step              | Persistence               | Lost on Stop         |
+|-------------------|---------------------------|----------------------|
+| RF any property   | Per-fold .joblib + .npy   | Nothing (<1 min)     |
+| BiGRU any prop    | Per-fold .keras + .npy    | Current fold only    |
+| ChemBERTa any     | Ckpt every 10 ep + SIGINT | At most 10 epochs    |
+
+## Paper Integration (after experiments)
+- Copy benchmark_paper.tex -> benchmark_paper_v2.tex
+- Add "Multi-Property Generalization" section (~100-120 lines)
+- New table: 4 properties x 3 models
+- New figure: grouped bar chart
+- Update abstract + conclusion

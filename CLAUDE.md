@@ -186,17 +186,47 @@ Single train/val/test splits matching each paper's published protocol. Val used 
 - Convert supplementary to separate file if required
 - Ensure open-access compliance (CC-BY license)
 
+#### Phase D — Multi-Property Expansion (NEW: `benchmark_paper_v2.tex`)
+
+**Rationale**: Strengthen local-feature claim by showing same RF > Transformer pattern on multiple properties. Create new paper file to keep current version intact.
+
+**D1. Fluorescence emission wavelength (λ_em)** — LOCAL property
+- Dataset: ChemFluor (`data/raw/chemfluor.xlsx`) — 4,386 rows, already in project
+- Target: `Emission/nm` (296–1045 nm, mean 537 ± 91)
+- Solvents: 63 unique names → map to SMILES
+- Models: RF + BiGRU + ChemBERTa, 5-fold CV (~26h GPU)
+- Expected: RF > BiGRU > ChemBERTa (same pattern as UV)
+
+**D2. Molar extinction coefficient (log₁₀ MEC)** — LOCAL property
+- Dataset: Mamede (`data/mamede_regression_dataset.csv`) — 84,262 rows (after filtering)
+- Target: `log10(mec)` (0–5.7, mean 4.14 ± 0.64)
+- Models: RF only (DL on 84K too expensive for current scope)
+- Expected: RF dominates
+
+**D3. Lipophilicity / LogP (CONTROL)** — INTERMEDIATE/GLOBAL property
+- Dataset: MoleculeNet Lipophilicity — ~4,200 rows (download from DeepChem S3)
+- Target: `exp` (LogP), no solvent
+- Models: RF + BiGRU + ChemBERTa, 5-fold CV (~14h GPU)
+- Expected: Pattern equalizes or reverses (RF advantage disappears)
+
+**Implementation:**
+- New script: `run_multi_property.py` (parameterized by property + model)
+- Preprocessed data: `data/chemfluor_emission_processed.csv`, `data/mamede_log_mec_processed.csv`, `data/lipophilicity_processed.csv`
+- Results: `results/emission/`, `results/log_mec/`, `results/lipophilicity/`
+- Paper: New section "Multi-Property Generalization" (~100-120 lines) + table + figure
+- Total GPU: ~32h (recommended scope)
+
 #### Dropped from Plan
 - Transfer learning (high risk, uncertain payoff)
-- ChemFluor external validation (no published benchmark)
 - nablaColors / UniProp / 3D comparison (removed from paper)
 - ChemBERTa attention visualization (interesting but not critical)
 
 #### Priority Execution Order
 ```
-Phase A (2-3 days): A1 → A2 → A4 → A6 → A5 → A3 (A3 runs in background)
-Phase B (1 week):   B4 → B3 → B2 → B1 (B1 runs in background)
+Phase A (DONE except A3+A5): A0 ✅ → A2 ✅ → A4 ✅ → A6 ✅ → A3 🔄 → A5
+Phase B (DONE: B3 ✅, B4 ✅): B2 optional
 Phase C (optional): C1 → C2 → C3 → C4
+Phase D (after Phase A complete): D1 → D2 → D3 → paper integration
 ```
 
 ---

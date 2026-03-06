@@ -305,16 +305,45 @@ def create_hybrid_model(num_words, input_length, fp_dim=2048):
 
 # ─── Morgan fingerprints ─────────────────────────────────────────────────
 
-def compute_morgan_fps(smiles_list, radius=2, n_bits=2048):
+def _compute_single_fp(args):
+    """Worker function for parallel fingerprint computation."""
+    smi, radius, n_bits = args
+    from rdkit import Chem
+    from rdkit.Chem import AllChem
+    mol = Chem.MolFromSmiles(smi)
+    if mol is not None:
+        fp = AllChem.GetMorganFingerprintAsBitVect(mol, radius, nBits=n_bits)
+        return np.array(fp), True
+    return np.zeros(n_bits), False
+
+
+def compute_morgan_fps(smiles_list, radius=2, n_bits=2048, n_jobs=None):
     """Compute Morgan fingerprints for a list of SMILES strings.
+
+    Uses multiprocessing for large datasets (>5000 molecules).
 
     Returns:
         fps: np.ndarray of shape (n, n_bits)
         valid_mask: np.ndarray of booleans indicating valid molecules
     """
+    n = len(smiles_list)
+
+    if n > 5000 and n_jobs != 1:
+        import multiprocessing as mp
+        n_workers = n_jobs or min(mp.cpu_count(), 8)
+        print(f"    Parallel fingerprints ({n_workers} workers, {n} molecules)...")
+        args = [(smi, radius, n_bits) for smi in smiles_list]
+        with mp.Pool(n_workers) as pool:
+            results = list(tqdm(
+                pool.imap(_compute_single_fp, args, chunksize=500),
+                total=n, desc="    Fingerprints", leave=False, file=sys.stdout
+            ))
+        fps = np.array([r[0] for r in results])
+        valid_mask = np.array([r[1] for r in results])
+        return fps, valid_mask
+
     from rdkit import Chem
     from rdkit.Chem import AllChem
-
     fps = []
     valid_mask = []
     for smi in tqdm(smiles_list, desc="    Fingerprints", leave=False, file=sys.stdout):
