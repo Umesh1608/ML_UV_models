@@ -158,7 +158,7 @@ Transfer learning approaches have shown promise for incorporating solvent inform
 \textbf{Benchmarking perspective.}
 The MoleculeNet benchmark suite~\cite{wuMoleculeNet2018} established a standardized framework for comparing molecular ML models across diverse property prediction tasks, but UV absorption is not among its benchmarks.
 Recent work has highlighted that well-tuned classical models often match or exceed complex architectures~\cite{zhuo2024machine, walters2021applications}, challenging the assumption that deep learning always outperforms simpler methods.
-Our study extends this perspective specifically to UV absorption prediction, providing controlled comparisons across four diverse datasets with published baselines and complementary evaluation protocols.
+Our study extends this perspective specifically to UV absorption prediction, providing controlled comparisons across three UV absorption datasets with published baselines, complemented by photosafety classification and wetlab validation.
 
 
 % ===== Methods =====
@@ -350,7 +350,7 @@ Table~\ref{tab:model_comparison} presents the performance of all models on the p
 RF + Morgan FP        & \textbf{31.34 $\pm$ 1.82} & \textbf{15.16 $\pm$ 0.44} & \textbf{0.914 $\pm$ 0.010} & \textbf{0.956 $\pm$ 0.005} \\
 XGBoost + Morgan FP   & 33.70 $\pm$ 1.61          & 20.05 $\pm$ 0.48          & 0.900 $\pm$ 0.009          & 0.950 $\pm$ 0.005 \\
 BiGRU + Solvent       & 36.45 $\pm$ 1.12          & 20.70 $\pm$ 0.51          & 0.884 $\pm$ 0.006          & 0.940 $\pm$ 0.003 \\
-XGBoost (MAE loss)    & 40.75 $\pm$ 1.58          & 21.99 $\pm$ 0.47          & 0.854 $\pm$ 0.011          & 0.927 $\pm$ 0.006 \\
+XGBoost (MAE loss)    & 40.75 $\pm$ 1.58          & 21.99 $\pm$ 0.47          & 0.854 $\pm$ 0.010          & 0.927 $\pm$ 0.005 \\
 ChemBERTa (pretrained)& 50.39 $\pm$ 2.30          & 24.31 $\pm$ 1.04          & 0.777 $\pm$ 0.019          & 0.899 $\pm$ 0.009 \\
 \bottomrule
 \end{tabular}
@@ -423,8 +423,8 @@ Kang et al.~\cite{kang2020prediction} and Beard et al.~\cite{beard2022uvadvisor}
 Figure~\ref{fig:local_vs_global} illustrates this conceptual alignment: models whose inductive bias matches the locality of the target property---RF encoding radius-2 atom neighborhoods, BiGRU capturing sequential SMILES context---achieve better in-distribution performance for UV absorption prediction than Transformers whose self-attention mechanism distributes information globally across the entire molecular representation~\cite{chenMolecularLanguage2023, jiang2023trangru}.
 
 ChemBERTa, despite being pretrained on $\sim$77M SMILES strings from ZINC and having 44.1M parameters (94$\times$ more than BiGRU), achieves RMSE = 50.39~nm---substantially worse than both BiGRU (36.45~nm) and RF (31.34~nm).
-This 61\% gap relative to RF is consistent with the hypothesis that Transformer representations are less sample-efficient for local properties on moderately-sized datasets, though ChemBERTa's superior wetlab generalization (Section~\ref{sec:wetlab}) suggests pretrained knowledge partially compensates.
-Notably, however, ChemBERTa achieves the lowest wetlab MAE on novel compounds (26.3~nm vs.\ 28.6~nm for BiGRU; Section~\ref{sec:wetlab}), suggesting that pretrained representations may offer complementary generalization advantages despite poor in-distribution performance.
+This 61\% gap relative to RF is consistent with the hypothesis that Transformer representations are less sample-efficient for local properties on moderately-sized datasets, though ChemBERTa's superior wetlab generalization (Section~\ref{sec:experimental}) suggests pretrained knowledge partially compensates.
+Notably, however, ChemBERTa achieves the lowest wetlab MAE on novel compounds (26.3~nm vs.\ 28.6~nm for BiGRU; Section~\ref{sec:experimental}), suggesting that pretrained representations may offer complementary generalization advantages despite poor in-distribution performance.
 
 XGBoost trained with MAE loss (pseudo-Huber approximation) performs substantially worse than MSE-trained XGBoost (RMSE 40.75 vs.\ 33.70~nm).
 This degradation occurs because MAE loss produces non-smooth gradients at zero error, which interacts poorly with XGBoost's second-order Taylor expansion of the loss function~\cite{chen2016xgboost}; the near-zero Hessian values destabilize leaf weight estimation.
@@ -446,10 +446,10 @@ To quantify the contribution of solvent information, we compare models trained w
 \textbf{Model} & \textbf{RMSE (nm)} & \textbf{MAE (nm)} & $\boldsymbol{R^2}$ & \textbf{Pearson $r$} \\
 \midrule
 RF + Solvent          & \textbf{31.34 $\pm$ 1.82} & \textbf{15.16 $\pm$ 0.44} & \textbf{0.914 $\pm$ 0.010} & \textbf{0.956 $\pm$ 0.005} \\
-RF Solute only        & 34.13 $\pm$ 1.44          & 16.45 $\pm$ 0.33          & 0.900 $\pm$ 0.010          & 0.950 $\pm$ 0.004 \\
+RF Solute only        & 34.13 $\pm$ 1.44          & 16.45 $\pm$ 0.33          & 0.898 $\pm$ 0.008          & 0.948 $\pm$ 0.004 \\
 \midrule
 BiGRU + Solvent       & 36.45 $\pm$ 1.12          & 20.70 $\pm$ 0.51          & 0.884 $\pm$ 0.006          & 0.940 $\pm$ 0.003 \\
-BiGRU Solute only     & 39.03 $\pm$ 1.37          & 22.53 $\pm$ 0.32          & 0.870 $\pm$ 0.010          & 0.930 $\pm$ 0.010 \\
+BiGRU Solute only     & 39.03 $\pm$ 1.37          & 22.52 $\pm$ 0.32          & 0.866 $\pm$ 0.009          & 0.931 $\pm$ 0.005 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -465,7 +465,7 @@ Nevertheless, for applications such as ICH~S10~\cite{ICH2013S10} photosafety scr
 \subsection{Cross-Dataset Benchmarking}
 \label{sec:cross_dataset}
 
-Table~\ref{tab:cross_dataset} presents results on three external datasets, with published baselines included for direct comparison.
+Table~\ref{tab:cross_dataset} presents results on two external datasets, with published baselines included for direct comparison.
 
 \begin{table}[t]
 \centering
@@ -511,17 +511,9 @@ Across both external datasets, RF consistently outperforms BiGRU and ChemBERTa, 
 
 \begin{figure}[htbp]
     \centering
-    \begin{subfigure}[t]{0.48\textwidth}
-        \includegraphics[width=\textwidth]{results/parity_plot.png}
-        \caption{Parity plot: predicted vs.\ experimental $\lambda_{\max}$ for BiGRU + Solvent (pooled 5-fold CV predictions).}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}[t]{0.48\textwidth}
-        \includegraphics[width=\textwidth]{results/error_distribution.png}
-        \caption{Error distribution showing slight positive bias (mean error $>$ 0).}
-    \end{subfigure}
-    \caption{Prediction accuracy analysis for BiGRU + Solvent on the Joung+Beard dataset.}
-    \label{fig:error_analysis}
+    \includegraphics[width=0.95\textwidth]{results/parity_plot_4models.png}
+    \caption{Parity plots for all four model families (pooled 5-fold CV predictions). Green shaded bands indicate $\pm 20$~nm from perfect prediction. RF shows the tightest clustering around the diagonal, while ChemBERTa exhibits the most scatter, particularly for long-wavelength compounds. All models show increased error for $\lambda_{\max} > 500$~nm.}
+    \label{fig:parity_4models}
 \end{figure}
 
 \begin{figure}[htbp]
@@ -535,13 +527,13 @@ Across both external datasets, RF consistently outperforms BiGRU and ChemBERTa, 
         \includegraphics[width=\textwidth]{results/error_by_solvent.png}
         \caption{MAE by solvent type for the five most common solvents in the dataset.}
     \end{subfigure}
-    \caption{Error breakdown by wavelength range and solvent type.}
+    \caption{Error breakdown by wavelength range and solvent type (BiGRU + Solvent).}
     \label{fig:error_breakdown}
 \end{figure}
 
-Figure~\ref{fig:error_analysis} shows the parity plot and error distribution for BiGRU + Solvent predictions on the primary dataset.
-The parity plot reveals strong overall agreement with a slight tendency to overpredict (mean signed error $> 0$), which is visible as a positive skew in the error distribution (Figure~\ref{fig:error_analysis}b).
-The model performs best in the 250--400~nm range where training data is most abundant (Figure~\ref{fig:error_breakdown}a).
+Figure~\ref{fig:parity_4models} shows parity plots for all four model families on the primary dataset.
+RF predictions cluster most tightly around the diagonal, consistent with its lowest RMSE, while ChemBERTa shows the broadest scatter.
+All models perform best in the 250--400~nm range where training data is most abundant (Figure~\ref{fig:error_breakdown}a).
 Errors increase substantially for $\lambda_{\max} > 500$~nm, reflecting both data scarcity in this wavelength range and the greater structural complexity of long-wavelength chromophores---many of which are extended conjugated systems (porphyrins, phthalocyanines, cyanine dyes) with properties strongly dependent on 3D geometry~\cite{flemingMolecular2010}.
 Error distributions across the five most common solvents (Figure~\ref{fig:error_breakdown}b) show relatively consistent performance, with slightly higher errors for chloroform and dichloromethane, consistent with the known tendency of halogenated solvents to produce larger solvatochromic shifts~\cite{reichardt2011solvents}.
 
@@ -575,7 +567,7 @@ We averaged Gini importances across all five fold models and decoded the top fea
     \centering
     \begin{subfigure}[t]{0.48\textwidth}
         \includegraphics[width=\textwidth]{results/rf_cumulative_importance.pdf}
-        \caption{Cumulative feature importance. The top 20 features (out of 4096) account for 50.6\% of total importance, indicating a sparse, interpretable model.}
+        \caption{Cumulative feature importance. The top 20 features (out of 4096) account for 41.6\% of total importance, indicating a sparse, interpretable model.}
     \end{subfigure}
     \hfill
     \begin{subfigure}[t]{0.48\textwidth}
@@ -587,7 +579,7 @@ We averaged Gini importances across all five fold models and decoded the top fea
 \end{figure}
 
 \textbf{Feature importance reveals known photochemistry.}
-The most important feature (bit 463, Gini importance = 30.4\%) corresponds to aryl diazo/hydrazine substructures.
+The most important feature (bit 463, Gini importance = 12.7\%) corresponds to aryl diazo/hydrazine substructures.
 Molecules containing this substructure exhibit a mean $\lambda_{\max}$ of 543~nm compared to 401~nm without ($\Delta\lambda_{\max} = +143$~nm), consistent with the well-known bathochromic effect of nitrogen-nitrogen double bonds extending $\pi$-conjugation.
 Other high-ranking features include BODIPY cores ($\Delta\lambda_{\max} = +162$~nm), enamine linkages ($\Delta\lambda_{\max} = +141$~nm), and alkynyl silane groups ($\Delta\lambda_{\max} = +153$~nm)---all recognized chromophore motifs in photochemistry (Figure~\ref{fig:rf_interpretability}a).
 
@@ -597,8 +589,8 @@ This aligns with chemical intuition: chromophore structure is the primary determ
 The 24.6:1 solute-to-solvent importance ratio is consistent with the modest 8\% RMSE improvement observed in the solvent ablation (Section~\ref{sec:solvent_ablation}).
 
 \textbf{Model sparsity.}
-Despite operating on 4096-dimensional fingerprint input, the RF model concentrates its decisions on a small subset of features: the top 5 features explain 26.7\% of total importance, the top 20 explain 41.4\%, and the top 100 explain 62.4\% (Figure~\ref{fig:rf_practical}a).
-A single fingerprint bit corresponding to aryl diazo/hydrazine substructures accounts for 13.0\% of total importance, reflecting the dominant contribution of azo chromophores to large $\lambda_{\max}$ values in the dataset ($\Delta\lambda = +143$~nm when present).
+Despite operating on 4096-dimensional fingerprint input, the RF model concentrates its decisions on a small subset of features: the top 5 features explain 26.9\% of total importance, the top 20 explain 41.6\%, and the top 100 explain 62.6\% (Figure~\ref{fig:rf_practical}a).
+A single fingerprint bit corresponding to aryl diazo/hydrazine substructures accounts for 12.7\% of total importance, reflecting the dominant contribution of azo chromophores to large $\lambda_{\max}$ values in the dataset ($\Delta\lambda = +143$~nm when present).
 
 \textbf{Practical advantages of classical ML.}
 Beyond interpretability, RF offers substantial practical advantages for molecular property prediction tasks.
@@ -642,12 +634,13 @@ This finding suggests that direct classification is preferable to regression-the
 \label{sec:experimental}
 
 To further validate our models, we measured UV absorption spectra for 16 commercially available compounds in both ethanol (EtOH) and methanol (MeOH), yielding 32 experimental $\lambda_{\max}$ values.
-Of these 16 molecules, 13 are entirely absent from the training dataset, providing a genuine out-of-distribution test.
-Two molecules (Ferulic Acid and Octinoxate) appear in the training data with different solvents, and no EtOH measurements exist in the training set.
+Of these 16 molecules, 15 are entirely absent from the training dataset, providing a genuine out-of-distribution test.
+One molecule (Ferulic Acid) appears in the training data with a different solvent (water).
+Although ethanol and methanol are well-represented solvents in the training set (1,034 and 1,322 records, respectively), the solute--solvent combinations tested here are novel.
 
 \begin{table}[t]
 \centering
-\caption{Experimental validation: predicted vs.\ measured $\lambda_{\max}$ for 16 UV-absorbing compounds in two solvents. Predictions are ensemble averages across 5-fold models. $^*$Present in training data with different solvents.}
+\caption{Experimental validation: predicted vs.\ measured $\lambda_{\max}$ for 16 UV-absorbing compounds in two solvents. Predictions are ensemble averages across 5-fold models. $^*$Present in training data with a different solvent.}
 \label{tab:experimental}
 \small
 \begin{tabular}{lccccccc}
@@ -664,7 +657,7 @@ Coumaric Acid   & 310 & 348 & 346 & 309 & 343 & 344 \\
 Dioxybenzone    & 283 & 315 & 327 & 283 & 315 & 320 \\
 Ferulic Acid$^*$  & 324 & 313 & 346 & 324 & 310 & 344 \\
 Homosalate      & 308 & 335 & 332 & 308 & 336 & 327 \\
-Octinoxate$^*$  & 309 & 326 & 334 & 308 & 323 & 332 \\
+Octinoxate  & 309 & 326 & 334 & 308 & 323 & 332 \\
 Octisalate      & 308 & 339 & 353 & 308 & 333 & 349 \\
 Octocrylene     & 301 & 344 & 390 & 302 & 344 & 389 \\
 Oxybenzone      & 287 & 301 & 328 & 287 & 299 & 321 \\
@@ -776,7 +769,7 @@ All code for model training, evaluation, and analysis will be released on GitHub
 \subsection{Per-Fold Cross-Validation Results}
 \label{sec:perfold}
 
-Table~\ref{tab:perfold_rf} and Table~\ref{tab:perfold_bigru} present per-fold results for the RF and BiGRU models with solvent encoding on the primary Joung+Beard dataset (stratified 5-fold CV, 64/16/20 split).
+Tables~\ref{tab:perfold_rf}--\ref{tab:perfold_chemberta} present per-fold results for all four model families on the primary Joung+Beard dataset (stratified 5-fold CV, 64/16/20 split).
 
 \begin{table}[h]
 \centering
@@ -786,11 +779,11 @@ Table~\ref{tab:perfold_rf} and Table~\ref{tab:perfold_bigru} present per-fold re
 \toprule
 \textbf{Fold} & \textbf{RMSE (nm)} & \textbf{MAE (nm)} & $\boldsymbol{R^2}$ & \textbf{Pearson $r$} \\
 \midrule
-0 & 32.02 & 15.31 & 0.910 & 0.955 \\
-1 & 30.74 & 14.86 & 0.918 & 0.958 \\
-2 & 28.09 & 14.56 & 0.931 & 0.965 \\
-3 & 32.58 & 15.68 & 0.907 & 0.953 \\
-4 & 33.25 & 15.38 & 0.906 & 0.952 \\
+0 & 32.02 & 15.42 & 0.907 & 0.953 \\
+1 & 30.74 & 14.79 & 0.918 & 0.959 \\
+2 & 28.09 & 14.47 & 0.931 & 0.965 \\
+3 & 32.58 & 15.56 & 0.908 & 0.953 \\
+4 & 33.25 & 15.54 & 0.905 & 0.952 \\
 \midrule
 \textbf{Mean $\pm$ Std} & \textbf{31.34 $\pm$ 1.82} & \textbf{15.16 $\pm$ 0.44} & \textbf{0.914 $\pm$ 0.010} & \textbf{0.956 $\pm$ 0.005} \\
 \bottomrule
@@ -805,13 +798,51 @@ Table~\ref{tab:perfold_rf} and Table~\ref{tab:perfold_bigru} present per-fold re
 \toprule
 \textbf{Fold} & \textbf{RMSE (nm)} & \textbf{MAE (nm)} & $\boldsymbol{R^2}$ & \textbf{Pearson $r$} \\
 \midrule
-0 & 35.23 & 20.64 & 0.889 & 0.943 \\
-1 & 37.33 & 21.30 & 0.879 & 0.937 \\
-2 & 34.96 & 19.79 & 0.893 & 0.945 \\
-3 & 37.62 & 21.13 & 0.876 & 0.936 \\
-4 & 37.12 & 20.63 & 0.882 & 0.939 \\
+0 & 35.23 & 20.02 & 0.888 & 0.942 \\
+1 & 37.33 & 20.86 & 0.879 & 0.937 \\
+2 & 34.96 & 20.77 & 0.893 & 0.945 \\
+3 & 37.62 & 21.51 & 0.877 & 0.937 \\
+4 & 37.12 & 20.32 & 0.881 & 0.939 \\
 \midrule
 \textbf{Mean $\pm$ Std} & \textbf{36.45 $\pm$ 1.12} & \textbf{20.70 $\pm$ 0.51} & \textbf{0.884 $\pm$ 0.006} & \textbf{0.940 $\pm$ 0.003} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[h]
+\centering
+\caption{Per-fold XGBoost + Morgan FP results (MSE loss, v2).}
+\label{tab:perfold_xgboost}
+\begin{tabular}{ccccc}
+\toprule
+\textbf{Fold} & \textbf{RMSE (nm)} & \textbf{MAE (nm)} & $\boldsymbol{R^2}$ & \textbf{Pearson $r$} \\
+\midrule
+0 & 34.55 & 20.15 & 0.892 & 0.945 \\
+1 & 33.58 & 19.79 & 0.902 & 0.950 \\
+2 & 30.63 & 19.31 & 0.918 & 0.959 \\
+3 & 35.15 & 20.77 & 0.893 & 0.946 \\
+4 & 34.58 & 20.23 & 0.897 & 0.948 \\
+\midrule
+\textbf{Mean $\pm$ Std} & \textbf{33.70 $\pm$ 1.61} & \textbf{20.05 $\pm$ 0.48} & \textbf{0.900 $\pm$ 0.009} & \textbf{0.950 $\pm$ 0.005} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[h]
+\centering
+\caption{Per-fold ChemBERTa results (v2).}
+\label{tab:perfold_chemberta}
+\begin{tabular}{ccccc}
+\toprule
+\textbf{Fold} & \textbf{RMSE (nm)} & \textbf{MAE (nm)} & $\boldsymbol{R^2}$ & \textbf{Pearson $r$} \\
+\midrule
+0 & 49.31 & 23.88 & 0.780 & 0.899 \\
+1 & 48.66 & 23.54 & 0.794 & 0.908 \\
+2 & 47.70 & 23.05 & 0.801 & 0.909 \\
+3 & 53.04 & 25.68 & 0.756 & 0.889 \\
+4 & 53.24 & 25.39 & 0.756 & 0.890 \\
+\midrule
+\textbf{Mean $\pm$ Std} & \textbf{50.39 $\pm$ 2.30} & \textbf{24.31 $\pm$ 1.04} & \textbf{0.777 $\pm$ 0.019} & \textbf{0.899 $\pm$ 0.009} \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -831,9 +862,12 @@ With only $n = 5$ folds, the Wilcoxon signed-rank test (a non-parametric alterna
 \toprule
 \textbf{Comparison} & $\boldsymbol{t}$ & $\boldsymbol{p}$ & \textbf{Significant?} \\
 \midrule
-RF vs.\ BiGRU (main)      & $-7.08$ & 0.002 & Yes \\
+RF vs.\ BiGRU              & $-7.08$ & 0.002 & Yes \\
 RF vs.\ XGBoost            & $-8.94$ & 0.001 & Yes \\
+RF vs.\ ChemBERTa          & $-31.0$ & $<$0.001 & Yes \\
 XGBoost vs.\ BiGRU         & $-4.38$ & 0.012 & Yes \\
+XGBoost vs.\ ChemBERTa     & $-21.8$ & $<$0.001 & Yes \\
+BiGRU vs.\ ChemBERTa       & $-16.0$ & $<$0.001 & Yes \\
 RF: solvent vs.\ no-solvent  & $-11.46$ & $<$0.001 & Yes \\
 BiGRU: solvent vs.\ no-solvent & $-3.90$ & 0.018 & Yes \\
 \bottomrule
