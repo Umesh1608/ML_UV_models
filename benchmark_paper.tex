@@ -706,6 +706,14 @@ Our cross-validated results suggest that a similar architectural trade-off may a
 ChemBERTa's poor cross-validated ranking but strong wetlab generalization suggests that pretrained representations may encode transferable molecular knowledge that compensates for the architecture's inductive bias mismatch, but only when evaluated on truly novel compounds outside the training distribution.
 The complementarity extends further---beyond the local/global distinction---because RF's fixed-vocabulary substructure matching excels at interpolation while learned representations (both BiGRU and ChemBERTa) enable extrapolation to novel scaffolds.
 
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth]{results/wetlab_per_molecule.png}
+    \caption{Per-molecule comparison of experimental and predicted $\lambda_{\max}$ for 16 sunscreen-related compounds, averaged over EtOH and MeOH solvents. Molecules are sorted by experimental $\lambda_{\max}$. Cinnamic Acid is a notable outlier where all models overpredict by $\sim$65--75~nm, while ChemBERTa achieves the closest predictions for most molecules.}
+    \label{fig:wetlab_per_molecule}
+\end{figure}
+
+Figure~\ref{fig:wetlab_per_molecule} shows per-molecule predictions alongside experimental values, illustrating the pattern more concretely: ChemBERTa tracks the experimental trend most closely for mid-range absorbers (PABA, Homosalate, Padimate~O, Ferulic Acid), while all models struggle with Cinnamic Acid and Octocrylene.
 
 % ===== Conclusion =====
 \section{Conclusion}
@@ -897,6 +905,20 @@ The gap between training and validation curves indicates mild overfitting, consi
     \includegraphics[width=0.9\textwidth]{results/learning_curves.png}
     \caption{BiGRU training curves showing training and validation MAE vs.\ epoch, averaged across folds. Shaded regions denote $\pm 1$ standard deviation. Left: BiGRU with solvent encoding. Right: BiGRU with solute only.}
     \label{fig:learning_curves}
+\end{figure}
+
+\subsection{ChemBERTa Learning Curves}
+\label{sec:chemberta_curves}
+
+Figure~\ref{fig:chemberta_curves} shows the ChemBERTa training and validation MAE curves across all five folds.
+All folds converge within 40--60 epochs, with the final validation MAE plateauing around 24--26~nm.
+The gap between training and validation MAE is larger than for BiGRU, consistent with ChemBERTa's 44.1M parameters being overparameterized for the $\sim$12K training samples available per fold.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth]{results/chemberta_learning_curves.png}
+    \caption{ChemBERTa fine-tuning learning curves. Left: per-fold validation MAE (solid) and training MAE (dashed). Right: mean $\pm$ 1 standard deviation across folds, with final values annotated.}
+    \label{fig:chemberta_curves}
 \end{figure}
 
 
