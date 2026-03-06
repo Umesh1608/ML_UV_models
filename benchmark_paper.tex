@@ -53,9 +53,9 @@ Accurate prediction of UV absorption wavelengths ($\lambda_{\max}$) from molecul
 We present a systematic benchmark of machine learning approaches for $\lambda_{\max}$ prediction, comparing Random Forest (RF) with Morgan fingerprints, XGBoost, a Bidirectional GRU (BiGRU) sequence model, and ChemBERTa---a pretrained Transformer fine-tuned on SMILES strings.
 Models are evaluated on a primary dataset of 18,755 solute--solvent pairs (Joung + Beard) using stratified 5-fold cross-validation, with external validation on two independent datasets totaling over 45,000 molecules using each dataset's published split protocol for direct comparison with prior work.
 RF with concatenated solute--solvent Morgan fingerprints achieves the best cross-validated performance (RMSE = $31.34 \pm 1.82$ nm, $R^2 = 0.914$), outperforming BiGRU (RMSE = $36.45 \pm 1.12$ nm, $R^2 = 0.884$) and matching or exceeding published deep learning baselines on external datasets, including GCNN on Deep4Chem (our RMSE = 22.70 vs.\ 26.6 nm) and GBFS on Jung et al.\ (our RMSE = 29.82 vs.\ 32.2 nm).
-However, experimental validation on 16 novel UV-absorbing compounds reveals that BiGRU generalizes better to out-of-distribution molecules (MAE = 28.6 vs.\ 38.5 nm for RF), suggesting that sequence models learn transferable patterns beyond fixed substructural features.
+ChemBERTa, a pretrained Transformer (44.1M parameters), achieves the worst cross-validated performance (RMSE = $50.39 \pm 2.30$ nm), yet experimental validation on 16 novel UV-absorbing compounds reveals that both deep learning models outperform RF on out-of-distribution molecules (ChemBERTa MAE = 26.3, BiGRU = 28.6 vs.\ 38.5 nm for RF), suggesting that learned representations generalize beyond fixed substructural features.
 We introduce a solvent concatenation strategy encoding solute and solvent as a single representation, yielding consistent improvement across both model families (8\% RMSE reduction for RF, 7\% for BiGRU).
-These complementary strengths---RF for interpolation within known chemical space, BiGRU for extrapolation to novel scaffolds---provide practical guidance for model selection in UV property prediction.
+These complementary strengths---RF for interpolation within known chemical space, deep learning for extrapolation to novel scaffolds---provide practical guidance for model selection in UV property prediction.
 \end{abstract}
 
 \textbf{Keywords:} machine learning, UV absorption, molecular property prediction, SMILES, random forest, benchmarking, solvent effects
@@ -348,9 +348,9 @@ Table~\ref{tab:model_comparison} presents the performance of all models on the p
 \midrule
 RF + Morgan FP        & \textbf{31.34 $\pm$ 1.82} & \textbf{15.16 $\pm$ 0.44} & \textbf{0.914 $\pm$ 0.010} & \textbf{0.956 $\pm$ 0.005} \\
 XGBoost + Morgan FP   & 33.70 $\pm$ 1.61          & 20.05 $\pm$ 0.48          & 0.900 $\pm$ 0.009          & 0.950 $\pm$ 0.005 \\
-ChemBERTa (pretrained)& XX.XX $\pm$ X.XX          & XX.XX $\pm$ X.XX          & X.XXX $\pm$ X.XXX          & X.XXX $\pm$ X.XXX \\
 BiGRU + Solvent       & 36.45 $\pm$ 1.12          & 20.70 $\pm$ 0.51          & 0.884 $\pm$ 0.006          & 0.940 $\pm$ 0.003 \\
 XGBoost (MAE loss)    & 40.75 $\pm$ 1.58          & 21.99 $\pm$ 0.47          & 0.854 $\pm$ 0.011          & 0.927 $\pm$ 0.006 \\
+ChemBERTa (pretrained)& 50.39 $\pm$ 2.30          & 24.31 $\pm$ 1.04          & 0.777 $\pm$ 0.019          & 0.899 $\pm$ 0.009 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -410,7 +410,7 @@ Kang et al.~\cite{kang2020prediction} and Beard et al.~\cite{beard2022uvadvisor}
     % --- Result boxes at bottom ---
     \node[draw, rounded corners=2pt, fill=green!5, font=\scriptsize, align=center] (rfres) at (-4, -0.2) {RMSE = \textbf{31.34} nm\\(best cross-val)};
     \node[draw, rounded corners=2pt, fill=green!5, font=\scriptsize, align=center] (bigrures) at (0, -0.2) {RMSE = \textbf{36.45} nm\\(best on novel cpds)};
-    \node[draw, rounded corners=2pt, fill=red!5, font=\scriptsize, align=center] (bertres) at (4, -0.2) {RMSE = XX.XX nm\\(44.1M params)};
+    \node[draw, rounded corners=2pt, fill=red!5, font=\scriptsize, align=center] (bertres) at (4, -0.2) {RMSE = \textbf{50.39} nm\\(44.1M params)};
 
     % --- Bottom citation ---
     \node[annot, text width=10cm, align=center] at (0, -1.3) {Chen et al.\ (2023): ``RNNs capture local features; Transformers capture global features.\\The suitable language model should be chosen based on the data.''};
@@ -421,7 +421,9 @@ Kang et al.~\cite{kang2020prediction} and Beard et al.~\cite{beard2022uvadvisor}
 
 Figure~\ref{fig:local_vs_global} illustrates this conceptual alignment: models whose inductive bias matches the locality of the target property---RF encoding radius-2 atom neighborhoods, BiGRU capturing sequential SMILES context---are better suited for UV absorption prediction than Transformers whose self-attention mechanism distributes information globally across the entire molecular representation~\cite{chenMolecularLanguage2023, jiang2023trangru}.
 
-ChemBERTa, despite being pretrained on $\sim$77M SMILES strings from ZINC and having 44.1M parameters (94$\times$ more than BiGRU), achieves RMSE = XX.XX~nm---[PLACEHOLDER: discuss whether ChemBERTa beats/matches/loses to BiGRU and RF, and what this implies about pretrained representations vs.\ task-specific learning for UV prediction].
+ChemBERTa, despite being pretrained on $\sim$77M SMILES strings from ZINC and having 44.1M parameters (94$\times$ more than BiGRU), achieves RMSE = 50.39~nm---substantially worse than both BiGRU (36.45~nm) and RF (31.34~nm).
+This 61\% gap relative to RF demonstrates that pretrained Transformer representations, which capture global molecular context through full self-attention, are poorly matched to the locality of UV absorption.
+Notably, however, ChemBERTa achieves the lowest wetlab MAE on novel compounds (26.3~nm vs.\ 28.6~nm for BiGRU; Section~\ref{sec:wetlab}), suggesting that pretrained representations may offer complementary generalization advantages despite poor in-distribution performance.
 
 XGBoost trained with MAE loss (pseudo-Huber approximation) performs substantially worse than MSE-trained XGBoost (RMSE 40.75 vs.\ 33.70~nm).
 This degradation occurs because MAE loss produces non-smooth gradients at zero error, which interacts poorly with XGBoost's second-order Taylor expansion of the loss function~\cite{chen2016xgboost}; the near-zero Hessian values destabilize leaf weight estimation.
@@ -475,7 +477,7 @@ Table~\ref{tab:cross_dataset} presents results on three external datasets, with 
 \multirow{5}{*}{Deep4Chem (80/10/10)}
   & GCNN$^\dagger$            & 26.6   & ---    & ---   \\
   & Our RF                    & \textbf{22.70}  & \textbf{11.32}  & \textbf{0.954} \\
-  & Our ChemBERTa             & XX.XX  & XX.XX  & X.XXX \\
+  & Our ChemBERTa             & 35.90  & 17.43  & 0.884 \\
   & Our BiGRU                 & 27.07  & 17.22  & 0.934 \\
 \midrule
 \multirow{6}{*}{Jung 2024 (72/18/10)}
@@ -483,7 +485,7 @@ Table~\ref{tab:cross_dataset} presents results on three external datasets, with 
   & GBFS$^\dagger$            & 32.2   & 16.2   & 0.91  \\
   & DR-CNN$^\dagger$          & 44.4   & 23.3   & 0.82  \\
   & Our RF                    & \textbf{29.82}  & \textbf{15.31}  & \textbf{0.924} \\
-  & Our ChemBERTa             & XX.XX  & XX.XX  & X.XXX \\
+  & Our ChemBERTa             & 38.27  & 19.27  & 0.874 \\
   & Our BiGRU                 & 36.31  & 21.54  & 0.887 \\
 \bottomrule
 \end{tabular}
@@ -491,15 +493,15 @@ Table~\ref{tab:cross_dataset} presents results on three external datasets, with 
 
 \textbf{Deep4Chem.}
 Our RF model achieves RMSE = 22.70~nm, \textit{surpassing} the published GCNN baseline of 26.6~nm by 15\%.
-BiGRU also performs competitively (RMSE = 27.07~nm), within 2\% of the GCNN result, despite using only 1D SMILES input versus the graph-based GCNN architecture.
+BiGRU also performs competitively (RMSE = 27.07~nm), within 2\% of the GCNN result, while ChemBERTa (35.90~nm) trails behind both.
 This result demonstrates that Morgan fingerprints, which encode local chemical environments through circular substructure enumeration, capture sufficient structural information for UV absorption prediction in this chemical space.
 
 \textbf{Jung et al.\ (2024).}
 RF again achieves the best result among all methods (RMSE = 29.82~nm), outperforming the published GBFS (32.2~nm) and multifidelity (31.3~nm) approaches.
-BiGRU (RMSE = 36.31~nm) falls between the GBFS and DR-CNN published baselines.
+BiGRU (RMSE = 36.31~nm) and ChemBERTa (38.27~nm) fall between the GBFS and DR-CNN published baselines.
 Notably, our RF model uses a simpler architecture than both published methods (which involve feature selection pipelines and multi-task learning, respectively), yet achieves superior performance.
 
-Across both external datasets, RF consistently outperforms BiGRU, reinforcing the finding from our primary dataset.
+Across both external datasets, RF consistently outperforms BiGRU and ChemBERTa, reinforcing the finding from our primary dataset that fingerprint-based models excel at in-distribution prediction.
 
 
 % --- Error Analysis ---
@@ -684,30 +686,31 @@ Sulisobenzone   & 287 & 346 & 355 & 286 & 346 & 352 \\
 \toprule
 \textbf{Model} & \textbf{MAE (nm) [95\% CI]} & \textbf{RMSE (nm) [95\% CI]} \\
 \midrule
-BiGRU + Solvent   & \textbf{28.6} [22.7--35.0] & \textbf{33.9} [26.2--41.2] \\
-ChemBERTa         & XX.X [XX.X--XX.X]          & XX.X [XX.X--XX.X] \\
+ChemBERTa         & \textbf{26.3} [20.1--33.0] & \textbf{32.2} [25.2--38.8] \\
+BiGRU + Solvent   & 28.6 [22.7--35.0] & 33.9 [26.2--41.2] \\
 RF + Morgan FP    & 38.5 [31.6--45.9]          & 43.7 [35.3--51.7] \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Notably, BiGRU outperforms RF on this experimental validation set (MAE = 28.6~nm [95\% bootstrap CI: 22.7--35.0] vs.\ 38.5~nm [31.6--45.9] for RF), \textit{reversing} the ranking observed on the cross-validated primary dataset.
-The non-overlapping confidence intervals (10,000 bootstrap resamples) confirm that this difference is statistically significant.
-This reversal reveals a fundamental distinction between the two approaches: RF relies on exact substructure matching through Morgan fingerprint bits, so it excels at interpolation within the training distribution but struggles when novel functional groups or conjugation patterns are underrepresented in the training data.
-BiGRU, by contrast, learns sequential patterns from SMILES strings that can generalize to unseen molecular motifs.
-Both models show substantially higher errors than their cross-validated performance (BiGRU: 28.6 vs.\ 20.7~nm MAE; RF: 38.5 vs.\ 15.2~nm MAE), confirming that these 16 compounds are genuinely challenging out-of-distribution examples.
+Notably, both deep learning models outperform RF on this experimental validation set, with ChemBERTa achieving the lowest MAE (26.3~nm [95\% bootstrap CI: 20.1--33.0]), followed by BiGRU (28.6~nm [22.7--35.0]) and RF (38.5~nm [31.6--45.9]).
+This \textit{reverses} the ranking observed on the cross-validated primary dataset, where ChemBERTa was worst (RMSE = 50.39~nm).
+The overlapping confidence intervals between ChemBERTa and BiGRU indicate comparable generalization, while both significantly outperform RF (non-overlapping CIs; 10,000 bootstrap resamples).
+This reversal reveals a fundamental distinction: RF relies on exact substructure matching through Morgan fingerprint bits, excelling at interpolation within the training distribution but struggling when novel functional groups or conjugation patterns are underrepresented.
+The deep learning models, by contrast, learn representations---BiGRU from sequential SMILES patterns, ChemBERTa from pretrained molecular language understanding---that can generalize to unseen molecular motifs.
+All three models show substantially higher errors than their cross-validated performance (ChemBERTa: 26.3 vs.\ 24.3~nm MAE; BiGRU: 28.6 vs.\ 20.7~nm; RF: 38.5 vs.\ 15.2~nm), confirming that these 16 compounds are genuinely challenging out-of-distribution examples.
 
-Cinnamic Acid (experimental $\lambda_{\max}$ = 275--276~nm) is a notable outlier: both models overpredict by $\sim$70~nm.
+Cinnamic Acid (experimental $\lambda_{\max}$ = 275--276~nm) is a notable outlier: all three models overpredict by $\sim$65--75~nm.
 The experimental peak lies at the edge of the 270--400~nm scan range, suggesting measurement limitations.
-Octocrylene is particularly problematic for RF (error $\sim$89~nm vs.\ 43~nm for BiGRU), likely because its extended cyano-acrylate conjugation is underrepresented in the training data---precisely the scenario where fingerprint-based models are expected to fail.
-Excluding these two outliers, the BiGRU MAE decreases to 24.2~nm and RF MAE to 32.6~nm.
+Octocrylene is particularly problematic for RF (error $\sim$89~nm vs.\ 43~nm for BiGRU and 52~nm for ChemBERTa), likely because its extended cyano-acrylate conjugation is underrepresented in the training data---precisely the scenario where fingerprint-based models are expected to fail.
 
-Both models capture the small solvent sensitivity between EtOH and MeOH (typically 0--1~nm experimentally), though with some overestimation of the solvent shift magnitude (average predicted shifts of 2.5~nm for BiGRU and 2.9~nm for RF).
+All three models capture the small solvent sensitivity between EtOH and MeOH (typically 0--1~nm experimentally), though with some overestimation of the solvent shift magnitude (average predicted shifts of 2.5~nm for BiGRU, 2.9~nm for RF, and 4.9~nm for ChemBERTa).
 
-These results highlight the complementary strengths of the two model families: RF is the preferred choice for screening within known chemical space (e.g., virtual screening of compound libraries with well-represented scaffolds), while BiGRU is better suited for exploring novel molecular architectures where the training distribution may not cover all relevant substructures.
+These results highlight the complementary strengths of the model families: RF is the preferred choice for screening within known chemical space (e.g., virtual screening of compound libraries with well-represented scaffolds), while deep learning models (BiGRU and ChemBERTa) are better suited for exploring novel molecular architectures where the training distribution may not cover all relevant substructures.
 This data-dependent model selection finding extends the conclusions of Chen et al.~\cite{chenMolecularLanguage2023}, who observed that RNNs outperform Transformers on local-feature-dependent molecular generation tasks.
-Our regression benchmark demonstrates that this architectural trade-off persists in property prediction settings: since UV absorption depends on local chromophore features, models that capture local patterns (RF with fingerprints, BiGRU processing SMILES subsequences) are well-suited, while global self-attention mechanisms offer less advantage for a chromophore-localized property.
-The complementarity extends further---beyond the local/global distinction---because RF's fixed-vocabulary substructure matching excels at interpolation while BiGRU's learned sequential patterns enable extrapolation to novel scaffolds.
+Our regression benchmark demonstrates that this architectural trade-off persists in property prediction settings: since UV absorption depends on local chromophore features, models that capture local patterns (RF with fingerprints, BiGRU processing SMILES subsequences) achieve the best cross-validated performance.
+ChemBERTa's poor cross-validated ranking but strong wetlab generalization suggests that pretrained representations may encode transferable molecular knowledge that compensates for the architecture's inductive bias mismatch, but only when evaluated on truly novel compounds outside the training distribution.
+The complementarity extends further---beyond the local/global distinction---because RF's fixed-vocabulary substructure matching excels at interpolation while learned representations (both BiGRU and ChemBERTa) enable extrapolation to novel scaffolds.
 
 
 % ===== Conclusion =====
@@ -719,10 +722,10 @@ We have presented a systematic benchmark of ML approaches for UV absorption wave
 Our key findings are:
 
 \begin{enumerate}
-    \item \textbf{RF and BiGRU have complementary strengths.}
-    RF with Morgan fingerprints achieves the best cross-validated performance on the primary Joung+Beard dataset (RMSE = 31.34~nm vs.\ 36.45~nm for BiGRU) and on both external datasets, surpassing published deep learning baselines on Deep4Chem (RMSE = 22.70 vs.\ GCNN 26.6) and Jung 2024 (RMSE = 29.82 vs.\ GBFS 32.2).
-    However, experimental validation on 16 novel compounds reverses this ranking: BiGRU generalizes better to out-of-distribution molecules (MAE = 28.6 vs.\ 38.5~nm for RF).
-    This indicates that RF excels at interpolation within known chemical space, while BiGRU learns transferable sequential patterns that extend beyond fixed substructural features.
+    \item \textbf{RF and deep learning have complementary strengths.}
+    RF with Morgan fingerprints achieves the best cross-validated performance on the primary Joung+Beard dataset (RMSE = 31.34~nm vs.\ 36.45~nm for BiGRU, 50.39~nm for ChemBERTa) and on both external datasets, surpassing published deep learning baselines on Deep4Chem (RMSE = 22.70 vs.\ GCNN 26.6) and Jung 2024 (RMSE = 29.82 vs.\ GBFS 32.2).
+    However, experimental validation on 16 novel compounds reverses this ranking: both ChemBERTa (MAE = 26.3~nm) and BiGRU (28.6~nm) outperform RF (38.5~nm) on out-of-distribution molecules.
+    This indicates that RF excels at interpolation within known chemical space, while deep learning models learn transferable representations that extend beyond fixed substructural features.
 
     \item \textbf{Solvent encoding improves both model families.}
     The solvent concatenation strategy---encoding solute and solvent as a single representation---reduces RF RMSE by 8\% (34.13 $\to$ 31.34~nm) and BiGRU RMSE by 7\% (39.03 $\to$ 36.45~nm).

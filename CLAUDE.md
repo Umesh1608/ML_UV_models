@@ -45,6 +45,7 @@ All grammar, affiliation, and package fixes applied to `ml_chemistry_template.te
 | RF v2 (MAE) | 3/5 | fold0: 33.27, fold1: 31.86, fold2: 30.17 | — | — | — | ❌ Folds 3-4 missing |
 | XGBoost v2 (MSE) | 5/5 | 33.70 ± 1.61 | 20.05 ± 0.48 | 0.9003 ± 0.0094 | 0.9496 ± 0.0049 | ✅ Aggregate done |
 | XGBoost v2 (MAE) | 5/5 | 40.75 ± 1.58 | 21.99 ± 0.47 | 0.8544 ± 0.0105 | 0.9272 ± 0.0055 | ✅ Aggregate done |
+| ChemBERTa v2 | 3/5 | ~48.56 (folds 0-2) | ~23.49 | ~0.792 | ~0.905 | ⏸️ Fold 3 paused ep67, fold 4 not started |
 
 #### Phase 2b — Cross-Dataset Benchmarking (verified from result files)
 
@@ -78,10 +79,25 @@ Single train/val/test splits matching each paper's published protocol. Val used 
 - ✅ Updated contributions list with local-feature finding
 - ✅ Added TikZ diagram (fig:local_vs_global) — local vs global feature alignment
 - ✅ ChemBERTa EPOCHS increased 50→100, PATIENCE 10→15 (first run didn't converge)
-- 🔄 ChemBERTa fold 0 re-running (100 epochs) — first run RMSE=116.79 at 50 epochs, didn't converge
-- 🔄 Run remaining ChemBERTa folds 1-4 + cross-dataset + wetlab
-- 🔄 Remove nablaColors from paper
-- 🔄 Apply text fixes (tuning asymmetry, Reaxys, XGBoost MAE, bootstrap CIs)
+- ✅ Crash-resilient checkpointing added to `run_chemberta.py` (full checkpoint save/resume, periodic saves every 10 epochs, SIGINT/SIGTERM signal handler, inline result saving)
+- ✅ `eval_wetlab.py` updated to handle both old (weights-only) and new (full dict) checkpoint formats
+- ✅ ChemBERTa fold 0: RMSE=49.31, MAE=23.88, R²=0.780, r=0.899
+- ✅ ChemBERTa fold 1: RMSE=48.66, MAE=23.54, R²=0.794, r=0.908
+- ✅ ChemBERTa fold 2: RMSE=47.70, MAE=23.05, R²=0.801, r=0.909
+- ✅ ChemBERTa fold 3: RMSE=53.04, MAE=25.68, R²=0.756, r=0.889
+- ✅ ChemBERTa fold 4: RMSE=53.24, MAE=25.39, R²=0.756, r=0.889
+- ✅ ChemBERTa 5-fold aggregate: RMSE=50.39±2.30, MAE=24.31±1.04, R²=0.777, r=0.899
+- ✅ ChemBERTa cross-dataset: Deep4Chem RMSE=35.90, Jung 2024 RMSE=38.27
+- ✅ ChemBERTa wetlab: MAE=26.3 [20.1--33.0], RMSE=32.2 [25.2--38.8] (BEST on novel compounds!)
+- ✅ All 6 ChemBERTa placeholders filled in benchmark_paper.tex
+- ✅ nablaColors removed from paper
+- ✅ Text fixes applied (tuning asymmetry, Reaxys, XGBoost MAE, bootstrap CIs, data availability)
+
+#### RESUME INSTRUCTIONS (start here next session)
+```bash
+# ChemBERTa COMPLETE — all folds, cross-dataset, wetlab done
+# Next: proofread + journal formatting
+```
 
 #### Step 1 — Final Polish
 - Proofread entire paper
@@ -140,7 +156,7 @@ ln -sf ~/.local/lib/python3.12/site-packages/triton/backends/nvidia/lib/libdevic
 
 **BiGRU**: batch_size=32, lr=0.001, mixed_float16, epochs=250, patience=25, RMSprop, loss=MAE
 
-**ChemBERTa** (thermal-safe config): MAX_LEN=256, batch_size=8, grad_accum=4 (effective=32), lr=5e-5, AdamW, fp16, epochs=100, patience=15, num_workers=0, gpu_cooldown=10s between folds. RTX 4090 Laptop idles at 71°C — the old config (batch=32, MAX_LEN=512, 12 worker processes) caused thermal shutdown. First run (50 epochs, patience=10) didn't converge (RMSE=116.79).
+**ChemBERTa** (thermal-safe config): MAX_LEN=256, batch_size=8, grad_accum=4 (effective=32), lr=5e-5, AdamW, fp16, epochs=100, patience=15, num_workers=0, gpu_cooldown=10s between folds. RTX 4090 Laptop idles at 71°C — the old config (batch=32, MAX_LEN=512, 12 worker processes) caused thermal shutdown. First run (50 epochs, patience=10) didn't converge (RMSE=116.79). **Crash-resilient**: full checkpoint format (model+optimizer+scheduler+scaler+epoch+history), periodic saves every 10 epochs to `_latest.pt`, SIGINT/SIGTERM handler saves checkpoint before exit, results saved inside `train_chemberta()` not just caller. Resume auto-detects checkpoint format. ~100-110s/epoch on GPU, ~3h per fold.
 
 ## Overleaf + Git
 
