@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**Benchmark paper with "complementary strengths" narrative** (March 2026): Systematic benchmark of ML approaches (RF, XGBoost, BiGRU, ChemBERTa) for UV λ_max prediction. Key findings: (1) RF+Morgan FP wins on cross-validated benchmarks, (2) BiGRU generalizes better to novel out-of-distribution molecules (wetlab MAE 28.6 vs 38.5), (3) solvent concatenation helps both families, (4) ChemBERTa pretrained Transformer baseline adds modern context. The paper argues model selection depends on the task: RF for interpolation/screening, BiGRU for novel compound exploration.
+**Benchmark paper with "complementary strengths" narrative** (March 2026): Systematic benchmark of ML approaches (RF, XGBoost, BiGRU, ChemBERTa) for UV λ_max prediction. Key findings: (1) RF+Morgan FP wins on cross-validated benchmarks (RMSE 31.34), (2) Deep learning (ChemBERTa MAE 26.3, BiGRU 28.6) generalizes better to novel OOD molecules vs RF (38.5), (3) solvent concatenation helps both families (7-8% RMSE reduction), (4) ChemBERTa worst on CV (50.39) but best on wetlab — pretrained representations compensate for architectural mismatch on novel compounds. Model selection depends on task: RF for interpolation/screening, DL for novel compound exploration.
 
 **New LaTeX file**: `benchmark_paper.tex` (benchmark framing). Original `ml_chemistry_template.tex` preserved.
 
@@ -45,7 +45,7 @@ All grammar, affiliation, and package fixes applied to `ml_chemistry_template.te
 | RF v2 (MAE) | 3/5 | fold0: 33.27, fold1: 31.86, fold2: 30.17 | — | — | — | ❌ Folds 3-4 missing |
 | XGBoost v2 (MSE) | 5/5 | 33.70 ± 1.61 | 20.05 ± 0.48 | 0.9003 ± 0.0094 | 0.9496 ± 0.0049 | ✅ Aggregate done |
 | XGBoost v2 (MAE) | 5/5 | 40.75 ± 1.58 | 21.99 ± 0.47 | 0.8544 ± 0.0105 | 0.9272 ± 0.0055 | ✅ Aggregate done |
-| ChemBERTa v2 | 3/5 | ~48.56 (folds 0-2) | ~23.49 | ~0.792 | ~0.905 | ⏸️ Fold 3 paused ep67, fold 4 not started |
+| ChemBERTa v2 | 5/5 | 50.39 ± 2.30 | 24.31 ± 1.04 | 0.777 ± 0.019 | 0.899 ± 0.009 | ✅ Aggregate done |
 
 #### Phase 2b — Cross-Dataset Benchmarking (verified from result files)
 
@@ -53,8 +53,8 @@ Single train/val/test splits matching each paper's published protocol. Val used 
 
 | Dataset | Split | Published | Our RMSE | Our MAE | Our R² | Status |
 |---------|-------|-----------|----------|---------|--------|--------|
-| Deep4Chem | random 80/10/10 | GCNN RMSE 26.6 (Joung 2020) | 27.07 | 17.22 | 0.9339 | ✅ Done (very close to published!) |
-| Jung 2024 | random 72/18/10 | GBFS RMSE 32.2 (Jung 2024) | 36.31 | 21.54 | 0.8868 | ✅ Done |
+| Deep4Chem | random 80/10/10 | GCNN RMSE 26.6 (Joung 2020) | RF 22.70, BiGRU 27.07, CB 35.90 | — | — | ✅ All 3 models done |
+| Jung 2024 | random 72/18/10 | GBFS RMSE 32.2 (Jung 2024) | RF 29.82, BiGRU 36.31, CB 38.27 | — | — | ✅ All 3 models done |
 | Jung 2024 | scaffold 80/10/10 | GBFS RMSE 32.2 (Jung 2024) | 67.56 | 46.77 | 0.5993 | ✅ Done (scaffold is much harder for 1D models) |
 | nablaColors | precomputed scaffold | UniMol+ MAE 15.97 (3D GNN, 27.7M params) | 56.38 | 39.48 | 0.6958 | ✅ Done (3D models have huge advantage) |
 | nablaColors SELFIES | precomputed scaffold | — | 56.57 | 40.42 | 0.6938 | ✅ Done |
@@ -67,71 +67,137 @@ Single train/val/test splits matching each paper's published protocol. Val used 
 
 ---
 
-### What Still Needs To Be Done
+### What Still Needs To Be Done — Publication Roadmap
 
-#### Current Phase — Transformer Baseline + Paper Improvements (March 2026)
-- ✅ Created `run_chemberta.py` — ChemBERTa fine-tuning script (PyTorch)
-- ✅ Fixed thermal shutdown: MAX_LEN 512→256 (4x attention savings), BATCH_SIZE 32→8 + grad_accum=4, num_workers=0, gpu_cooldown between folds
-- ✅ Fixed figure alignment: subfigure [b]→[t], figure [t]→[htbp], standardized figsize
-- ✅ Added "UV = local features" argument (Woodward-Fieser, Kasha's rule) in 5 paper locations
-- ✅ Strengthened Chen et al. (2023) connection: RNNs capture local features, Transformers capture global
-- ✅ Added 3 new BibTeX entries (Kang 2020, Beard 2022, Jiang 2023 TranGRU)
-- ✅ Updated contributions list with local-feature finding
-- ✅ Added TikZ diagram (fig:local_vs_global) — local vs global feature alignment
-- ✅ ChemBERTa EPOCHS increased 50→100, PATIENCE 10→15 (first run didn't converge)
-- ✅ Crash-resilient checkpointing added to `run_chemberta.py` (full checkpoint save/resume, periodic saves every 10 epochs, SIGINT/SIGTERM signal handler, inline result saving)
-- ✅ `eval_wetlab.py` updated to handle both old (weights-only) and new (full dict) checkpoint formats
-- ✅ ChemBERTa fold 0: RMSE=49.31, MAE=23.88, R²=0.780, r=0.899
-- ✅ ChemBERTa fold 1: RMSE=48.66, MAE=23.54, R²=0.794, r=0.908
-- ✅ ChemBERTa fold 2: RMSE=47.70, MAE=23.05, R²=0.801, r=0.909
-- ✅ ChemBERTa fold 3: RMSE=53.04, MAE=25.68, R²=0.756, r=0.889
-- ✅ ChemBERTa fold 4: RMSE=53.24, MAE=25.39, R²=0.756, r=0.889
-- ✅ ChemBERTa 5-fold aggregate: RMSE=50.39±2.30, MAE=24.31±1.04, R²=0.777, r=0.899
-- ✅ ChemBERTa cross-dataset: Deep4Chem RMSE=35.90, Jung 2024 RMSE=38.27
-- ✅ ChemBERTa wetlab: MAE=26.3 [20.1--33.0], RMSE=32.2 [25.2--38.8] (BEST on novel compounds!)
-- ✅ All 6 ChemBERTa placeholders filled in benchmark_paper.tex
-- ✅ nablaColors removed from paper
-- ✅ Text fixes applied (tuning asymmetry, Reaxys, XGBoost MAE, bootstrap CIs, data availability)
+**Target**: J. Cheminformatics (IF ~8, Springer, open access) or Digital Discovery (RSC)
 
-#### RESUME INSTRUCTIONS (start here next session)
-```bash
-# ChemBERTa COMPLETE — all folds, cross-dataset, wetlab done
-# Next: proofread + journal formatting
-```
+#### Phase A0 — Fix Claims, Citations, Factual Errors (IN PROGRESS)
 
-#### Step 1 — Final Polish
-- Proofread entire paper
-- Format for target journal (J. Cheminformatics, Digital Discovery, or Mol. Informatics)
-- Ensure all figures render correctly on Overleaf
+**A0.1 Factual errors** (MUST FIX):
+- `benchmark_paper.tex:297`: Says "patience 10, max 50 epochs" → actual is patience=15, max=100
+- `benchmark_paper.tex` preamble: Missing `\usepackage{multirow}` → COMPILE ERROR
+- `benchmark_paper.tex:412`: TikZ BiGRU box says "(best on novel cpds)" → ChemBERTa is actually best on wetlab
 
-#### Completed
-- ✅ Paper expanded: ~38 citations (was 13), 792+ lines, ~7200 words
-- ✅ All citations verified against Proposal.bib (27 new bib entries added)
-- ✅ Statistical significance tests: all paired t-tests significant (p < 0.02)
-- ✅ Supplementary material: per-fold tables, significance table, RF tuning analysis
-- ✅ Figures 3-4 regenerated with v2 data (was showing old v1 RMSE)
-- ✅ Related Work expanded (6 subsections, comprehensive literature coverage)
-- ✅ BiGRU no-solvent v2: 5/5 folds done, RMSE 39.03±1.37 (solvent improvement = 7%)
-- ✅ Table 2 + abstract placeholders filled in benchmark_paper.tex
-- ✅ RF hyperparameter tuning (432 configs → B=1000, max_features=0.3)
-- ✅ Tuned RF 5-fold CV: RMSE 31.34±1.82 (was 32.18)
-- ✅ Tuned RF no-solvent 5-fold CV: RMSE 34.13±1.44
-- ✅ Wetlab predictions with tuned RF models
-- ✅ "Complementary strengths" narrative revision
-- ✅ RF interpretability figures regenerated with tuned model
+**A0.2 Citation fixes**:
+- `Proposal.bib`: `chenMolecularLanguage2023` has WRONG JOURNAL — says "JCIM" but actual is "Briefings in Functional Genomics" (vol 22, issue 4, pp 392-400, DOI 10.1093/bfgp/elad012)
+- Chen et al. paper is about molecular GENERATION, not property prediction — add scope caveat at 6 citation locations
+- `benchmark_paper.tex:148`: "Joung et al. applied a GCNN" → misleading for a dataset paper, rephrase to "reported a GCNN baseline"
+- `Proposal.bib`: 30 duplicate citation keys (281 entries, 244 unique) — low priority
 
-#### Planned — RNN Architecture & HP Study (after ChemBERTa + polish)
-- Architecture comparison: BiGRU vs BiLSTM vs CNN-BiGRU (all implemented, `bilstm_v2` and `cnn_bigru_v2` registered in run_baselines.py)
-- BiGRU HP search: Optuna TPE, 30 trials on fold 0
+**A0.3 Soften overclaimed local-feature narrative** (6 locations):
+- Contributions list (line 98): "Empirical evidence" → "Evidence consistent with"
+- Related Work (line 140): Add "generation tasks" qualifier for Chen et al.
+- TikZ caption (line 418): "Results confirm" → "Cross-validated results show"
+- Discussion (line 422): "are better suited" → "achieve better in-distribution performance"
+- Gap discussion (line 425): "demonstrates" → "is consistent with the hypothesis"
+- Conclusion (line 757): "corroborate" → "are consistent with"
+- Add confounders/tuning-asymmetry paragraph to Limitations section (~line 748)
+
+**A0.4 Leave space for BiGRU tuning updates**:
+- Table 2, Table 5, TikZ diagram, discussion, contributions, abstract may need updating after Optuna HPO
+- If tuned BiGRU beats ChemBERTa on wetlab → strengthen local-feature claim
+- If tuned BiGRU ≈ ChemBERTa → maintain "complementary" narrative
+
+#### Phase A — Critical Fixes (MUST do before submission)
+
+**A1. LaTeX compilation fixes** — MERGED INTO A0.1 above
+
+**A2. Supplementary completeness** (~1 hour)
+- Add ChemBERTa per-fold supplementary table (analogous to existing RF and BiGRU tables)
+- Add XGBoost per-fold supplementary table
+- Update significance table (Table S3) to include ChemBERTa vs RF, ChemBERTa vs BiGRU comparisons
+- Add ChemBERTa learning curves figure to supplementary
+
+**A3. BiGRU hyperparameter tuning — #1 reviewer concern** (~2 days GPU)
+- RF had 432-config grid search; BiGRU uses default architecture from Liu et al. — this WILL be flagged
+- Optuna TPE, 30 trials on fold 0 val set
 - Search space: units {64,128,256}, layers {1,2,3}, embed {32,50,100}, dropout {0.1-0.4}, lr [1e-4,3e-3], batch {32,64,128}
-- New script: `tune_bigru.py` (analogous to `tune_rf.py`)
-- Paper: new subsection "RNN Architecture and Hyperparameter Study" after Solvent Ablation
+- Script: `tune_bigru.py` (analogous to `tune_rf.py`)
+- Run best config on all 5 folds → compare tuned vs default BiGRU
+- Paper: update Table 2, add row to tuning asymmetry table (S5), discuss in text
+- Expected outcome: modest improvement (2-5%), confirming RF advantage is real
 - 5 new BibTeX: Chung 2014, Goh 2017, Grisoni 2020, Bergstra 2012, Akiba 2019
-- Addresses tuning asymmetry (RF had 432-config grid, BiGRU gets 30-trial Optuna)
+
+**A4. Multi-model parity/error figure** (~2 hours)
+- Current error analysis (Figs 3-4) shows only BiGRU — reviewer will want all models
+- Create 2×2 parity plot (RF, XGBoost, BiGRU, ChemBERTa) from pooled CV predictions
+- Shows RF's tighter clustering vs BiGRU's better tail behavior vs ChemBERTa's scatter
+
+**A5. Code + data repository** (~2 hours)
+- Clean GitHub repo with README, requirements.txt, run instructions
+- Zenodo DOI for reproducibility archive (model weights, processed datasets)
+- Update Data Availability section with actual URLs
+
+**A6. Full proofread** (~2 hours)
+- Check all numbers match result files
+- Consistent decimal places, units, terminology
+- Grammar pass, especially around new ChemBERTa text
+- Verify figure captions are accurate and self-contained
+- Check references render correctly (especially BibTeX edge cases)
+
+#### Phase B — High-Impact Additions (strongly recommended)
+
+**B1. RNN architecture comparison** (~3 days GPU)
+- BiGRU vs BiLSTM vs CNN-BiGRU, all 5-fold CV v2 (already implemented: `bilstm_v2`, `cnn_bigru_v2`)
+- Answers "why BiGRU specifically?" — common reviewer question
+- Paper: new table or expand Table 2 with architecture variants
+- Expected: BiGRU ≈ BiLSTM, CNN-BiGRU possibly slightly better (adds conv features)
+
+**B2. Scaffold split on primary dataset** (~1 day GPU + analysis)
+- Currently only random stratified split; scaffold split is the gold standard for generalization
+- Run RF + BiGRU + ChemBERTa on Murcko scaffold split (80/10/10)
+- Strengthens the interpolation/extrapolation narrative with in-distribution evidence
+- J. Cheminformatics reviewers strongly prefer scaffold splits
+- Paper: add Table or discussion paragraph in Model Comparison section
+
+**B3. Wetlab per-molecule comparison figure** (~1 hour)
+- Grouped bar chart: experimental vs RF vs BiGRU vs ChemBERTa for each of 16 molecules
+- Currently only a text table (Table 5 shows aggregates); a figure is much more informative
+- Highlights where models agree/disagree and which molecules are hardest
+
+**B4. ChemBERTa convergence analysis** (~1 hour)
+- Plot training/val loss curves for all 5 folds (data in history JSON files)
+- Discuss whether MAX_LEN=256 truncation matters (check % of SMILES truncated)
+- Note that ChemBERTa had no separate HP tuning either (same as BiGRU baseline treatment)
+
+#### Phase C — Differentiating Additions (for top-tier journal)
+
+**C1. RF + BiGRU ensemble** (~4 hours)
+- Simple average or learned weighting of RF and BiGRU predictions
+- The complementary strengths narrative predicts this should work well
+- Evaluate on CV, cross-dataset, and wetlab
+- Could become the recommended practical approach in the conclusion
+
+**C2. Applicability domain analysis** (~4 hours)
+- Compute Tanimoto similarity of each test molecule to its nearest training neighbor
+- Plot MAE vs distance-to-training-set for RF and BiGRU
+- Should show RF degrades faster with distance (fingerprint-based) while BiGRU degrades gracefully
+- Quantifies the interpolation/extrapolation narrative with concrete evidence
+- Very common in J. Cheminformatics papers
+
+**C3. SHAP values for RF** (~2 hours)
+- TreeSHAP is much faster and more principled than Gini importance
+- Provides per-prediction explanations, not just global importance
+- Could show waterfall plots for wetlab molecules explaining why predictions differ
+
+**C4. Journal-specific formatting** (~2 hours)
+- J. Cheminformatics: use their LaTeX template (jcheminf class)
+- Or Digital Discovery: RSC template
+- Convert supplementary to separate file if required
+- Ensure open-access compliance (CC-BY license)
 
 #### Dropped from Plan
 - Transfer learning (high risk, uncertain payoff)
 - ChemFluor external validation (no published benchmark)
+- nablaColors / UniProp / 3D comparison (removed from paper)
+- ChemBERTa attention visualization (interesting but not critical)
+
+#### Priority Execution Order
+```
+Phase A (2-3 days): A1 → A2 → A4 → A6 → A5 → A3 (A3 runs in background)
+Phase B (1 week):   B4 → B3 → B2 → B1 (B1 runs in background)
+Phase C (optional): C1 → C2 → C3 → C4
+```
 
 ---
 

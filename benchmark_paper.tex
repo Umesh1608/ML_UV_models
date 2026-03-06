@@ -15,6 +15,7 @@
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta, positioning, shapes, calc}
 \usepackage{longtable}
+\usepackage{multirow}
 \usepackage[dvipsnames]{xcolor}
 \usepackage[margin=1in]{geometry}
 \usepackage{lineno}  % For line numbers during review
@@ -95,7 +96,7 @@ Our key contributions are:
     \item A solvent concatenation strategy that improves prediction accuracy for both sequence models and fingerprint-based methods.
     \item Interpretability analysis of RF feature importances, revealing that the model learns chemically meaningful chromophore motifs, and practical comparison of training cost (15 minutes CPU vs.\ 25 hours GPU).
     \item Practical validation through ICH~S10 photosafety classification and experimental UV measurements on 16 novel compounds.
-    \item Empirical evidence that UV absorption prediction is a local-feature-dependent task~\cite{chenMolecularLanguage2023}: the strong performance of local-substructure models (Morgan fingerprints, BiGRU) and the interpretable mapping of top features to known chromophore motifs support the theoretical prediction that local-feature architectures are well-suited for properties determined by local electronic structure.
+    \item Evidence that UV absorption prediction favors local-feature architectures on in-distribution benchmarks~\cite{chenMolecularLanguage2023}: the strong cross-validated performance of local-substructure models (Morgan fingerprints, BiGRU) and the interpretable mapping of top features to known chromophore motifs are consistent with the hypothesis that local-feature architectures are well-suited for properties determined by local electronic structure, though out-of-distribution evaluation reveals complementary advantages for pretrained representations.
 \end{itemize}
 
 
@@ -137,15 +138,15 @@ Recurrent neural networks~\cite{elman1990finding}, including Long Short-Term Mem
 Bidirectional variants (BiGRU, BiLSTM)~\cite{schuster1997bidirectional} capture context from both directions, improving representation quality for molecular strings.
 Liu et al.\ applied BiGRU to molecular toxicity prediction~\cite{liuPredictionMolecularToxicity2023}, demonstrating the effectiveness of sequence models for chemical property tasks.
 More recently, Transformer architectures~\cite{vaswani2017attention} have been applied to SMILES-based property prediction with attention mechanisms that provide interpretable molecular representations~\cite{hondaSMILESTransformerPretrained2019}.
-Chen et al.~\cite{chenMolecularLanguage2023} systematically compared RNNs and Transformers for molecular language modeling, finding that RNNs better capture local structural features while Transformers excel at global molecular properties and longer sequences.
-Their conclusion---that the optimal architecture depends on the data characteristics---is particularly relevant to UV absorption prediction, where $\lambda_{\max}$ is fundamentally determined by local chromophore features: conjugation length, aromatic character, and heteroatom substituents, as formalized in the classical Woodward--Fieser rules.
-This suggests that models encoding local structural information (fingerprints, RNNs) may have an inherent advantage over global-attention architectures for this property.
+Chen et al.~\cite{chenMolecularLanguage2023} systematically compared RNNs and Transformers for molecular language modeling, finding that in molecular generation tasks, RNNs better capture local structural features while Transformers excel at global molecular properties and longer sequences.
+Although their comparison focused primarily on molecular generation, their conclusion---that the optimal architecture depends on the data characteristics---may extend to property prediction tasks like UV absorption, where $\lambda_{\max}$ is fundamentally determined by local chromophore features: conjugation length, aromatic character, and heteroatom substituents, as formalized in the classical Woodward--Fieser rules.
+This suggests that models encoding local structural information (fingerprints, RNNs) may have an advantage over global-attention architectures for this property, though the extent of this advantage requires empirical validation.
 Jiang et al.~\cite{jiang2023trangru} further validated this local/global dichotomy in their TranGRU architecture, which combines BiGRU for local features with self-attention for global features.
 Alternative string representations such as SELFIES~\cite{krenn2020selfies} guarantee chemical validity but have shown mixed results compared to SMILES for property prediction tasks.
 
 \textbf{Graph neural networks.}
 GNNs operate directly on molecular graphs through iterative message passing~\cite{gilmer2017neural}, learning atom-level representations from connectivity and atomic features.
-Joung et al.~\cite{joung2020experimental} applied a Graph Convolutional Neural Network (GCNN) to UV absorption prediction on the Deep4Chem dataset, achieving RMSE = 26.6~nm.
+Joung et al.~\cite{joung2020experimental} reported a Graph Convolutional Neural Network (GCNN) baseline of RMSE = 26.6~nm on their Deep4Chem dataset of UV absorption measurements.
 Jung et al.~\cite{jung2024machine} compared multiple architectures including a Gradient Boosted Feature Selection (GBFS) pipeline achieving RMSE = 32.2~nm, and a multifidelity approach reaching RMSE = 31.3~nm.
 Ghosh et al.~\cite{ghosh2019deep} further showed that neural networks trained on quantum-chemical descriptors can accurately predict excitation spectra, underscoring the importance of electronic structure features.
 
@@ -294,7 +295,7 @@ ChemBERTa uses a byte-pair encoding (BPE) tokenizer trained on SMILES, with 6 Tr
 
 We fine-tune ChemBERTa for regression by adding a linear prediction head (768 $\to$ 256 $\to$ 1) on top of the \texttt{[CLS]} token representation.
 Solvent information is encoded by concatenating solute and solvent SMILES with a dot separator (\texttt{solute.solvent}), analogous to the exclamation-mark separator used for BiGRU.
-Fine-tuning uses AdamW~\cite{loshchilov2019decoupled} with learning rate $5 \times 10^{-5}$, weight decay 0.01, linear warmup (200 steps) followed by linear decay, Huber loss ($\beta = 10$), batch size 32, and early stopping on validation MAE (patience 10 epochs, maximum 50 epochs).
+Fine-tuning uses AdamW~\cite{loshchilov2019decoupled} with learning rate $5 \times 10^{-5}$, weight decay 0.01, linear warmup (200 steps) followed by linear decay, Huber loss ($\beta = 10$), batch size 32, and early stopping on validation MAE (patience 15 epochs, maximum 100 epochs).
 Mixed-precision (float16) training is used on the same NVIDIA RTX 4090 GPU.
 
 
@@ -321,7 +322,7 @@ To assess generalizability beyond the primary Joung+Beard dataset, we evaluate o
 For each external dataset, BiGRU, RF, and ChemBERTa models are trained from scratch on the dataset's training split and evaluated on its test split, matching the exact protocol used by the original authors.
 
 \subsection{Deep4Chem (Joung 2020)}
-Approximately 20,000 UV absorption records with published GCNN baseline (RMSE = 26.6~nm)~\cite{joung2020experimental}.
+Approximately 20,000 UV absorption records with a reported GCNN baseline (RMSE = 26.6~nm)~\cite{joung2020experimental}.
 We replicate the 80/10/10 random train/validation/test split.
 
 \subsection{Jung et al.\ (2024)}
@@ -409,20 +410,20 @@ Kang et al.~\cite{kang2020prediction} and Beard et al.~\cite{beard2022uvadvisor}
 
     % --- Result boxes at bottom ---
     \node[draw, rounded corners=2pt, fill=green!5, font=\scriptsize, align=center] (rfres) at (-4, -0.2) {RMSE = \textbf{31.34} nm\\(best cross-val)};
-    \node[draw, rounded corners=2pt, fill=green!5, font=\scriptsize, align=center] (bigrures) at (0, -0.2) {RMSE = \textbf{36.45} nm\\(best on novel cpds)};
+    \node[draw, rounded corners=2pt, fill=green!5, font=\scriptsize, align=center] (bigrures) at (0, -0.2) {RMSE = \textbf{36.45} nm\\(0.47M params)};
     \node[draw, rounded corners=2pt, fill=red!5, font=\scriptsize, align=center] (bertres) at (4, -0.2) {RMSE = \textbf{50.39} nm\\(44.1M params)};
 
     % --- Bottom citation ---
     \node[annot, text width=10cm, align=center] at (0, -1.3) {Chen et al.\ (2023): ``RNNs capture local features; Transformers capture global features.\\The suitable language model should be chosen based on the data.''};
     \end{tikzpicture}
-    \caption{Conceptual alignment between UV absorption physics and model architectures. UV $\lambda_{\max}$ is determined by local chromophore features (conjugation, substituents), favoring models that encode local molecular information. Green arrows indicate alignment between property locality and model architecture; the dashed red arrow indicates a mismatch. Results confirm that local-feature models (RF, BiGRU) outperform the global-attention Transformer on this task.}
+    \caption{Conceptual alignment between UV absorption physics and model architectures. UV $\lambda_{\max}$ is determined by local chromophore features (conjugation, substituents), favoring models that encode local molecular information. Green arrows indicate alignment between property locality and model architecture; the dashed red arrow indicates a mismatch. Cross-validated results show that local-feature models outperform ChemBERTa on in-distribution data, though out-of-distribution performance (Table~\ref{tab:wetlab_summary}) reveals complementary strengths.}
     \label{fig:local_vs_global}
 \end{figure}
 
-Figure~\ref{fig:local_vs_global} illustrates this conceptual alignment: models whose inductive bias matches the locality of the target property---RF encoding radius-2 atom neighborhoods, BiGRU capturing sequential SMILES context---are better suited for UV absorption prediction than Transformers whose self-attention mechanism distributes information globally across the entire molecular representation~\cite{chenMolecularLanguage2023, jiang2023trangru}.
+Figure~\ref{fig:local_vs_global} illustrates this conceptual alignment: models whose inductive bias matches the locality of the target property---RF encoding radius-2 atom neighborhoods, BiGRU capturing sequential SMILES context---achieve better in-distribution performance for UV absorption prediction than Transformers whose self-attention mechanism distributes information globally across the entire molecular representation~\cite{chenMolecularLanguage2023, jiang2023trangru}.
 
 ChemBERTa, despite being pretrained on $\sim$77M SMILES strings from ZINC and having 44.1M parameters (94$\times$ more than BiGRU), achieves RMSE = 50.39~nm---substantially worse than both BiGRU (36.45~nm) and RF (31.34~nm).
-This 61\% gap relative to RF demonstrates that pretrained Transformer representations, which capture global molecular context through full self-attention, are poorly matched to the locality of UV absorption.
+This 61\% gap relative to RF is consistent with the hypothesis that Transformer representations are less sample-efficient for local properties on moderately-sized datasets, though ChemBERTa's superior wetlab generalization (Section~\ref{sec:wetlab}) suggests pretrained knowledge partially compensates.
 Notably, however, ChemBERTa achieves the lowest wetlab MAE on novel compounds (26.3~nm vs.\ 28.6~nm for BiGRU; Section~\ref{sec:wetlab}), suggesting that pretrained representations may offer complementary generalization advantages despite poor in-distribution performance.
 
 XGBoost trained with MAE loss (pseudo-Huber approximation) performs substantially worse than MSE-trained XGBoost (RMSE 40.75 vs.\ 33.70~nm).
@@ -707,8 +708,8 @@ Octocrylene is particularly problematic for RF (error $\sim$89~nm vs.\ 43~nm for
 All three models capture the small solvent sensitivity between EtOH and MeOH (typically 0--1~nm experimentally), though with some overestimation of the solvent shift magnitude (average predicted shifts of 2.5~nm for BiGRU, 2.9~nm for RF, and 4.9~nm for ChemBERTa).
 
 These results highlight the complementary strengths of the model families: RF is the preferred choice for screening within known chemical space (e.g., virtual screening of compound libraries with well-represented scaffolds), while deep learning models (BiGRU and ChemBERTa) are better suited for exploring novel molecular architectures where the training distribution may not cover all relevant substructures.
-This data-dependent model selection finding extends the conclusions of Chen et al.~\cite{chenMolecularLanguage2023}, who observed that RNNs outperform Transformers on local-feature-dependent molecular generation tasks.
-Our regression benchmark demonstrates that this architectural trade-off persists in property prediction settings: since UV absorption depends on local chromophore features, models that capture local patterns (RF with fingerprints, BiGRU processing SMILES subsequences) achieve the best cross-validated performance.
+This data-dependent model selection finding is consistent with the observations of Chen et al.~\cite{chenMolecularLanguage2023}, who found that RNNs outperform Transformers on local-feature-dependent molecular generation tasks.
+Our cross-validated results suggest that a similar architectural trade-off may apply in property prediction: since UV absorption depends on local chromophore features, models that capture local patterns (RF with fingerprints, BiGRU processing SMILES subsequences) achieve the best in-distribution performance.
 ChemBERTa's poor cross-validated ranking but strong wetlab generalization suggests that pretrained representations may encode transferable molecular knowledge that compensates for the architecture's inductive bias mismatch, but only when evaluated on truly novel compounds outside the training distribution.
 The complementarity extends further---beyond the local/global distinction---because RF's fixed-vocabulary substructure matching excels at interpolation while learned representations (both BiGRU and ChemBERTa) enable extrapolation to novel scaffolds.
 
@@ -747,6 +748,9 @@ Our models use only 1D molecular representations, lacking 3D conformational info
 Solvents are encoded purely through their molecular structure (SMILES or fingerprints), without explicit physical properties such as dielectric constant, refractive index, or Hansen solubility parameters~\cite{reichardt2011solvents}, which may limit the models' ability to capture fine-grained solvatochromic effects.
 The BiGRU model uses character-level tokenization, which may miss chemically meaningful substructures; ChemBERTa's BPE tokenizer partially addresses this but still operates on 1D SMILES strings.
 The experimental validation set (16 molecules) is small; larger out-of-distribution evaluations would strengthen the generalization finding, though the qualitative reversal of model rankings is robust.
+Additionally, our comparison of model architectures is confounded by asymmetric hyperparameter optimization: RF received extensive grid search (432 configurations), while BiGRU and ChemBERTa used default configurations from prior work.
+ChemBERTa's 44.1M parameters may also be overparameterized for the $\sim$12K training samples available per fold.
+These factors make it difficult to attribute the full cross-validated performance gap solely to architectural mismatch with the local nature of UV absorption.
 Finally, the Wilcoxon signed-rank test (a non-parametric alternative appropriate for small samples) yields $p = 0.0625$ for all model comparisons due to the minimum achievable $p$-value with $n = 5$ concordant pairs; larger-scale cross-validation (e.g., 10-fold) would provide stronger non-parametric statistical power.
 
 \subsection*{Future Work}
@@ -754,7 +758,7 @@ Transfer learning from larger UV absorption databases (e.g., the Reaxys dataset 
 Incorporating 3D structural information through hybrid architectures~\cite{gilmer2017neural} or precomputed quantum-chemical descriptors~\cite{lupopasini2023excited} could improve predictions for geometry-dependent chromophores.
 Ensemble approaches combining RF and BiGRU predictions could potentially leverage the complementary strengths of both model families, using RF's interpolation accuracy for well-represented scaffolds and BiGRU's extrapolation capability for novel structures.
 While RF provides global feature importance, attention mechanisms in Transformer-based sequence models~\cite{vaswani2017attention, hondaSMILESTransformerPretrained2019} could offer instance-level interpretability by highlighting which molecular substructures drive individual predictions.
-More broadly, our results corroborate the growing evidence that model architecture choice in molecular ML should be guided by the locality of the target property~\cite{chenMolecularLanguage2023, jiang2023trangru}: properties determined by local substructures (UV absorption, functional group-dependent activity) favor fingerprint and RNN-based approaches, while properties depending on global molecular topology may benefit from Transformer or graph-based architectures.
+More broadly, our in-distribution results are consistent with the hypothesis that architecture choice in molecular ML may be influenced by the locality of the target property~\cite{chenMolecularLanguage2023, jiang2023trangru}: properties determined by local substructures (UV absorption, functional group-dependent activity) favor fingerprint and RNN-based approaches on cross-validated benchmarks, while out-of-distribution evaluation reveals that additional factors---pretraining data, learned representations---can overcome architectural mismatch.
 
 
 % ===== Data and Code Availability =====
@@ -883,7 +887,7 @@ BiGRU + Solvent                   & 36.45 $\pm$ 1.12 & 20.70 $\pm$ 0.51 & --- \\
 \end{table}
 
 Even the default RF (RMSE = 32.18~nm) outperforms BiGRU (RMSE = 36.45~nm) by 12\%.
-Tuning provides only an additional 2.6\% improvement, confirming that the performance gap reflects fundamental differences between fingerprint-based and sequence-based approaches rather than optimization effort.
+Tuning provides only an additional 2.6\% improvement, suggesting that the in-distribution performance gap is not primarily driven by optimization effort, though BiGRU hyperparameters remain untuned (see below).
 BiGRU hyperparameters were not tuned due to the prohibitive training cost ($\sim$5 hours per fold on an RTX 4090 GPU, compared to $\sim$3 minutes for RF), following the architecture of Liu et al.~\cite{liuPredictionMolecularToxicity2023}.
 
 
