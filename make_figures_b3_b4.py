@@ -65,22 +65,23 @@ def make_wetlab_figure():
     cb_avg = cb_avg[sort_idx]
 
     n = len(molecules)
-    x = np.arange(n)
-    width = 0.2
+    y = np.arange(n)
+    height = 0.2
 
-    fig, ax = plt.subplots(figsize=(14, 6))
-    ax.bar(x - 1.5*width, exp_avg, width, label="Experimental", color="#2c3e50", alpha=0.85)
-    ax.bar(x - 0.5*width, rf_avg, width, label="RF", color="#e74c3c", alpha=0.75)
-    ax.bar(x + 0.5*width, bigru_avg, width, label="BiGRU", color="#3498db", alpha=0.75)
-    ax.bar(x + 1.5*width, cb_avg, width, label="ChemBERTa", color="#2ecc71", alpha=0.75)
+    fig, ax = plt.subplots(figsize=(10, 10))
+    ax.barh(y + 1.5*height, exp_avg, height, label="Experimental", color="#2c3e50", alpha=0.85)
+    ax.barh(y + 0.5*height, rf_avg, height, label="RF", color="#e74c3c", alpha=0.75)
+    ax.barh(y - 0.5*height, bigru_avg, height, label="BiGRU", color="#3498db", alpha=0.75)
+    ax.barh(y - 1.5*height, cb_avg, height, label="ChemBERTa", color="#2ecc71", alpha=0.75)
 
-    ax.set_xlabel("Molecule", fontsize=12)
-    ax.set_ylabel("$\\lambda_{\\max}$ (nm)", fontsize=12)
+    ax.set_xlabel("$\\lambda_{\\max}$ (nm)", fontsize=12)
+    ax.set_ylabel("")
     ax.set_title("Wetlab Validation: Predicted vs. Experimental $\\lambda_{\\max}$\n(averaged over EtOH and MeOH)", fontsize=13)
-    ax.set_xticks(x)
-    ax.set_xticklabels(molecules, rotation=45, ha="right", fontsize=9)
-    ax.legend(fontsize=10)
-    ax.grid(axis="y", alpha=0.3)
+    ax.set_yticks(y)
+    ax.set_yticklabels(molecules, fontsize=11)
+    ax.set_xlim(250, 400)
+    ax.legend(fontsize=11, loc="lower right")
+    ax.grid(axis="x", alpha=0.3)
 
     plt.tight_layout()
     out = os.path.join(RESULTS_DIR, "wetlab_per_molecule.png")
