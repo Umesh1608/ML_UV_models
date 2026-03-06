@@ -272,7 +272,7 @@ def plot_training_comparison():
         },
     }
 
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(8, 5))
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(7, 8))
 
     names = list(models.keys())
     rmse_vals = [models[n]["rmse"] for n in names]
@@ -280,25 +280,25 @@ def plot_training_comparison():
     times = [models[n]["train_time_min"] for n in names]
 
     # Panel 1: RMSE comparison
-    bars1 = ax1.bar(names, rmse_vals, color=colors, edgecolor="white", alpha=0.9, width=0.6)
+    bars1 = ax1.bar(names, rmse_vals, color=colors, edgecolor="white", alpha=0.9, width=0.5)
     for bar, val in zip(bars1, rmse_vals):
         ax1.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.3,
-                 f"{val:.1f}", ha="center", fontsize=11, fontweight="bold")
-    ax1.set_ylabel("RMSE (nm)", fontsize=12)
-    ax1.set_title("Prediction Accuracy", fontsize=12, fontweight="bold")
+                 f"{val:.1f}", ha="center", fontsize=12, fontweight="bold")
+    ax1.set_ylabel("RMSE (nm)", fontsize=13)
+    ax1.set_title("(a) Prediction Accuracy", fontsize=13, fontweight="bold")
     ax1.set_ylim(0, max(rmse_vals) * 1.15)
-    ax1.tick_params(axis="x", labelsize=9)
+    ax1.tick_params(axis="x", labelsize=12)
 
     # Panel 2: Training time (log scale)
-    bars2 = ax2.bar(names, times, color=colors, edgecolor="white", alpha=0.9, width=0.6)
+    bars2 = ax2.bar(names, times, color=colors, edgecolor="white", alpha=0.9, width=0.5)
     ax2.set_yscale("log")
     for bar, val in zip(bars2, times):
         label = f"{val} min" if val < 60 else f"{val/60:.0f} hrs"
-        ax2.text(bar.get_x() + bar.get_width()/2, bar.get_height() * 1.2,
-                 label, ha="center", fontsize=10, fontweight="bold")
-    ax2.set_ylabel("Training Time (min, log scale)", fontsize=12)
-    ax2.set_title("Computational Cost (5-fold CV)", fontsize=12, fontweight="bold")
-    ax2.tick_params(axis="x", labelsize=9)
+        ax2.text(bar.get_x() + bar.get_width()/2, bar.get_height() * 1.3,
+                 label, ha="center", fontsize=11, fontweight="bold")
+    ax2.set_ylabel("Training Time (min, log scale)", fontsize=13)
+    ax2.set_title("(b) Computational Cost (5-fold CV)", fontsize=13, fontweight="bold")
+    ax2.tick_params(axis="x", labelsize=12)
 
     plt.tight_layout()
     for ext in ("pdf", "png"):

@@ -565,16 +565,15 @@ We averaged Gini importances across all five fold models and decoded the top fea
 
 \begin{figure}[htbp]
     \centering
-    \begin{subfigure}[t]{0.48\textwidth}
-        \includegraphics[width=\textwidth]{results/rf_cumulative_importance.pdf}
-        \caption{Cumulative feature importance. The top 20 features (out of 4096) account for 41.6\% of total importance, indicating a sparse, interpretable model.}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}[t]{0.48\textwidth}
-        \includegraphics[width=\textwidth]{results/rf_training_comparison.pdf}
-        \caption{Training time vs.\ performance comparison. RF achieves better RMSE in 15 minutes compared to BiGRU's 25 hours (100$\times$ faster).}
-    \end{subfigure}
-    \caption{Practical advantages of RF models for molecular property prediction.}
+    \includegraphics[width=0.65\textwidth]{results/rf_cumulative_importance.pdf}
+    \caption{Cumulative feature importance. The top 41 features (out of 4096) account for 50\% of total importance, and 327 features reach 80\%, indicating a sparse, interpretable model.}
+    \label{fig:rf_cumulative}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.65\textwidth]{results/rf_training_comparison.pdf}
+    \caption{Training time vs.\ performance comparison. (a)~RF achieves the best RMSE in 15~minutes of total training compared to BiGRU's 25~hours (100$\times$ faster). (b)~Computational cost on log scale highlights the practical advantage of fingerprint-based models.}
     \label{fig:rf_practical}
 \end{figure}
 
