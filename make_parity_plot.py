@@ -45,11 +45,20 @@ def main():
         ("ChemBERTa", "chemberta"),
     ]
 
+    # Load all data first to compute shared axis limits
+    all_data = []
+    for name, prefix in models:
+        y_true, y_pred = load_pooled(prefix)
+        all_data.append((name, y_true, y_pred))
+
+    global_min = min(min(y.min(), p.min()) for _, y, p in all_data) - 10
+    global_max = max(max(y.max(), p.max()) for _, y, p in all_data) + 10
+    lims = [global_min, global_max]
+
     fig, axes = plt.subplots(2, 2, figsize=(10, 10))
     axes = axes.flatten()
 
-    for ax, (name, prefix) in zip(axes, models):
-        y_true, y_pred = load_pooled(prefix)
+    for ax, (name, y_true, y_pred) in zip(axes, all_data):
         rmse = np.sqrt(mean_squared_error(y_true, y_pred))
         mae = mean_absolute_error(y_true, y_pred)
         r2 = r2_score(y_true, y_pred)
@@ -57,8 +66,6 @@ def main():
         ax.scatter(y_true, y_pred, alpha=0.15, s=5, c="steelblue", rasterized=True)
 
         # Perfect prediction line
-        lims = [min(y_true.min(), y_pred.min()) - 10,
-                max(y_true.max(), y_pred.max()) + 10]
         ax.plot(lims, lims, "k--", linewidth=1, alpha=0.7)
 
         # ±20 nm bands
