@@ -336,6 +336,91 @@ For external datasets, we use the exact split protocols published by the origina
 All models are implemented using scikit-learn~\cite{pedregosa2011scikit} (RF, XGBoost) and TensorFlow~\cite{abadi2016tensorflow} (BiGRU).
 
 
+% --- Architecture Overview Figure ---
+
+Figure~\ref{fig:model_overview} provides a high-level comparison of the three model families evaluated in this study, illustrating the fundamental differences in molecular representation and model complexity.
+
+\tikzstyle{ovbox} = [rectangle, rounded corners=3pt, minimum width=3.2cm, minimum height=0.7cm, text centered, draw=black, font=\small]
+\tikzstyle{ovarrow} = [thick,->,>=stealth]
+
+\begin{figure}[htbp]
+\centering
+
+% --- (a) RF ---
+\begin{minipage}[t]{0.30\textwidth}
+\centering
+\vbox to 8.5cm{%
+\begin{tikzpicture}[node distance=1.15cm, scale=0.75, transform shape, baseline=(current bounding box.north)]
+\node (smi)  [ovbox, fill=gray!20]                    {SMILES Input};
+\node (fp)   [ovbox, fill=blue!15, below of=smi]      {Morgan FP ($r{=}2$)};
+\node (feat) [ovbox, fill=blue!25, below of=fp]       {2048-bit vector};
+\node (rf)   [ovbox, fill=green!25, below of=feat]    {1000 Decision Trees};
+\node (avg)  [ovbox, fill=green!15, below of=rf]      {Ensemble Average};
+\node (out)  [ovbox, fill=red!15, below of=avg]       {$\hat{\lambda}_{\max}$};
+\draw [ovarrow] (smi)  -- (fp);
+\draw [ovarrow] (fp)   -- (feat);
+\draw [ovarrow] (feat) -- (rf);
+\draw [ovarrow] (rf)   -- (avg);
+\draw [ovarrow] (avg)  -- (out);
+\end{tikzpicture}
+\vfill}%
+\textbf{(a)} Random Forest\\[2pt]
+{\small Morgan fingerprints\\$\sim$few K leaf params\\Train: $\sim$3 min/fold}
+\end{minipage}
+\hfill
+% --- (b) BiGRU ---
+\begin{minipage}[t]{0.30\textwidth}
+\centering
+\vbox to 8.5cm{%
+\begin{tikzpicture}[node distance=1.15cm, scale=0.75, transform shape, baseline=(current bounding box.north)]
+\node (smi)  [ovbox, fill=gray!20]                    {SMILES Input};
+\node (tok)  [ovbox, fill=blue!10, below of=smi]      {Char Tokenization};
+\node (emb)  [ovbox, fill=blue!25, below of=tok]      {Embedding ($d{=}50$)};
+\node (gru1) [ovbox, fill=green!30, below of=emb]     {BiGRU $\times$ 3};
+\node (den)  [ovbox, fill=purple!15, below of=gru1]   {Dense (128, ReLU)};
+\node (drop) [ovbox, fill=orange!15, below of=den]    {Dropout (0.105)};
+\node (out)  [ovbox, fill=red!15, below of=drop]      {$\hat{\lambda}_{\max}$};
+\draw [ovarrow] (smi)  -- (tok);
+\draw [ovarrow] (tok)  -- (emb);
+\draw [ovarrow] (emb)  -- (gru1);
+\draw [ovarrow] (gru1) -- (den);
+\draw [ovarrow] (den)  -- (drop);
+\draw [ovarrow] (drop) -- (out);
+\end{tikzpicture}
+\vfill}%
+\textbf{(b)} BiGRU (optimized)\\[2pt]
+{\small Character-level SMILES\\$\sim$2.1M params\\Train: $\sim$5 hr/fold}
+\end{minipage}
+\hfill
+% --- (c) ChemBERTa ---
+\begin{minipage}[t]{0.30\textwidth}
+\centering
+\vbox to 8.5cm{%
+\begin{tikzpicture}[node distance=1.15cm, scale=0.75, transform shape, baseline=(current bounding box.north)]
+\node (smi)  [ovbox, fill=gray!20]                    {SMILES Input};
+\node (tok)  [ovbox, fill=blue!10, below of=smi]      {BPE Tokenization};
+\node (pre)  [ovbox, fill=cyan!20, below of=tok]      {Pretrained on 77M};
+\node (trn)  [ovbox, fill=green!30, below of=pre]     {Transformer (6L/12H)};
+\node (cls)  [ovbox, fill=purple!15, below of=trn]    {[CLS] Pooling};
+\node (head) [ovbox, fill=purple!25, below of=cls]    {Regression Head};
+\node (out)  [ovbox, fill=red!15, below of=head]      {$\hat{\lambda}_{\max}$};
+\draw [ovarrow] (smi)  -- (tok);
+\draw [ovarrow] (tok)  -- (pre);
+\draw [ovarrow] (pre)  -- (trn);
+\draw [ovarrow] (trn)  -- (cls);
+\draw [ovarrow] (cls)  -- (head);
+\draw [ovarrow] (head) -- (out);
+\end{tikzpicture}
+\vfill}%
+\textbf{(c)} ChemBERTa\\[2pt]
+{\small Pretrained Transformer\\$\sim$44.1M params\\Train: $\sim$3 hr/fold}
+\end{minipage}
+
+\caption{Overview of the three model families compared in this study. (a)~Random Forest operates on precomputed Morgan fingerprints, requiring no GPU and training in minutes. (b)~BiGRU learns directly from character-level SMILES through an optimized 3-layer bidirectional RNN architecture (Section~\ref{sec:bigru}). (c)~ChemBERTa fine-tunes a Transformer pretrained on 77M SMILES strings, bringing external chemical knowledge at the cost of 20$\times$ more parameters. All three models receive solvent information via concatenation (Section~\ref{sec:solvent}).}
+\label{fig:model_overview}
+\end{figure}
+
+
 % --- Model Architectures ---
 \subsection{Random Forest with Morgan Fingerprints}
 \label{sec:rf}
