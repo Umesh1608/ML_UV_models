@@ -351,46 +351,34 @@ Figure~\ref{fig:model_overview} provides a high-level comparison of the three mo
 % ---- (a) RANDOM FOREST ----
 \begin{minipage}[t]{0.30\textwidth}
 \centering
-\begin{tikzpicture}[node distance=1.25cm, scale=0.82, transform shape, baseline=(current bounding box.north)]
-\node (smi)  [archbox, fill=gray!15]                     {SMILES Input};
-\node (fp)   [archbox, fill=green!12, below of=smi]      {Morgan FP ($r{=}2$)};
-
-% --- Fingerprint barcode between fp and trees ---
-\node[below=0.35cm of fp] (barlabel) {};
-\foreach \i/\c in {0/45,1/8,2/45,3/45,4/8,5/8,6/45,7/8,8/45,9/45,10/8,11/45} {
-    \fill[green!\c] (-1.5+\i*0.3, -3.55) rectangle ++(0.27, 0.5);
-    \draw[gray!50, thin] (-1.5+\i*0.3, -3.55) rectangle ++(0.27, 0.5);
-}
-\node[font=\scriptsize, gray] at (2.3, -3.3) {$\cdots$2048};
-
-\node (trees) [archbox, fill=green!22, below=2.0cm of fp] {1000 Decision Trees};
-\node (avg)   [archbox, fill=green!12, below of=trees]    {Ensemble Average};
+\begin{tikzpicture}[node distance=1.35cm, scale=0.82, transform shape, baseline=(current bounding box.north)]
+\node (smi)   [archbox, fill=gray!15]                     {SMILES Input};
+\node (fp)    [archbox, fill=green!12, below of=smi]      {Morgan FP ($r{=}2$)};
+\node (vec)   [archbox, fill=green!20, below of=fp]       {2048-bit vector};
+\node (trees) [archbox, fill=green!30, below of=vec]      {1000 Decision Trees};
+\node (avg)   [archbox, fill=green!15, below of=trees]    {Ensemble Average};
 \node (out)   [archbox, fill=red!12, below of=avg]        {$\hat{\lambda}_{\max}$};
 
 \draw [archarrow] (smi)   -- (fp);
-\draw [archarrow] (fp)    -- ++(0,-0.35) -- ++(0,-0.15);
-\draw [archarrow] ([yshift=-0.05cm]barlabel.south) ++(0,-0.65) -- (trees);
+\draw [archarrow] (fp)    -- (vec);
+\draw [archarrow] (vec)   -- (trees);
 \draw [archarrow] (trees) -- (avg);
 \draw [archarrow] (avg)   -- (out);
 
-% Dimension annotations
-\node[font=\scriptsize, gray, right] at (2.2, -1.25) {$\{0,1\}^{2048}$};
-
-% Invisible spacer to match height of (b) and (c) which have 9 nodes
-\node[below=1.25cm of out, minimum height=0.85cm] (sp1) {};
-\node[below=1.25cm of sp1, minimum height=0.85cm] (sp2) {};
-\node[below=1.25cm of sp2, minimum height=0.85cm] (sp3) {};
-\node[below=1.25cm of sp3, minimum height=0.85cm] (sp4) {};
+% Invisible spacers to match height of (b) and (c)
+\node[below=1.35cm of out, minimum height=0.85cm] (sp1) {};
+\node[below=1.35cm of sp1, minimum height=0.85cm] (sp2) {};
+\node[below=1.35cm of sp2, minimum height=0.85cm] (sp3) {};
 \end{tikzpicture}
 
 \textbf{(a)} Random Forest\\[2pt]
-{\small Morgan fingerprints\\No GPU --- trains in $\sim$3 min}
+{\small No GPU --- trains in $\sim$3 min}
 \end{minipage}
 \hfill
 % ---- (b) BiGRU (optimized) ----
 \begin{minipage}[t]{0.30\textwidth}
 \centering
-\begin{tikzpicture}[node distance=1.25cm, scale=0.82, transform shape, baseline=(current bounding box.north)]
+\begin{tikzpicture}[node distance=1.35cm, scale=0.82, transform shape, baseline=(current bounding box.north)]
 \node (smi)  [archbox, fill=gray!15]                     {SMILES Input};
 \node (tok)  [archbox, fill=teal!10, below of=smi]       {Char Tokenization};
 \node (emb)  [archbox, fill=teal!20, below of=tok]       {Embedding ($d{=}50$)};
@@ -409,15 +397,6 @@ Figure~\ref{fig:model_overview} provides a high-level comparison of the three mo
 \draw [archarrow] (gru3) -- (den);
 \draw [archarrow] (den)  -- (drop);
 \draw [archarrow] (drop) -- (out);
-
-% Dimension annotations
-\node[font=\scriptsize, gray, right] at (2.2, -2.5)  {$T \times 50$};
-\node[font=\scriptsize, gray, right] at (2.2, -3.75) {$T \times 512$};
-\node[font=\scriptsize, gray, right] at (2.2, -6.25) {$512$};
-
-% Brace for 3 BiGRU layers
-\draw[decorate, decoration={brace, amplitude=4pt, mirror}, thick, teal!60]
-  (2.15, -3.2) -- (2.15, -6.9) node[midway, right=5pt, font=\scriptsize, teal!70] {$\times 3$};
 \end{tikzpicture}
 
 \textbf{(b)} BiGRU (optimized)\\[2pt]
@@ -427,14 +406,14 @@ Figure~\ref{fig:model_overview} provides a high-level comparison of the three mo
 % ---- (c) ChemBERTa ----
 \begin{minipage}[t]{0.30\textwidth}
 \centering
-\begin{tikzpicture}[node distance=1.25cm, scale=0.82, transform shape, baseline=(current bounding box.north)]
+\begin{tikzpicture}[node distance=1.35cm, scale=0.82, transform shape, baseline=(current bounding box.north)]
 \node (smi)  [archbox, fill=gray!15]                      {SMILES Input};
 \node (tok)  [archbox, fill=violet!10, below of=smi]      {BPE Tokenization};
-\node (pre)  [archbox, fill=violet!20, below of=tok]      {Pretrained Embeddings};
-\node (trn1) [archbox, fill=violet!30, below of=pre]      {Transformer Layer};
-\node (trn2) [archbox, fill=violet!30, below of=trn1]     {Transformer Layer};
-\node (trn3) [archbox, fill=violet!30, below of=trn2]     {Transformer Layer};
-\node (cls)  [archbox, fill=violet!15, below of=trn3]     {{[CLS]} Pooling};
+\node (pre)  [archbox, fill=violet!18, below of=tok]      {Pretrained (77M SMILES)};
+\node (trn1) [archbox, fill=violet!28, below of=pre]      {Transformer Layer 1};
+\node (trn2) [archbox, fill=violet!28, below of=trn1]     {$\vdots$ (6 layers total)};
+\node (trn6) [archbox, fill=violet!28, below of=trn2]     {Transformer Layer 6};
+\node (cls)  [archbox, fill=violet!12, below of=trn6]     {{[CLS]} Pooling};
 \node (head) [archbox, fill=purple!15, below of=cls]      {Regression Head};
 \node (out)  [archbox, fill=red!12, below of=head]        {$\hat{\lambda}_{\max}$};
 
@@ -442,24 +421,17 @@ Figure~\ref{fig:model_overview} provides a high-level comparison of the three mo
 \draw [archarrow] (tok)  -- (pre);
 \draw [archarrow] (pre)  -- (trn1);
 \draw [archarrow] (trn1) -- (trn2);
-\draw [archarrow] (trn2) -- (trn3);
-\draw [archarrow] (trn3) -- (cls);
+\draw [archarrow] (trn2) -- (trn6);
+\draw [archarrow] (trn6) -- (cls);
 \draw [archarrow] (cls)  -- (head);
 \draw [archarrow] (head) -- (out);
-
-% Brace for 6 transformer layers
-\draw[decorate, decoration={brace, amplitude=4pt, mirror}, thick, violet!60]
-  (2.15, -3.2) -- (2.15, -6.9) node[midway, right=5pt, font=\scriptsize, violet!70] {$\times 6$};
-
-% Pretrained label
-\node[font=\tiny, violet!60, anchor=west] at (2.2, -2.5) {77M SMILES};
 \end{tikzpicture}
 
 \textbf{(c)} ChemBERTa\\[2pt]
 {\small 44.1M params --- $\sim$3 hr/fold}
 \end{minipage}
 
-\caption{Architecture comparison of the three model families. (a)~Random Forest operates on precomputed Morgan fingerprints (binary barcode); an ensemble of 1000 trees votes on $\lambda_{\max}$, requiring no GPU. (b)~BiGRU processes character-level SMILES through 3 stacked bidirectional GRU layers (256 units per direction), optimized via Bayesian HPO (Section~\ref{sec:bigru}). (c)~ChemBERTa fine-tunes a 6-layer Transformer pretrained on 77M SMILES from ZINC; the \texttt{[CLS]} token is passed to a regression head. All models receive solvent information via SMILES concatenation (Section~\ref{sec:solvent}).}
+\caption{Architecture comparison of the three model families. (a)~Random Forest operates on precomputed 2048-bit Morgan fingerprints; an ensemble of 1000 trees votes on $\lambda_{\max}$, requiring no GPU. (b)~BiGRU (optimized via Bayesian HPO) processes character-level SMILES through 3 stacked bidirectional GRU layers with 256 units per direction (Section~\ref{sec:bigru}). (c)~ChemBERTa fine-tunes a 6-layer Transformer (12 attention heads, 768 hidden dim) pretrained on 77M SMILES; the \texttt{[CLS]} representation is passed to a regression head. All models receive solvent information via SMILES concatenation (Section~\ref{sec:solvent}).}
 \label{fig:model_overview}
 \end{figure}
 
