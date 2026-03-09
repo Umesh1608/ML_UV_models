@@ -72,6 +72,86 @@ These complementary strengths (RF for interpolation within known chemical space,
     \label{fig:overview}
 \end{figure}
 
+\begin{figure}[t]
+    \centering
+    \begin{tikzpicture}[
+        >=Stealth,
+        box/.style={draw, rounded corners=4pt, minimum height=0.7cm, align=center, font=\small},
+        inputbox/.style={box, fill=gray!8, draw=gray!60, minimum width=2.6cm},
+        fpbox/.style={box, fill=green!8, draw=green!50!black},
+        seqbox/.style={box, fill=blue!8, draw=blue!50!black},
+        fpmodel/.style={box, fill=green!15, draw=green!50!black, minimum width=1.8cm, font=\small\bfseries},
+        seqmodel/.style={box, fill=blue!15, draw=blue!50!black, minimum width=1.8cm, font=\small\bfseries},
+        outbox/.style={box, fill=orange!10, draw=orange!60!black, minimum width=2.0cm},
+        lbl/.style={font=\scriptsize, text=gray!60!black},
+        arr/.style={->, thick, gray!60},
+    ]
+
+    % ---- Column 1: Input ----
+    \node[inputbox] (mol) at (0, 0.55) {Solute SMILES\\[-2pt]{\scriptsize\texttt{CC(/C=C/c1cc(OC)c(O)c1)=O}}};
+    \node[inputbox] (solv) at (0, -0.55) {Solvent SMILES\\[-2pt]{\scriptsize\texttt{CCO} (ethanol)}};
+
+    % Concat
+    \node[draw, circle, fill=gray!15, inner sep=2pt, font=\small\bfseries] (cat) at (2.4, 0) {$\oplus$};
+    \draw[arr] (mol.east) -- ++(0.3,0) |- (cat);
+    \draw[arr] (solv.east) -- ++(0.3,0) |- (cat);
+
+    % ---- Column 2: Representations ----
+    \node[fpbox] (fp) at (5.2, 1.2) {Morgan Fingerprint\\[-2pt]{\scriptsize\texttt{[0,1,0,1,1,0,\ldots]} $\in \{0,1\}^{4096}$}};
+    \node[seqbox] (seq) at (5.2, -1.2) {Token Sequence\\[-2pt]{\scriptsize\texttt{! C C ( / C = C / \ldots ! C C O E}}};
+
+    \draw[arr, green!50!black] (cat) -- ++(0.5,0) |- (fp.west);
+    \draw[arr, blue!50!black] (cat) -- ++(0.5,0) |- (seq.west);
+    \node[lbl, green!50!black] at (3.5, 1.05) {\textit{hashing}};
+    \node[lbl, blue!50!black] at (3.5, -1.05) {\textit{tokenizing}};
+
+    % ---- Column 3: Models ----
+    \node[fpmodel] (rf) at (8.6, 1.7) {Random Forest};
+    \node[fpmodel] (xgb) at (8.6, 0.7) {XGBoost};
+    \node[seqmodel] (bigru) at (8.6, -0.7) {BiGRU};
+    \node[seqmodel] (cb) at (8.6, -1.7) {ChemBERTa};
+
+    \draw[arr, green!50!black] (fp.east) -- ++(0.25,0) |- (rf.west);
+    \draw[arr, green!50!black] (fp.east) -- ++(0.25,0) |- (xgb.west);
+    \draw[arr, blue!50!black] (seq.east) -- ++(0.25,0) |- (bigru.west);
+    \draw[arr, blue!50!black] (seq.east) -- ++(0.25,0) |- (cb.west);
+
+    % Model family labels
+    \node[font=\scriptsize\bfseries, green!50!black] at (8.6, 2.25) {Tree ensembles};
+    \node[font=\scriptsize\bfseries, blue!50!black] at (8.6, -2.25) {Neural networks};
+
+    % ---- Column 4: Output ----
+    \node[outbox] (out) at (11.8, 0) {$\hat{\lambda}_{\max}$ (nm)};
+
+    % Arrows from all models to output
+    \draw[arr] (rf.east) -- ++(0.2,0) |- (out);
+    \draw[arr] (xgb.east) -- ++(0.35,0) |- (out);
+    \draw[arr] (bigru.east) -- ++(0.35,0) |- (out);
+    \draw[arr] (cb.east) -- ++(0.2,0) |- (out);
+
+    % ---- Mini UV spectrum ----
+    \begin{scope}[shift={(13.4, 0)}]
+        \draw[gray!40, ->] (0,-0.7) -- (0,0.8);
+        \node[lbl, rotate=90] at (-0.22, 0.1) {\tiny Absorbance};
+        \draw[gray!40, ->] (0,-0.7) -- (1.7,-0.7);
+        \node[lbl] at (0.85, -0.95) {\tiny $\lambda$ (nm)};
+        \draw[orange!70!red, thick, smooth, tension=0.7]
+            plot coordinates {(0.05,-0.6) (0.25,-0.4) (0.5,0.0) (0.7,0.45) (0.85,0.6) (1.0,0.4) (1.2,0.05) (1.45,-0.5) (1.55,-0.6)};
+        \draw[dashed, orange!60!black] (0.85,0.6) -- (0.85,-0.7);
+        \node[font=\tiny\bfseries, orange!60!black] at (0.85, -0.85) {$\lambda_{\max}$};
+    \end{scope}
+
+    % ---- Stage labels at bottom ----
+    \node[font=\footnotesize, gray!50!black] at (0, -1.7) {\textsc{Input}};
+    \node[font=\footnotesize, gray!50!black] at (5.2, -2.3) {\textsc{Representation}};
+    \node[font=\footnotesize, gray!50!black] at (8.6, -2.75) {\textsc{Model}};
+    \node[font=\footnotesize, gray!50!black] at (12.6, -1.7) {\textsc{Prediction}};
+
+    \end{tikzpicture}
+    \caption{Benchmark framework for UV absorption prediction. Solute and solvent SMILES are concatenated and processed through two representation pathways: Morgan fingerprints (hashed binary vectors) for tree-based ensembles, and character-level token sequences for neural network models. All four models predict $\lambda_{\max}$ from the same molecular input, enabling controlled comparison of representation and architecture choices.}
+    \label{fig:benchmark_framework}
+\end{figure}
+
 Ultraviolet--visible (UV--Vis) absorption spectroscopy is a fundamental technique in chemistry, with the wavelength of maximum absorption ($\lambda_{\max}$) serving as a key property for molecular characterization, photosafety assessment, and materials design~\cite{flemingMolecular2010}.
 Experimental determination of $\lambda_{\max}$ requires synthesizing and measuring each compound, creating a demand for accurate \textit{in silico} prediction methods that can accelerate screening of large chemical libraries~\cite{ghosh2019deep}.
 
