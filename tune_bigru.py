@@ -274,14 +274,67 @@ def run_search(n_trials=30):
     return best_config
 
 
+def _get_periodic_checkpoint_callback(save_path, save_freq=10):
+    """Callback that saves full model every save_freq epochs for mid-fold resume."""
+    import tensorflow as tf
+
+    class PeriodicCheckpoint(tf.keras.callbacks.Callback):
+        def __init__(self, save_path, save_freq):
+            super().__init__()
+            self.save_path = save_path
+            self.save_freq = save_freq
+            self.state_path = save_path.replace(".keras", "_state.json")
+
+        def on_epoch_end(self, epoch, logs=None):
+            if (epoch + 1) % self.save_freq == 0:
+                self.model.save(self.save_path)
+                state = {
+                    "epoch": epoch + 1,
+                    "val_loss": float(logs.get("val_loss", 0)),
+                    "loss": float(logs.get("loss", 0)),
+                }
+                with open(self.state_path, "w") as f:
+                    json.dump(state, f)
+                print(f"\n    [checkpoint] Saved at epoch {epoch+1}, "
+                      f"val_loss={state['val_loss']:.3f}", flush=True)
+
+    return PeriodicCheckpoint(save_path, save_freq)
+
+
+def _save_partial_aggregate(fold_metrics, config):
+    """Save partial aggregate after each completed fold so progress is visible."""
+    if not fold_metrics:
+        return
+    agg = {"n_folds_complete": len(fold_metrics)}
+    for key in ["RMSE", "MAE", "R2", "Pearson_r"]:
+        vals = [m[key] for m in fold_metrics]
+        agg[f"{key}_mean"] = round(float(np.mean(vals)), 2)
+        if len(vals) > 1:
+            agg[f"{key}_std"] = round(float(np.std(vals)), 2)
+    agg["config"] = {k: config[k] for k in ["n_units", "n_layers", "embed_dim",
+                                              "dropout", "lr", "batch_size"]}
+    path = os.path.join(RESULTS_DIR, "bigru_tuned_cv_aggregate.json")
+    with open(path, "w") as f:
+        json.dump(agg, f, indent=2)
+
+
 def run_full_cv(config=None):
-    """Run best config on all 5 folds."""
+    """Run best config on all 5 folds.
+
+    STOP/RESUME SAFE:
+      - Completed folds are detected via _metrics.json and skipped automatically.
+      - Mid-fold resume: periodic checkpoint every 10 epochs to _latest.keras;
+        on restart, training resumes from the last checkpoint epoch.
+      - SIGINT (Ctrl+C) triggers a graceful save of the current model before exit.
+      - Partial aggregate saved after each fold so progress is always visible.
+    """
     if config is None:
         config_path = os.path.join(RESULTS_DIR, "bigru_tuned_best_config.json")
         with open(config_path) as f:
             config = json.load(f)
         print(f"  Loaded config from {config_path}")
 
+    import signal
     import tensorflow as tf
 
     verify_gpu_available()
@@ -291,6 +344,27 @@ def run_full_cv(config=None):
     c2i = build_char_maps(charset)
     num_words = len(charset)
     input_length = embed_len - 1
+
+    # Also save config for eval_wetlab.py compatibility
+    config_out = {
+        "charset": charset,
+        "embed_len": embed_len,
+        "char_to_int": c2i,
+        "model_type": "bigru_tuned",
+        "with_solvent": True,
+        "n_folds": 5,
+        "seed": SEED,
+        "n_units": config["n_units"],
+        "n_layers": config["n_layers"],
+        "embed_dim": config["embed_dim"],
+        "dropout": config["dropout"],
+        "lr": config["lr"],
+        "batch_size": config["batch_size"],
+    }
+    config_out_path = os.path.join(RESULTS_DIR, "bigru_tuned_config.json")
+    with open(config_out_path, "w") as f:
+        json.dump(config_out, f, indent=2)
+    print(f"  Saved full config to {config_out_path}")
 
     n_units = config["n_units"]
     n_layers = config["n_layers"]
@@ -302,12 +376,34 @@ def run_full_cv(config=None):
     print(f"\n  Config: units={n_units}, layers={n_layers}, embed={embed_dim}, "
           f"dropout={dropout:.2f}, lr={lr:.5f}, batch={batch_size}")
 
+    # ── Collect already-completed folds ──
     fold_metrics = []
     all_preds = []
     all_y_test = []
     all_test_idx = []
 
     for fold_i, (train_idx, val_idx, test_idx) in enumerate(folds):
+        prefix = f"bigru_tuned_fold{fold_i}"
+        metrics_path = os.path.join(RESULTS_DIR, f"{prefix}_metrics.json")
+
+        # ── Skip completed folds ──
+        if os.path.exists(metrics_path):
+            model_path = os.path.join(RESULTS_DIR, f"{prefix}_model.keras")
+            pred_path = os.path.join(RESULTS_DIR, f"{prefix}_predictions.npy")
+            ytest_path = os.path.join(RESULTS_DIR, f"{prefix}_y_test.npy")
+            tidx_path = os.path.join(RESULTS_DIR, f"{prefix}_test_indices.npy")
+
+            if all(os.path.exists(p) for p in [model_path, pred_path, ytest_path, tidx_path]):
+                with open(metrics_path) as f:
+                    metrics = json.load(f)
+                fold_metrics.append(metrics)
+                all_preds.append(np.load(pred_path))
+                all_y_test.append(np.load(ytest_path))
+                all_test_idx.append(np.load(tidx_path))
+                print(f"\n  FOLD {fold_i}/4 — ALREADY COMPLETE "
+                      f"(RMSE={metrics['RMSE']}, MAE={metrics['MAE']}). Skipping.")
+                continue
+
         print(f"\n{'='*60}")
         print(f"  FOLD {fold_i}/4")
         print(f"{'='*60}")
@@ -327,14 +423,55 @@ def run_full_cv(config=None):
         params = model.count_params()
         print(f"  Model: {params:,} params")
 
+        # ── Check for mid-fold checkpoint to resume from ──
+        latest_path = os.path.join(RESULTS_DIR, f"{prefix}_latest.keras")
+        state_path = os.path.join(RESULTS_DIR, f"{prefix}_latest_state.json")
+        initial_epoch = 0
+
+        if os.path.exists(latest_path) and os.path.exists(state_path):
+            try:
+                model = tf.keras.models.load_model(latest_path)
+                with open(state_path) as f:
+                    state = json.load(f)
+                initial_epoch = state["epoch"]
+                print(f"  RESUMING from epoch {initial_epoch} "
+                      f"(val_loss={state.get('val_loss', '?')})")
+            except Exception as e:
+                print(f"  WARNING: Could not load checkpoint ({e}), starting fresh")
+                initial_epoch = 0
+                model = build_model(num_words, input_length, n_units, n_layers,
+                                    embed_dim, dropout, lr)
+
+        # ── SIGINT handler: save checkpoint before exit ──
+        _interrupted = [False]
+
+        def _sigint_handler(sig, frame):
+            if _interrupted[0]:
+                print("\n  FORCE QUIT (second Ctrl+C)")
+                sys.exit(1)
+            _interrupted[0] = True
+            print(f"\n  SIGINT received — saving checkpoint for fold {fold_i}...")
+            try:
+                model.save(latest_path)
+                # We don't know the exact epoch here, but the periodic checkpoint
+                # already saved the latest state. Just save the model.
+                print(f"  Emergency checkpoint saved to {latest_path}")
+            except Exception as e:
+                print(f"  WARNING: Could not save checkpoint: {e}")
+            print("  Exiting. Re-run `--full-cv` to resume from this fold.")
+            sys.exit(0)
+
+        old_handler = signal.signal(signal.SIGINT, _sigint_handler)
+
         early_stop = tf.keras.callbacks.EarlyStopping(
             monitor="val_loss", min_delta=1e-5, patience=PATIENCE,
             verbose=0, mode="auto", restore_best_weights=True
         )
-        checkpoint = tf.keras.callbacks.ModelCheckpoint(
-            os.path.join(RESULTS_DIR, f"bigru_tuned_fold{fold_i}_best.keras"),
+        best_ckpt = tf.keras.callbacks.ModelCheckpoint(
+            os.path.join(RESULTS_DIR, f"{prefix}_best.keras"),
             monitor="val_loss", save_best_only=True, verbose=0
         )
+        periodic_ckpt = _get_periodic_checkpoint_callback(latest_path, save_freq=10)
         TqdmProgressCallback = get_tqdm_callback()
         progress = TqdmProgressCallback(EPOCHS, model_name=f"bigru_tuned_fold{fold_i}",
                                         report_interval=10)
@@ -343,47 +480,67 @@ def run_full_cv(config=None):
         model.fit(X_train, y_train,
                   validation_data=(X_val, y_val),
                   epochs=EPOCHS, batch_size=batch_size,
-                  callbacks=[early_stop, checkpoint, progress], verbose=0)
+                  initial_epoch=initial_epoch,
+                  callbacks=[early_stop, best_ckpt, periodic_ckpt, progress],
+                  verbose=0)
         elapsed = time.time() - t0
+
+        # Restore SIGINT handler
+        signal.signal(signal.SIGINT, old_handler)
 
         y_pred = model.predict(X_test, verbose=0).flatten()
         metrics = compute_metrics(y_test, y_pred)
         fold_metrics.append(metrics)
 
-        print(f"  Fold {fold_i}: RMSE={metrics['RMSE']:.2f} MAE={metrics['MAE']:.2f} "
+        print(f"\n  Fold {fold_i}: RMSE={metrics['RMSE']:.2f} MAE={metrics['MAE']:.2f} "
               f"R²={metrics['R2']:.4f} r={metrics['Pearson_r']:.4f} ({elapsed:.0f}s)")
 
-        # Save fold results
-        prefix = f"bigru_tuned_fold{fold_i}"
+        # Save fold results (marks fold as COMPLETE)
         np.save(os.path.join(RESULTS_DIR, f"{prefix}_predictions.npy"), y_pred)
         np.save(os.path.join(RESULTS_DIR, f"{prefix}_y_test.npy"), y_test)
         np.save(os.path.join(RESULTS_DIR, f"{prefix}_test_indices.npy"), test_idx)
         model.save(os.path.join(RESULTS_DIR, f"{prefix}_model.keras"))
 
-        with open(os.path.join(RESULTS_DIR, f"{prefix}_metrics.json"), "w") as f:
+        metrics_path = os.path.join(RESULTS_DIR, f"{prefix}_metrics.json")
+        with open(metrics_path, "w") as f:
             json.dump(metrics, f, indent=2)
 
         all_preds.append(y_pred)
         all_y_test.append(y_test)
         all_test_idx.append(test_idx)
 
+        # Clean up mid-fold checkpoints (fold is done)
+        for tmp in [latest_path, state_path]:
+            if os.path.exists(tmp):
+                os.remove(tmp)
+
+        # Save partial aggregate after each fold
+        _save_partial_aggregate(fold_metrics, config)
+        n_done = len(fold_metrics)
+        print(f"\n  Progress: {n_done}/5 folds complete")
+        if n_done > 1:
+            rmse_vals = [m["RMSE"] for m in fold_metrics]
+            mae_vals = [m["MAE"] for m in fold_metrics]
+            print(f"  Running avg — RMSE: {np.mean(rmse_vals):.2f} ± {np.std(rmse_vals):.2f}, "
+                  f"MAE: {np.mean(mae_vals):.2f} ± {np.std(mae_vals):.2f}")
+
         del model, X_train, X_val, X_test
         tf.keras.backend.clear_session()
         gc.collect()
 
-    # Pooled predictions
+    # ── Final aggregate ──
     np.savez(os.path.join(RESULTS_DIR, "bigru_tuned_cv_pooled.npz"),
              y_pred=np.concatenate(all_preds),
              y_true=np.concatenate(all_y_test),
              test_indices=np.concatenate(all_test_idx))
 
-    # Aggregate
     agg = {}
     for key in ["RMSE", "MAE", "R2", "Pearson_r"]:
         vals = [m[key] for m in fold_metrics]
         agg[f"{key}_mean"] = round(float(np.mean(vals)), 2)
         agg[f"{key}_std"] = round(float(np.std(vals)), 2)
 
+    agg["n_folds_complete"] = len(fold_metrics)
     agg["config"] = {k: config[k] for k in ["n_units", "n_layers", "embed_dim",
                                               "dropout", "lr", "batch_size"]}
     with open(os.path.join(RESULTS_DIR, "bigru_tuned_cv_aggregate.json"), "w") as f:
