@@ -82,40 +82,45 @@ These complementary strengths (RF for interpolation within known chemical space,
         box/.style={draw, rounded corners=4pt, align=center, font=\small, inner sep=6pt},
         arr/.style={->, thick, draw=gray!50},
     ]
-    % ---- Input ----
-    \node[box, fill=gray!6, draw=gray!50, minimum width=3.2cm] (mol) at (0, 0.7)
+    % ---- Input boxes ----
+    \node[box, fill=gray!6, draw=gray!50, minimum width=3.4cm] (mol) at (0, 1.2)
         {Solute SMILES\\[-1pt]{\scriptsize\texttt{CC(/C=C/c1cc(OC)c(O)c1)=O}}};
-    \node[box, fill=gray!6, draw=gray!50, minimum width=3.2cm] (solv) at (0, -0.7)
+    \node[box, fill=gray!6, draw=gray!50, minimum width=3.4cm] (solv) at (0, -1.2)
         {Solvent SMILES\\[-1pt]{\scriptsize\texttt{CCO} (ethanol)}};
-    \node[font=\footnotesize\bfseries, gray!60] at (0, -1.55) {\textsc{Input}};
 
-    % ---- Concat ----
-    \node[draw, circle, fill=gray!12, inner sep=3pt, font=\small\bfseries] (cat) at (3.2, 0) {$\oplus$};
-    \node[font=\scriptsize, gray!50] at (3.2, -0.5) {concatenate};
-    \draw[arr] (mol.east) -- (cat);
-    \draw[arr] (solv.east) -- (cat);
+    % ---- Concat node ----
+    \node[draw, circle, fill=gray!12, inner sep=3pt, font=\small\bfseries] (cat) at (3.8, 0) {$\oplus$};
+    \node[font=\scriptsize, gray!50, below=3pt of cat] {concatenate};
 
-    % ---- Representations ----
-    \node[box, fill=green!6, draw=green!40!black, minimum width=4.2cm] (fp) at (7.5, 1.5)
+    % Input arrows: horizontal then vertical into concat
+    \draw[arr] (mol.east) -- (2.6, 1.2) -- (2.6, 0) -- (cat.west);
+    \draw[arr] (solv.east) -- (2.6, -1.2) -- (2.6, 0);
+
+    % ---- Fork point ----
+    \coordinate (fork) at (5.0, 0);
+    \draw[thick, gray!50] (cat.east) -- (fork);
+
+    % ---- Representation boxes ----
+    \node[box, fill=green!6, draw=green!40!black, minimum width=4.4cm] (fp) at (9.0, 1.5)
         {Morgan Fingerprint\\[-1pt]{\scriptsize $\vect{x} \in \{0,1\}^{4096}$, radius-2 atom neighborhoods}};
 
-    \node[box, fill=blue!6, draw=blue!40!black, minimum width=4.2cm] (seq) at (7.5, -1.5)
-        {Token Sequence\\[-1pt]{\scriptsize\texttt{! C C ( / C = C / \ldots ! C C O E}, 57-token vocabulary}};
+    \node[box, fill=blue!6, draw=blue!40!black, minimum width=4.4cm] (seq) at (9.0, -1.5)
+        {Token Sequence\\[-1pt]{\scriptsize\texttt{! C C ( / C = C / \ldots ! C C O E}, 57-token vocab.}};
 
-    \draw[arr, draw=green!40!black] (cat) -- ++(0.6, 0) |- (fp.west);
-    \draw[arr, draw=blue!40!black] (cat) -- ++(0.6, 0) |- (seq.west);
+    % Fork arrows: vertical then horizontal, no overlap
+    \draw[arr, draw=green!40!black] (fork) -- (5.0, 1.5) -- (fp.west);
+    \draw[arr, draw=blue!40!black] (fork) -- (5.0, -1.5) -- (seq.west);
 
-    \node[font=\footnotesize\bfseries, gray!60] at (7.5, -2.4) {\textsc{Representation}};
-
-    % ---- Dashed separator ----
-    \draw[dashed, gray!25, thin] (2.2, 0) -- (10.2, 0);
+    % ---- Stage labels ----
+    \node[font=\footnotesize\bfseries, gray!60] at (0, -2.2) {\textsc{Input}};
+    \node[font=\footnotesize\bfseries, gray!60] at (9.0, -2.5) {\textsc{Representation}};
 
     \end{tikzpicture}
     \caption{Input processing and molecular representation. Solute and solvent SMILES are concatenated, then encoded as either hashed Morgan fingerprints (green, top) or character-level token sequences (blue, bottom).}
     \label{fig:framework_input}
     \end{subfigure}
 
-    \vspace{0.6cm}
+    \vspace{0.8cm}
 
     % ===== (b) Models and Prediction =====
     \begin{subfigure}[b]{\textwidth}
@@ -123,62 +128,63 @@ These complementary strengths (RF for interpolation within known chemical space,
     \begin{tikzpicture}[
         >=Stealth,
         box/.style={draw, rounded corners=4pt, align=center, font=\small, inner sep=6pt},
-        arr/.style={->, thick, draw=gray!50},
+        arr/.style={->, thick},
     ]
 
-    % ---- Fingerprint-based models (top row) ----
-    \node[font=\scriptsize\bfseries, green!40!black] at (0, 2.15) {From Morgan Fingerprint};
+    % ---- Four models in a vertical stack ----
+    % Green models (from fingerprint)
+    \node[box, fill=green!12, draw=green!40!black, minimum width=4.2cm] (rf) at (0, 2.2)
+        {\textbf{Random Forest}\\[-1pt]{\scriptsize 1000 trees, \texttt{max\_features}$\,= 0.3d$, 15 min CPU}};
 
-    \node[box, fill=green!12, draw=green!40!black, minimum width=3.8cm] (rf) at (0, 1.4)
-        {\textbf{Random Forest}\\[-1pt]{\scriptsize 1000 trees, \texttt{max\_features}$\,=0.3d$}\\[-1pt]{\scriptsize 15 min CPU training}};
+    \node[box, fill=green!12, draw=green!40!black, minimum width=4.2cm] (xgb) at (0, 0.7)
+        {\textbf{XGBoost}\\[-1pt]{\scriptsize 500 rounds, depth 6, $\eta = 0.1$, 20 min CPU}};
 
-    \node[box, fill=green!12, draw=green!40!black, minimum width=3.8cm] (xgb) at (5.5, 1.4)
-        {\textbf{XGBoost}\\[-1pt]{\scriptsize 500 rounds, depth 6, $\eta=0.1$}\\[-1pt]{\scriptsize 20 min CPU training}};
+    % Blue models (from token sequence)
+    \node[box, fill=blue!12, draw=blue!40!black, minimum width=4.2cm] (bigru) at (0, -0.8)
+        {\textbf{BiGRU}\\[-1pt]{\scriptsize 2$\times$128 bidirectional GRU, 470K params, 25h GPU}};
 
-    % ---- Sequence-based models (bottom row) ----
-    \node[font=\scriptsize\bfseries, blue!40!black] at (0, -0.35) {From Token Sequence};
+    \node[box, fill=blue!12, draw=blue!40!black, minimum width=4.2cm] (cb) at (0, -2.3)
+        {\textbf{ChemBERTa}\\[-1pt]{\scriptsize 6-layer Transformer, 44.1M params, 15h GPU}};
 
-    \node[box, fill=blue!12, draw=blue!40!black, minimum width=3.8cm] (bigru) at (0, -1.15)
-        {\textbf{BiGRU}\\[-1pt]{\scriptsize 2$\times$128 bidirectional GRU layers}\\[-1pt]{\scriptsize 470K params, 25h GPU training}};
+    % ---- Group labels on the left ----
+    \node[font=\scriptsize\bfseries, green!40!black, rotate=90, anchor=south] at (-3.3, 1.45) {Fingerprint-based};
+    \node[font=\scriptsize\bfseries, blue!40!black, rotate=90, anchor=south] at (-3.3, -1.55) {Sequence-based};
 
-    \node[box, fill=blue!12, draw=blue!40!black, minimum width=3.8cm] (cb) at (5.5, -1.15)
-        {\textbf{ChemBERTa}\\[-1pt]{\scriptsize 6-layer Transformer, pretrained on 77M SMILES}\\[-1pt]{\scriptsize 44.1M params, 15h GPU training}};
+    % ---- Dashed separator between green and blue families ----
+    \draw[dashed, gray!30, thin] (-3.0, -0.05) -- (12.5, -0.05);
 
-    \node[font=\footnotesize\bfseries, gray!60] at (2.75, -2.3) {\textsc{Models}};
-
-    % ---- Dashed separator between model families ----
-    \draw[dashed, gray!25, thin] (-2.3, 0.35) -- (12.8, 0.35);
-
-    % ---- Output ----
-    \node[box, fill=orange!8, draw=orange!50!black, minimum width=3cm, minimum height=2cm] (out) at (10.5, 0.1)
+    % ---- Output box ----
+    \node[box, fill=orange!8, draw=orange!50!black, minimum width=2.8cm, minimum height=2.8cm] (out) at (7.0, 0)
         {\textbf{\large $\hat{\lambda}_{\max}$}\\[4pt]{\scriptsize UV absorption}\\{\scriptsize wavelength (nm)}};
 
-    \node[font=\footnotesize\bfseries, gray!60] at (10.5, -2.3) {\textsc{Prediction}};
+    % ---- Arrows: each model to output, distinct bend x-positions ----
+    \draw[arr, draw=green!40!black] (rf.east)    -- (4.0, 2.2) -- (4.0, 0.9)  -- ([yshift=9pt]out.west);
+    \draw[arr, draw=green!40!black] (xgb.east)   -- (3.6, 0.7) -- (3.6, 0.3)  -- ([yshift=3pt]out.west);
+    \draw[arr, draw=blue!40!black]  (bigru.east)  -- (3.6, -0.8) -- (3.6, -0.3) -- ([yshift=-3pt]out.west);
+    \draw[arr, draw=blue!40!black]  (cb.east)     -- (4.0, -2.3) -- (4.0, -0.9) -- ([yshift=-9pt]out.west);
 
-    % ---- Arrows: models -> output ----
-    \draw[arr, draw=green!40!black] (rf.east) -- ++(0.3, 0) |- ([yshift=6pt]out.west);
-    \draw[arr, draw=green!40!black] (xgb.east) -- ([yshift=2pt]out.west);
-    \draw[arr, draw=blue!40!black]  (bigru.east) -- ++(0.3, 0) |- ([yshift=-2pt]out.west);
-    \draw[arr, draw=blue!40!black]  (cb.east) -- ([yshift=-6pt]out.west);
-
-    % ---- Mini UV spectrum to the right ----
-    \begin{scope}[shift={(13.0, 0.1)}]
-        \draw[gray!40, ->] (0,-0.9) -- (0,1.0);
-        \node[font=\tiny, gray!50, rotate=90] at (-0.25, 0.05) {Absorbance};
-        \draw[gray!40, ->] (0,-0.9) -- (2.0,-0.9);
-        \node[font=\tiny, gray!50] at (1.0, -1.15) {$\lambda$ (nm)};
+    % ---- Mini UV spectrum to the right of output ----
+    \begin{scope}[shift={(10.0, 0)}]
+        \draw[gray!40, ->] (0,-1.1) -- (0,1.2);
+        \node[font=\tiny, gray!50, rotate=90] at (-0.3, 0.05) {Absorbance};
+        \draw[gray!40, ->] (0,-1.1) -- (2.2,-1.1);
+        \node[font=\tiny, gray!50] at (1.1, -1.35) {$\lambda$ (nm)};
         \draw[orange!70!red, thick, smooth, tension=0.7]
-            plot coordinates {(0.1,-0.75) (0.35,-0.5) (0.6,-0.1) (0.85,0.5) (1.05,0.75) (1.25,0.5) (1.5,0.0) (1.7,-0.6) (1.85,-0.75)};
-        \draw[dashed, orange!60!black] (1.05,0.75) -- (1.05,-0.9);
-        \node[font=\tiny\bfseries, orange!60!black] at (1.05, -1.08) {$\lambda_{\max}$};
+            plot coordinates {(0.1,-0.9) (0.4,-0.6) (0.7,-0.1) (1.0,0.6) (1.15,0.85) (1.35,0.55) (1.6,0.0) (1.85,-0.7) (2.0,-0.9)};
+        \draw[dashed, orange!60!black] (1.15,0.85) -- (1.15,-1.1);
+        \node[font=\tiny\bfseries, orange!60!black] at (1.15, -1.28) {$\lambda_{\max}$};
     \end{scope}
 
+    % ---- Stage labels ----
+    \node[font=\footnotesize\bfseries, gray!60] at (0, -3.2) {\textsc{Models}};
+    \node[font=\footnotesize\bfseries, gray!60] at (8.5, -3.2) {\textsc{Prediction}};
+
     \end{tikzpicture}
-    \caption{Model architectures and prediction. Fingerprint representations feed tree-based ensembles (green, top); token sequences feed neural networks (blue, bottom). All models predict $\lambda_{\max}$, shown alongside a schematic UV absorption spectrum.}
+    \caption{Model architectures and prediction target. Fingerprint representations feed tree-based ensembles (green); token sequences feed neural networks (blue). All four models predict $\lambda_{\max}$, shown alongside a schematic UV absorption spectrum.}
     \label{fig:framework_models}
     \end{subfigure}
 
-    \caption{Benchmark framework for UV absorption prediction. (a)~Solute and solvent SMILES are concatenated and encoded through two representation pathways. (b)~Four models spanning classical ML and deep learning architectures predict $\lambda_{\max}$ from the same molecular input.}
+    \caption{Benchmark framework for UV absorption prediction. (a)~Solute and solvent SMILES are concatenated and encoded through two representation pathways. (b)~Four models spanning classical ML and deep learning predict $\lambda_{\max}$ from the same molecular input.}
     \label{fig:benchmark_framework}
 \end{figure*}
 
