@@ -77,25 +77,26 @@ These complementary strengths (RF for interpolation within known chemical space,
     % ===== (a) Input and Representation =====
     \begin{subfigure}[b]{\textwidth}
     \centering
-    \begin{tikzpicture}[scale=0.82, every node/.style={scale=0.82},
+    \begin{tikzpicture}[scale=0.88, every node/.style={scale=0.88},
         >=Stealth,
         box/.style={draw, rounded corners=4pt, align=center, font=\small, inner sep=5pt},
         arr/.style={->, thick, draw=gray!50},
     ]
-    % ---- Input boxes ----
-    \node[box, fill=gray!6, draw=gray!50, minimum width=3.2cm] (mol) at (0, 1.0)
+    % ---- Input boxes (identical size) ----
+    \node[box, fill=gray!6, draw=gray!50, minimum width=3.4cm] (mol) at (0, 1.0)
         {Solute SMILES\\[-1pt]{\scriptsize\texttt{CC(/C=C/c1cc(OC)c(O)c1)=O}}};
-    \node[box, fill=gray!6, draw=gray!50, minimum width=3.2cm] (solv) at (0, -1.0)
+    \node[box, fill=gray!6, draw=gray!50, minimum width=3.4cm] (solv) at (0, -1.0)
         {Solvent SMILES\\[-1pt]{\scriptsize\texttt{CCO} (ethanol)}};
 
-    % ---- Neutral merge point ----
-    \fill[gray!40] (2.8, 0) circle (3pt);
-    \draw[arr] (mol.east) -- (2.4, 1.0) -- (2.4, 0) -- (2.8, 0);
-    \draw[arr] (solv.east) -- (2.4, -1.0) -- (2.4, 0);
+    % ---- Input arrows: identical mirror-symmetric paths ----
+    % Both: horizontal to x=2.5, then vertical to y=0 (mirrored)
+    \draw[arr] (mol.east) -- (2.5, 1.0) -- (2.5, 0);
+    \draw[arr] (solv.east) -- (2.5, -1.0) -- (2.5, 0);
 
-    % ---- Fork line ----
+    % ---- Merge point and line to fork ----
+    \fill[gray!40] (2.5, 0) circle (3pt);
     \coordinate (fork) at (4.2, 0);
-    \draw[thick, gray!50] (2.8, 0) -- (fork);
+    \draw[thick, gray!50] (2.5, 0) -- (fork);
 
     % ---- Green path (top): independent FPs, then hstacked ----
     \node[draw, circle, fill=green!12, draw=green!40!black, inner sep=2pt,
@@ -133,59 +134,63 @@ These complementary strengths (RF for interpolation within known chemical space,
     % ===== (b) Models and Prediction =====
     \begin{subfigure}[b]{\textwidth}
     \centering
-    \begin{tikzpicture}[scale=0.82, every node/.style={scale=0.82},
+    \begin{tikzpicture}[scale=0.88, every node/.style={scale=0.88},
         >=Stealth,
-        box/.style={draw, rounded corners=4pt, align=center, font=\small, inner sep=5pt},
+        box/.style={draw, rounded corners=4pt, align=center, font=\small,
+                     inner sep=5pt, text width=4.6cm, minimum height=1.0cm},
         arr/.style={->, thick},
     ]
 
     % ---- Four models: mirror-symmetric around y=0, identical box size ----
-    \node[box, fill=green!12, draw=green!40!black, minimum width=5.0cm, minimum height=0.9cm] (rf) at (0, 1.7)
-        {\textbf{Random Forest}\\[-1pt]{\scriptsize 1000 trees, \texttt{max\_features}$\,= 0.3d$, 15 min CPU}};
+    \node[box, fill=green!12, draw=green!40!black] (rf) at (0, 1.7)
+        {\textbf{Random Forest}\\[-1pt]{\scriptsize 1000 trees, \texttt{max\_features}$= 0.3d$}};
 
-    \node[box, fill=green!12, draw=green!40!black, minimum width=5.0cm, minimum height=0.9cm] (xgb) at (0, 0.55)
-        {\textbf{XGBoost}\\[-1pt]{\scriptsize 500 rounds, depth 6, $\eta = 0.1$, 20 min CPU}};
+    \node[box, fill=green!12, draw=green!40!black] (xgb) at (0, 0.55)
+        {\textbf{XGBoost}\\[-1pt]{\scriptsize 500 rounds, depth 6, $\eta = 0.1$}};
 
-    \node[box, fill=blue!12, draw=blue!40!black, minimum width=5.0cm, minimum height=0.9cm] (bigru) at (0, -0.55)
-        {\textbf{BiGRU}\\[-1pt]{\scriptsize 2$\times$128 bidirectional GRU, 470K params, 25h GPU}};
+    \node[box, fill=blue!12, draw=blue!40!black] (bigru) at (0, -0.55)
+        {\textbf{BiGRU}\\[-1pt]{\scriptsize 2$\times$128 BiGRU, 470K params}};
 
-    \node[box, fill=blue!12, draw=blue!40!black, minimum width=5.0cm, minimum height=0.9cm] (cb) at (0, -1.7)
-        {\textbf{ChemBERTa}\\[-1pt]{\scriptsize 6-layer Transformer, 44.1M params, 15h GPU}};
+    \node[box, fill=blue!12, draw=blue!40!black] (cb) at (0, -1.7)
+        {\textbf{ChemBERTa}\\[-1pt]{\scriptsize 6-layer Transformer, 44.1M params}};
 
     % ---- Group labels (rotated) ----
-    \node[font=\scriptsize\bfseries, green!40!black, rotate=90, anchor=south] at (-3.5, 1.12) {Fingerprint-based};
-    \node[font=\scriptsize\bfseries, blue!40!black, rotate=90, anchor=south] at (-3.5, -1.12) {Sequence-based};
+    \node[font=\scriptsize\bfseries, green!40!black, rotate=90, anchor=south,
+          text width=, minimum height=0pt] at (-3.5, 1.12) {Fingerprint-based};
+    \node[font=\scriptsize\bfseries, blue!40!black, rotate=90, anchor=south,
+          text width=, minimum height=0pt] at (-3.5, -1.12) {Sequence-based};
 
     % ---- Dashed separator at y=0 ----
     \draw[dashed, gray!30, thin] (-3.2, 0) -- (11.5, 0);
 
     % ---- Output box ----
-    \node[box, fill=orange!8, draw=orange!50!black, minimum width=2.4cm, minimum height=2.2cm] (out) at (6.5, 0)
+    \node[box, fill=orange!8, draw=orange!50!black, text width=2.0cm,
+          minimum height=2.2cm] (out) at (6.8, 0)
         {\textbf{\large $\hat{\lambda}_{\max}$}\\[3pt]{\scriptsize UV absorption}\\{\scriptsize wavelength (nm)}};
 
-    % ---- Arrows: mirror-symmetric ----
-    % Outer pair (RF / ChemBERTa): bend at x=3.8
-    \draw[arr, draw=green!40!black] (rf.east)  -- (3.8, 1.7)  |- ([yshift=7pt]out.west);
-    \draw[arr, draw=blue!40!black]  (cb.east)  -- (3.8, -1.7) |- ([yshift=-7pt]out.west);
-    % Inner pair (XGBoost / BiGRU): bend at x=3.3
-    \draw[arr, draw=green!40!black] (xgb.east)   -- (3.3, 0.55)  |- ([yshift=2pt]out.west);
-    \draw[arr, draw=blue!40!black]  (bigru.east)  -- (3.3, -0.55) |- ([yshift=-2pt]out.west);
+    % ---- Arrows: all use same bend x=3.6, mirror-symmetric ----
+    % Outer pair (RF / ChemBERTa): yshift ±7pt
+    \draw[arr, draw=green!40!black] (rf.east)     -- (3.6, 1.7)   |- ([yshift=7pt]out.west);
+    \draw[arr, draw=blue!40!black]  (cb.east)     -- (3.6, -1.7)  |- ([yshift=-7pt]out.west);
+    % Inner pair (XGBoost / BiGRU): yshift ±2pt
+    \draw[arr, draw=green!40!black] (xgb.east)    -- (3.6, 0.55)  |- ([yshift=2pt]out.west);
+    \draw[arr, draw=blue!40!black]  (bigru.east)  -- (3.6, -0.55) |- ([yshift=-2pt]out.west);
 
     % ---- Mini UV spectrum ----
-    \begin{scope}[shift={(9.2, 0)}]
+    \begin{scope}[shift={(9.5, 0)}]
         \draw[gray!40, ->] (0,-0.9) -- (0,1.0);
-        \node[font=\tiny, gray!50, rotate=90] at (-0.25, 0.05) {Abs.};
+        \node[font=\tiny, gray!50, rotate=90, text width=, minimum height=0pt] at (-0.25, 0.05) {Abs.};
         \draw[gray!40, ->] (0,-0.9) -- (1.8,-0.9);
-        \node[font=\tiny, gray!50] at (0.9, -1.1) {$\lambda$ (nm)};
+        \node[font=\tiny, gray!50, text width=, minimum height=0pt] at (0.9, -1.1) {$\lambda$ (nm)};
         \draw[orange!70!red, thick, smooth, tension=0.7]
             plot coordinates {(0.1,-0.7) (0.3,-0.5) (0.55,-0.1) (0.8,0.45) (0.95,0.7) (1.1,0.45) (1.3,0.0) (1.5,-0.55) (1.65,-0.7)};
         \draw[dashed, orange!60!black] (0.95,0.7) -- (0.95,-0.9);
-        \node[font=\tiny\bfseries, orange!60!black] at (0.95, -1.05) {$\lambda_{\max}$};
+        \node[font=\tiny\bfseries, orange!60!black, text width=, minimum height=0pt] at (0.95, -1.05) {$\lambda_{\max}$};
     \end{scope}
 
     % ---- Stage labels ----
-    \node[font=\footnotesize\bfseries, gray!60] at (0, -2.5) {\textsc{Models}};
-    \node[font=\footnotesize\bfseries, gray!60] at (7.8, -2.5) {\textsc{Prediction}};
+    \node[font=\footnotesize\bfseries, gray!60, text width=, minimum height=0pt] at (0, -2.6) {\textsc{Models}};
+    \node[font=\footnotesize\bfseries, gray!60, text width=, minimum height=0pt] at (8.0, -2.6) {\textsc{Prediction}};
 
     \end{tikzpicture}
     \caption{Models and prediction. Fingerprint representations feed tree ensembles (green); token sequences feed neural networks (blue). All four models predict $\lambda_{\max}$.}
