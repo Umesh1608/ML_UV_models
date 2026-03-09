@@ -418,6 +418,72 @@ Each trial trains on the fold~0 training set with early stopping on the fold~0 v
 After 25 trials, the best configuration achieves a validation RMSE of 33.33~nm (8.6\% improvement over the default 36.45~nm): 256 units per direction, 3 stacked BiGRU layers ($\sim$2.1M parameters), embedding dimension 50, dropout 0.105, learning rate $1.1 \times 10^{-3}$, and batch size 128.
 Key findings from the HPO landscape: (1) three-layer architectures consistently outperform two-layer defaults, (2) single-layer models fail entirely (validation RMSE $>$44~nm), (3) low dropout ($\sim$0.10) is optimal for the larger architecture, and (4) embedding dimension 50 outperforms both 32 and 100.
 Full cross-validated results with this tuned architecture are reported in Section~\ref{sec:results}.
+Figure~\ref{fig:bigru_architectures} compares the default and optimized BiGRU architectures.
+
+\tikzstyle{layerbox} = [rectangle, rounded corners=3pt, minimum width=4.2cm, minimum height=0.8cm, text centered, draw=black, font=\small]
+\tikzstyle{layerarrow} = [thick,->,>=stealth]
+
+\begin{figure}[htbp]
+\centering
+
+\begin{minipage}[t]{0.45\textwidth}
+\centering
+\begin{tikzpicture}[node distance=1.3cm, scale=0.82, transform shape]
+\node (emb)  [layerbox, fill=blue!15]                    {Embedding ($d=50$)};
+\node (gru1) [layerbox, fill=green!20, below of=emb]     {BiGRU Layer 1 (128$\times$2)};
+\node (gru2) [layerbox, fill=green!20, below of=gru1]    {BiGRU Layer 2 (128$\times$2)};
+\node (den)  [layerbox, fill=purple!15, below of=gru2]   {Dense (128, ReLU)};
+\node (drop) [layerbox, fill=orange!15, below of=den]    {Dropout (0.20)};
+\node (out)  [layerbox, fill=red!15, below of=drop]      {Linear Output $\rightarrow$ 1};
+\draw [layerarrow] (emb)  -- (gru1);
+\draw [layerarrow] (gru1) -- (gru2);
+\draw [layerarrow] (gru2) -- (den);
+\draw [layerarrow] (den)  -- (drop);
+\draw [layerarrow] (drop) -- (out);
+\node[font=\scriptsize, gray, right] at (2.4, 0)     {$T \times 50$};
+\node[font=\scriptsize, gray, right] at (2.4, -1.3)  {$T \times 256$};
+\node[font=\scriptsize, gray, right] at (2.4, -2.6)  {$256$};
+\node[font=\scriptsize, gray, right] at (2.4, -3.9)  {$128$};
+\node[font=\scriptsize, gray, right] at (2.4, -5.2)  {$128$};
+\node[font=\scriptsize, gray, right] at (2.4, -6.5)  {$1$};
+\end{tikzpicture}
+
+\textbf{(a)} Default BiGRU\\[2pt]
+{\small 2 layers, 128 units, $\sim$470K params\\Liu et al.\ (2023) architecture}
+\end{minipage}
+\hfill
+\begin{minipage}[t]{0.45\textwidth}
+\centering
+\begin{tikzpicture}[node distance=1.3cm, scale=0.82, transform shape]
+\node (emb)  [layerbox, fill=blue!15]                    {Embedding ($d=50$)};
+\node (gru1) [layerbox, fill=green!35, below of=emb]     {BiGRU Layer 1 (256$\times$2)};
+\node (gru2) [layerbox, fill=green!35, below of=gru1]    {BiGRU Layer 2 (256$\times$2)};
+\node (gru3) [layerbox, fill=green!35, below of=gru2]    {BiGRU Layer 3 (256$\times$2)};
+\node (den)  [layerbox, fill=purple!15, below of=gru3]   {Dense (128, ReLU)};
+\node (drop) [layerbox, fill=orange!15, below of=den]    {Dropout (0.105)};
+\node (out)  [layerbox, fill=red!15, below of=drop]      {Linear Output $\rightarrow$ 1};
+\draw [layerarrow] (emb)  -- (gru1);
+\draw [layerarrow] (gru1) -- (gru2);
+\draw [layerarrow] (gru2) -- (gru3);
+\draw [layerarrow] (gru3) -- (den);
+\draw [layerarrow] (den)  -- (drop);
+\draw [layerarrow] (drop) -- (out);
+\node[font=\scriptsize, gray, right] at (2.4, 0)     {$T \times 50$};
+\node[font=\scriptsize, gray, right] at (2.4, -1.3)  {$T \times 512$};
+\node[font=\scriptsize, gray, right] at (2.4, -2.6)  {$T \times 512$};
+\node[font=\scriptsize, gray, right] at (2.4, -3.9)  {$512$};
+\node[font=\scriptsize, gray, right] at (2.4, -5.2)  {$128$};
+\node[font=\scriptsize, gray, right] at (2.4, -6.5)  {$128$};
+\node[font=\scriptsize, gray, right] at (2.4, -7.8)  {$1$};
+\end{tikzpicture}
+
+\textbf{(b)} Optimized BiGRU\\[2pt]
+{\small 3 layers, 256 units, $\sim$2.1M params\\Optuna HPO (25 trials, 8.6\% $\downarrow$ RMSE)}
+\end{minipage}
+
+\caption{BiGRU architecture comparison. (a)~Default architecture following Liu et al.~\cite{liuPredictionMolecularToxicity2023}: 2 stacked BiGRU layers with 128 units per direction. (b)~Optimized architecture from Bayesian HPO: 3 stacked BiGRU layers with 256 units per direction, lower dropout, yielding 4.5$\times$ more parameters and 8.6\% lower validation RMSE. Both share the same embedding dimension ($d=50$) and training procedure (RMSprop, MAE loss, early stopping).}
+\label{fig:bigru_architectures}
+\end{figure}
 
 
 \subsection{Pretrained Transformer (ChemBERTa)}
