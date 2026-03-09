@@ -72,130 +72,127 @@ These complementary strengths (RF for interpolation within known chemical space,
     \label{fig:overview}
 \end{figure}
 
-\begin{figure*}[t]
+\begin{figure*}[!ht]
     \centering
     % ===== (a) Input and Representation =====
     \begin{subfigure}[b]{\textwidth}
     \centering
-    \begin{tikzpicture}[
+    \begin{tikzpicture}[scale=0.82, every node/.style={scale=0.82},
         >=Stealth,
-        box/.style={draw, rounded corners=4pt, align=center, font=\small, inner sep=6pt},
+        box/.style={draw, rounded corners=4pt, align=center, font=\small, inner sep=5pt},
         arr/.style={->, thick, draw=gray!50},
     ]
     % ---- Input boxes ----
-    \node[box, fill=gray!6, draw=gray!50, minimum width=3.4cm] (mol) at (0, 1.2)
+    \node[box, fill=gray!6, draw=gray!50, minimum width=3.2cm] (mol) at (0, 1.0)
         {Solute SMILES\\[-1pt]{\scriptsize\texttt{CC(/C=C/c1cc(OC)c(O)c1)=O}}};
-    \node[box, fill=gray!6, draw=gray!50, minimum width=3.4cm] (solv) at (0, -1.2)
+    \node[box, fill=gray!6, draw=gray!50, minimum width=3.2cm] (solv) at (0, -1.0)
         {Solvent SMILES\\[-1pt]{\scriptsize\texttt{CCO} (ethanol)}};
 
-    % ---- Neutral merge point (both inputs available to both paths) ----
-    \fill[gray!40] (3.0, 0) circle (3pt);
-
-    % Input arrows: converge at merge point
-    \draw[arr] (mol.east) -- (2.6, 1.2) -- (2.6, 0) -- (3.0, 0);
-    \draw[arr] (solv.east) -- (2.6, -1.2) -- (2.6, 0);
+    % ---- Neutral merge point ----
+    \fill[gray!40] (2.8, 0) circle (3pt);
+    \draw[arr] (mol.east) -- (2.4, 1.0) -- (2.4, 0) -- (2.8, 0);
+    \draw[arr] (solv.east) -- (2.4, -1.0) -- (2.4, 0);
 
     % ---- Fork line ----
-    \coordinate (fork) at (4.5, 0);
-    \draw[thick, gray!50] (3.0, 0) -- (fork);
+    \coordinate (fork) at (4.2, 0);
+    \draw[thick, gray!50] (2.8, 0) -- (fork);
 
-    % ---- Green path (top): FPs computed independently per molecule, then hstacked ----
+    % ---- Green path (top): independent FPs, then hstacked ----
     \node[draw, circle, fill=green!12, draw=green!40!black, inner sep=2pt,
-          font=\scriptsize\bfseries] (fpnode) at (5.8, 1.5) {FP};
-    \node[font=\tiny, green!40!black, below=2pt of fpnode] {per-molecule};
+          font=\scriptsize\bfseries] (fpnode) at (5.5, 1.3) {FP};
+    \node[font=\tiny, green!40!black, below=1pt of fpnode] {per-mol.};
 
-    \node[box, fill=green!6, draw=green!40!black, minimum width=4.8cm] (fp) at (9.8, 1.5)
-        {Morgan Fingerprint\\[-1pt]{\scriptsize FP(solute) $\|$ FP(solvent), radius-2 ECFP4}\\[-1pt]{\scriptsize $\vect{x} \in \{0,1\}^{4096}$ (2048 + 2048 hstacked)}};
+    \node[box, fill=green!6, draw=green!40!black, minimum width=4.4cm] (fp) at (9.5, 1.3)
+        {Morgan Fingerprint\\[-1pt]{\scriptsize FP(solute) $\|$ FP(solvent), $\{0,1\}^{4096}$ hstacked}};
 
-    \draw[arr, draw=green!40!black] (fork) -- (4.5, 1.5) -- (fpnode);
+    \draw[arr, draw=green!40!black] (fork) -- (4.2, 1.3) -- (fpnode);
     \draw[arr, draw=green!40!black] (fpnode) -- (fp.west);
 
-    % ---- Blue path (bottom): SMILES strings concatenated, then tokenized ----
+    % ---- Blue path (bottom): SMILES concat, then tokenized ----
     \node[draw, circle, fill=blue!10, draw=blue!40!black, inner sep=2pt,
-          font=\scriptsize\bfseries] (cat) at (5.8, -1.5) {$\oplus$};
-    \node[font=\tiny, blue!40!black, below=2pt of cat] {concat};
+          font=\scriptsize\bfseries] (cat) at (5.5, -1.3) {$\oplus$};
+    \node[font=\tiny, blue!40!black, below=1pt of cat] {concat};
 
-    \node[box, fill=blue!6, draw=blue!40!black, minimum width=4.8cm] (seq) at (9.8, -1.5)
-        {Token Sequence\\[-1pt]{\scriptsize Concatenated \texttt{solute\,!\,solvent} string}\\[-1pt]{\scriptsize Character-level, 57-token vocabulary}};
+    \node[box, fill=blue!6, draw=blue!40!black, minimum width=4.4cm] (seq) at (9.5, -1.3)
+        {Token Sequence\\[-1pt]{\scriptsize \texttt{solute\,!\,solvent} string, 57-token vocabulary}};
 
-    \draw[arr, draw=blue!40!black] (fork) -- (4.5, -1.5) -- (cat);
+    \draw[arr, draw=blue!40!black] (fork) -- (4.2, -1.3) -- (cat);
     \draw[arr, draw=blue!40!black] (cat) -- (seq.west);
 
     % ---- Stage labels ----
-    \node[font=\footnotesize\bfseries, gray!60] at (0, -2.5) {\textsc{Input}};
-    \node[font=\footnotesize\bfseries, gray!60] at (9.8, -3.0) {\textsc{Representation}};
+    \node[font=\footnotesize\bfseries, gray!60] at (0, -2.0) {\textsc{Input}};
+    \node[font=\footnotesize\bfseries, gray!60] at (9.5, -2.2) {\textsc{Representation}};
 
     \end{tikzpicture}
-    \caption{Input processing and molecular representation. Both solute and solvent SMILES feed two distinct pathways. The fingerprint path (green) computes Morgan fingerprints independently for each molecule and horizontally stacks them into a 4096-bit vector (2048 solute + 2048 solvent). The sequence path (blue) concatenates the SMILES strings before character-level tokenization.}
+    \caption{Input and representation. Both solute and solvent SMILES feed two pathways. The fingerprint path (green) computes Morgan FPs independently per molecule and hstacks them (2048+2048 = 4096-bit). The sequence path (blue) concatenates the SMILES strings before tokenization.}
     \label{fig:framework_input}
     \end{subfigure}
 
-    \vspace{0.8cm}
+    \vspace{0.3cm}
 
     % ===== (b) Models and Prediction =====
     \begin{subfigure}[b]{\textwidth}
     \centering
-    \begin{tikzpicture}[
+    \begin{tikzpicture}[scale=0.82, every node/.style={scale=0.82},
         >=Stealth,
-        box/.style={draw, rounded corners=4pt, align=center, font=\small, inner sep=6pt},
+        box/.style={draw, rounded corners=4pt, align=center, font=\small, inner sep=5pt},
         arr/.style={->, thick},
     ]
 
-    % ---- Four models: mirror-symmetric around y=0 ----
-    % All boxes have identical dimensions
-    \node[box, fill=green!12, draw=green!40!black, minimum width=5.0cm, minimum height=1.0cm] (rf) at (0, 2.0)
+    % ---- Four models: mirror-symmetric around y=0, identical box size ----
+    \node[box, fill=green!12, draw=green!40!black, minimum width=5.0cm, minimum height=0.9cm] (rf) at (0, 1.7)
         {\textbf{Random Forest}\\[-1pt]{\scriptsize 1000 trees, \texttt{max\_features}$\,= 0.3d$, 15 min CPU}};
 
-    \node[box, fill=green!12, draw=green!40!black, minimum width=5.0cm, minimum height=1.0cm] (xgb) at (0, 0.7)
+    \node[box, fill=green!12, draw=green!40!black, minimum width=5.0cm, minimum height=0.9cm] (xgb) at (0, 0.55)
         {\textbf{XGBoost}\\[-1pt]{\scriptsize 500 rounds, depth 6, $\eta = 0.1$, 20 min CPU}};
 
-    \node[box, fill=blue!12, draw=blue!40!black, minimum width=5.0cm, minimum height=1.0cm] (bigru) at (0, -0.7)
+    \node[box, fill=blue!12, draw=blue!40!black, minimum width=5.0cm, minimum height=0.9cm] (bigru) at (0, -0.55)
         {\textbf{BiGRU}\\[-1pt]{\scriptsize 2$\times$128 bidirectional GRU, 470K params, 25h GPU}};
 
-    \node[box, fill=blue!12, draw=blue!40!black, minimum width=5.0cm, minimum height=1.0cm] (cb) at (0, -2.0)
+    \node[box, fill=blue!12, draw=blue!40!black, minimum width=5.0cm, minimum height=0.9cm] (cb) at (0, -1.7)
         {\textbf{ChemBERTa}\\[-1pt]{\scriptsize 6-layer Transformer, 44.1M params, 15h GPU}};
 
-    % ---- Group labels on the left (rotated) ----
-    \node[font=\scriptsize\bfseries, green!40!black, rotate=90, anchor=south] at (-3.5, 1.35) {Fingerprint-based};
-    \node[font=\scriptsize\bfseries, blue!40!black, rotate=90, anchor=south] at (-3.5, -1.35) {Sequence-based};
+    % ---- Group labels (rotated) ----
+    \node[font=\scriptsize\bfseries, green!40!black, rotate=90, anchor=south] at (-3.5, 1.12) {Fingerprint-based};
+    \node[font=\scriptsize\bfseries, blue!40!black, rotate=90, anchor=south] at (-3.5, -1.12) {Sequence-based};
 
     % ---- Dashed separator at y=0 ----
-    \draw[dashed, gray!30, thin] (-3.2, 0) -- (12.0, 0);
+    \draw[dashed, gray!30, thin] (-3.2, 0) -- (11.5, 0);
 
     % ---- Output box ----
-    \node[box, fill=orange!8, draw=orange!50!black, minimum width=2.8cm, minimum height=2.6cm] (out) at (7.0, 0)
-        {\textbf{\large $\hat{\lambda}_{\max}$}\\[4pt]{\scriptsize UV absorption}\\{\scriptsize wavelength (nm)}};
+    \node[box, fill=orange!8, draw=orange!50!black, minimum width=2.4cm, minimum height=2.2cm] (out) at (6.5, 0)
+        {\textbf{\large $\hat{\lambda}_{\max}$}\\[3pt]{\scriptsize UV absorption}\\{\scriptsize wavelength (nm)}};
 
-    % ---- Arrows: mirror-symmetric (outer pair reflected by inner pair) ----
-    % Outer pair (RF / ChemBERTa): bend at x=4.0, right-angle via |-
-    \draw[arr, draw=green!40!black] (rf.east)  -- (4.0, 2.0)  |- ([yshift=8pt]out.west);
-    \draw[arr, draw=blue!40!black]  (cb.east)  -- (4.0, -2.0) |- ([yshift=-8pt]out.west);
-    % Inner pair (XGBoost / BiGRU): bend at x=3.5, right-angle via |-
-    \draw[arr, draw=green!40!black] (xgb.east)   -- (3.5, 0.7)  |- ([yshift=3pt]out.west);
-    \draw[arr, draw=blue!40!black]  (bigru.east)  -- (3.5, -0.7) |- ([yshift=-3pt]out.west);
+    % ---- Arrows: mirror-symmetric ----
+    % Outer pair (RF / ChemBERTa): bend at x=3.8
+    \draw[arr, draw=green!40!black] (rf.east)  -- (3.8, 1.7)  |- ([yshift=7pt]out.west);
+    \draw[arr, draw=blue!40!black]  (cb.east)  -- (3.8, -1.7) |- ([yshift=-7pt]out.west);
+    % Inner pair (XGBoost / BiGRU): bend at x=3.3
+    \draw[arr, draw=green!40!black] (xgb.east)   -- (3.3, 0.55)  |- ([yshift=2pt]out.west);
+    \draw[arr, draw=blue!40!black]  (bigru.east)  -- (3.3, -0.55) |- ([yshift=-2pt]out.west);
 
-    % ---- Mini UV spectrum to the right of output ----
-    \begin{scope}[shift={(10.0, 0)}]
-        \draw[gray!40, ->] (0,-1.1) -- (0,1.2);
-        \node[font=\tiny, gray!50, rotate=90] at (-0.3, 0.05) {Absorbance};
-        \draw[gray!40, ->] (0,-1.1) -- (2.2,-1.1);
-        \node[font=\tiny, gray!50] at (1.1, -1.35) {$\lambda$ (nm)};
+    % ---- Mini UV spectrum ----
+    \begin{scope}[shift={(9.2, 0)}]
+        \draw[gray!40, ->] (0,-0.9) -- (0,1.0);
+        \node[font=\tiny, gray!50, rotate=90] at (-0.25, 0.05) {Abs.};
+        \draw[gray!40, ->] (0,-0.9) -- (1.8,-0.9);
+        \node[font=\tiny, gray!50] at (0.9, -1.1) {$\lambda$ (nm)};
         \draw[orange!70!red, thick, smooth, tension=0.7]
-            plot coordinates {(0.1,-0.9) (0.4,-0.6) (0.7,-0.1) (1.0,0.6) (1.15,0.85) (1.35,0.55) (1.6,0.0) (1.85,-0.7) (2.0,-0.9)};
-        \draw[dashed, orange!60!black] (1.15,0.85) -- (1.15,-1.1);
-        \node[font=\tiny\bfseries, orange!60!black] at (1.15, -1.28) {$\lambda_{\max}$};
+            plot coordinates {(0.1,-0.7) (0.3,-0.5) (0.55,-0.1) (0.8,0.45) (0.95,0.7) (1.1,0.45) (1.3,0.0) (1.5,-0.55) (1.65,-0.7)};
+        \draw[dashed, orange!60!black] (0.95,0.7) -- (0.95,-0.9);
+        \node[font=\tiny\bfseries, orange!60!black] at (0.95, -1.05) {$\lambda_{\max}$};
     \end{scope}
 
     % ---- Stage labels ----
-    \node[font=\footnotesize\bfseries, gray!60] at (0, -3.0) {\textsc{Models}};
-    \node[font=\footnotesize\bfseries, gray!60] at (8.5, -3.0) {\textsc{Prediction}};
+    \node[font=\footnotesize\bfseries, gray!60] at (0, -2.5) {\textsc{Models}};
+    \node[font=\footnotesize\bfseries, gray!60] at (7.8, -2.5) {\textsc{Prediction}};
 
     \end{tikzpicture}
-    \caption{Model architectures and prediction target. Fingerprint representations feed tree-based ensembles (green); token sequences feed neural networks (blue). All four models predict $\lambda_{\max}$, shown alongside a schematic UV absorption spectrum.}
+    \caption{Models and prediction. Fingerprint representations feed tree ensembles (green); token sequences feed neural networks (blue). All four models predict $\lambda_{\max}$.}
     \label{fig:framework_models}
     \end{subfigure}
 
-    \caption{Benchmark framework for UV absorption prediction. (a)~Both solute and solvent SMILES feed two distinct encoding pathways: Morgan fingerprints are computed independently per molecule and horizontally stacked (4096-bit), while token sequences are formed by concatenating the SMILES strings before character-level tokenization. (b)~Four models spanning classical ML and deep learning predict $\lambda_{\max}$ from the same molecular input.}
+    \caption{Benchmark framework for UV absorption prediction. (a)~Morgan fingerprints are computed independently per molecule and horizontally stacked (4096-bit), while token sequences are formed by string concatenation before tokenization. (b)~Four models predict $\lambda_{\max}$ from the same molecular input.}
     \label{fig:benchmark_framework}
 \end{figure*}
 
