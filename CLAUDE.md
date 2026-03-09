@@ -71,162 +71,63 @@ Single train/val/test splits matching each paper's published protocol. Val used 
 
 **Target**: J. Cheminformatics (IF ~8, Springer, open access) or Digital Discovery (RSC)
 
-#### Phase A0 — Fix Claims, Citations, Factual Errors (IN PROGRESS)
+#### Phase I Remaining Tasks
 
-**A0.1 Factual errors** (MUST FIX):
-- `benchmark_paper.tex:297`: Says "patience 10, max 50 epochs" → actual is patience=15, max=100
-- `benchmark_paper.tex` preamble: Missing `\usepackage{multirow}` → COMPILE ERROR
-- `benchmark_paper.tex:412`: TikZ BiGRU box says "(best on novel cpds)" → ChemBERTa is actually best on wetlab
-
-**A0.2 Citation fixes**:
-- `Proposal.bib`: `chenMolecularLanguage2023` has WRONG JOURNAL — says "JCIM" but actual is "Briefings in Functional Genomics" (vol 22, issue 4, pp 392-400, DOI 10.1093/bfgp/elad012)
-- Chen et al. paper is about molecular GENERATION, not property prediction — add scope caveat at 6 citation locations
-- `benchmark_paper.tex:148`: "Joung et al. applied a GCNN" → misleading for a dataset paper, rephrase to "reported a GCNN baseline"
-- `Proposal.bib`: 30 duplicate citation keys (281 entries, 244 unique) — low priority
-
-**A0.3 Soften overclaimed local-feature narrative** (6 locations):
-- Contributions list (line 98): "Empirical evidence" → "Evidence consistent with"
-- Related Work (line 140): Add "generation tasks" qualifier for Chen et al.
-- TikZ caption (line 418): "Results confirm" → "Cross-validated results show"
-- Discussion (line 422): "are better suited" → "achieve better in-distribution performance"
-- Gap discussion (line 425): "demonstrates" → "is consistent with the hypothesis"
-- Conclusion (line 757): "corroborate" → "are consistent with"
-- Add confounders/tuning-asymmetry paragraph to Limitations section (~line 748)
-
-**A0.4 Leave space for BiGRU tuning updates**:
-- Table 2, Table 5, TikZ diagram, discussion, contributions, abstract may need updating after Optuna HPO
-- If tuned BiGRU beats ChemBERTa on wetlab → strengthen local-feature claim
-- If tuned BiGRU ≈ ChemBERTa → maintain "complementary" narrative
-
-#### Phase A — Critical Fixes (MUST do before submission)
-
-**A1. LaTeX compilation fixes** — MERGED INTO A0.1 above
-
-**A2. Supplementary completeness** (~1 hour)
-- Add ChemBERTa per-fold supplementary table (analogous to existing RF and BiGRU tables)
-- Add XGBoost per-fold supplementary table
-- Update significance table (Table S3) to include ChemBERTa vs RF, ChemBERTa vs BiGRU comparisons
-- Add ChemBERTa learning curves figure to supplementary
-
-**A3. BiGRU hyperparameter tuning — #1 reviewer concern** (~2 days GPU)
-- RF had 432-config grid search; BiGRU uses default architecture from Liu et al. — this WILL be flagged
-- Optuna TPE, 30 trials on fold 0 val set
+**A3. BiGRU HPO — #1 reviewer concern** ⏸ PAUSED (25/30 trials complete)
+- Optuna TPE, 30 trials on fold 0 val set, SQLite at `results/bigru_hpo.db`
 - Search space: units {64,128,256}, layers {1,2,3}, embed {32,50,100}, dropout {0.1-0.4}, lr [1e-4,3e-3], batch {32,64,128}
-- Script: `tune_bigru.py` (analogous to `tune_rf.py`)
-- Run best config on all 5 folds → compare tuned vs default BiGRU
-- Paper: update Table 2, add row to tuning asymmetry table (S5), discuss in text
-- Expected outcome: modest improvement (2-5%), confirming RF advantage is real
-- 5 new BibTeX: Chung 2014, Goh 2017, Grisoni 2020, Bergstra 2012, Akiba 2019
+- **Best config (Trial 25): val_loss=33.33 — 8.6% better than default (36.45)**
+  - n_units=256, n_layers=3, embed_dim=50, batch_size=128, dropout=0.105, lr=0.00111
+- Key findings: 3L/256u > 2L/128u (default), 1 layer fails, embed=50 optimal, low dropout (~0.10) best for large arch
+- Resume HPO: `python3 tune_bigru.py --n-trials 30` (picks up at trial 27, ~10-15h GPU for 5 remaining)
+- After HPO: `python3 tune_bigru.py --full-cv` (~25h GPU, trains best config on all 5 folds)
 
-**A4. Multi-model parity/error figure** (~2 hours)
-- Current error analysis (Figs 3-4) shows only BiGRU — reviewer will want all models
-- Create 2×2 parity plot (RF, XGBoost, BiGRU, ChemBERTa) from pooled CV predictions
-- Shows RF's tighter clustering vs BiGRU's better tail behavior vs ChemBERTa's scatter
+**Remaining Phase I steps (in order):**
+1. Finish A3 HPO (5 remaining trials): `python3 tune_bigru.py --n-trials 30`
+2. Run full-cv with best config: `python3 tune_bigru.py --full-cv`
+3. Re-evaluate wetlab: `python3 eval_wetlab.py`
+4. Update paper: Table 2, Table S5, TikZ, discussion
+5. A7: BiGRU direct classification on Mamede (~3-5h GPU)
+   - Use tuned architecture (256u/3l) with task="classification" (sigmoid + BCE)
+   - Train on Mamede/Reaxys ~74K binary labels (POS = λ_max ∈ [290,700] AND MEC ≥ 1000)
+   - Compare vs: Mamede RF (Sens=0.90, Spec=0.88) and our RF (Sens=0.876, Spec=0.882)
+   - Update Table 4, discussion, conclusion; publish model weights
+6. A5: GitHub repo + Zenodo DOI + model weights
+7. Final compile + proofread
 
-**A5. Code + data repository** (~2 hours)
-- Clean GitHub repo with README, requirements.txt, run instructions
-- Zenodo DOI for reproducibility archive (model weights, processed datasets)
-- Update Data Availability section with actual URLs
+#### What's DONE ✅
 
-**A6. Full proofread** (~2 hours)
-- Check all numbers match result files
-- Consistent decimal places, units, terminology
-- Grammar pass, especially around new ChemBERTa text
-- Verify figure captions are accurate and self-contained
-- Check references render correctly (especially BibTeX edge cases)
+| Task | Commit |
+|------|--------|
+| A0.1 Factual errors (ChemBERTa params, multirow, TikZ) | 215736e |
+| A0.2 Citations (Chen et al. journal, Joung GCNN, scope caveats) | 215736e |
+| A0.3 Soften 6 overclaimed statements + confounders paragraph | 215736e |
+| A2 Supplementary (XGBoost+ChemBERTa per-fold, significance) | aa8800d |
+| A4 4-model parity plot (shared axes) | 3057f34 |
+| A6 Full proofread (12+ issues fixed) | aa8800d |
+| B3 Wetlab per-molecule figure (horizontal bars) | 0f8043d |
+| B4 ChemBERTa learning curves (supplementary) | 3f7b8cf |
+| Figure 7 fix (vertical layout) | 189c44e |
+| Paper title updated to "When Do Simple Models Win?" | latest |
 
-#### Phase B — High-Impact Additions (strongly recommended)
+#### Phase II — Multi-Property Expansion (`benchmark_paper_v2.tex`)
 
-**B1. RNN architecture comparison** (~3 days GPU)
-- BiGRU vs BiLSTM vs CNN-BiGRU, all 5-fold CV v2 (already implemented: `bilstm_v2`, `cnn_bigru_v2`)
-- Answers "why BiGRU specifically?" — common reviewer question
-- Paper: new table or expand Table 2 with architecture variants
-- Expected: BiGRU ≈ BiLSTM, CNN-BiGRU possibly slightly better (adds conv features)
+**Script**: `run_multi_property.py` (CLI: `--property {emission,log_mec,lipophilicity} --model {rf,bigru,chemberta} --fold {0-4}`)
 
-**B2. Scaffold split on primary dataset** (~1 day GPU + analysis)
-- Currently only random stratified split; scaffold split is the gold standard for generalization
-- Run RF + BiGRU + ChemBERTa on Murcko scaffold split (80/10/10)
-- Strengthens the interpolation/extrapolation narrative with in-distribution evidence
-- J. Cheminformatics reviewers strongly prefer scaffold splits
-- Paper: add Table or discussion paragraph in Model Comparison section
+**RF results (complete or in progress):**
 
-**B3. Wetlab per-molecule comparison figure** (~1 hour)
-- Grouped bar chart: experimental vs RF vs BiGRU vs ChemBERTa for each of 16 molecules
-- Currently only a text table (Table 5 shows aggregates); a figure is much more informative
-- Highlights where models agree/disagree and which molecules are hardest
+| Property | Dataset | Rows | RMSE | R² | Status |
+|----------|---------|------|------|----|--------|
+| Emission (λ_em) | `data/chemfluor_processed.csv` | 4,232 | 25.28 ± 2.81 | 0.936 | ✅ 5/5 |
+| Lipophilicity (LogP) | `data/lipophilicity_processed.csv` | 4,200 | 0.83 ± 0.02 | 0.528 | ✅ 5/5 |
+| log₁₀(MEC) | `data/mamede_log_mec_processed.csv` | 81,638 | ~0.47 | ~0.45 | ⏸ 3/5 (resume: `--property log_mec --model rf`) |
 
-**B4. ChemBERTa convergence analysis** (~1 hour)
-- Plot training/val loss curves for all 5 folds (data in history JSON files)
-- Discuss whether MAX_LEN=256 truncation matters (check % of SMILES truncated)
-- Note that ChemBERTa had no separate HP tuning either (same as BiGRU baseline treatment)
-
-#### Phase C — Differentiating Additions (for top-tier journal)
-
-**C1. RF + BiGRU ensemble** (~4 hours)
-- Simple average or learned weighting of RF and BiGRU predictions
-- The complementary strengths narrative predicts this should work well
-- Evaluate on CV, cross-dataset, and wetlab
-- Could become the recommended practical approach in the conclusion
-
-**C2. Applicability domain analysis** (~4 hours)
-- Compute Tanimoto similarity of each test molecule to its nearest training neighbor
-- Plot MAE vs distance-to-training-set for RF and BiGRU
-- Should show RF degrades faster with distance (fingerprint-based) while BiGRU degrades gracefully
-- Quantifies the interpolation/extrapolation narrative with concrete evidence
-- Very common in J. Cheminformatics papers
-
-**C3. SHAP values for RF** (~2 hours)
-- TreeSHAP is much faster and more principled than Gini importance
-- Provides per-prediction explanations, not just global importance
-- Could show waterfall plots for wetlab molecules explaining why predictions differ
-
-**C4. Journal-specific formatting** (~2 hours)
-- J. Cheminformatics: use their LaTeX template (jcheminf class)
-- Or Digital Discovery: RSC template
-- Convert supplementary to separate file if required
-- Ensure open-access compliance (CC-BY license)
-
-#### Phase D — Multi-Property Expansion (NEW: `benchmark_paper_v2.tex`)
-
-**Rationale**: Strengthen local-feature claim by showing same RF > Transformer pattern on multiple properties. Create new paper file to keep current version intact.
-
-**D1. Fluorescence emission wavelength (λ_em)** — LOCAL property
-- Dataset: ChemFluor (`data/raw/chemfluor.xlsx`) — 4,386 rows, already in project
-- Target: `Emission/nm` (296–1045 nm, mean 537 ± 91)
-- Solvents: 63 unique names → map to SMILES
-- Models: RF + BiGRU + ChemBERTa, 5-fold CV (~26h GPU)
-- Expected: RF > BiGRU > ChemBERTa (same pattern as UV)
-
-**D2. Molar extinction coefficient (log₁₀ MEC)** — LOCAL property
-- Dataset: Mamede (`data/mamede_regression_dataset.csv`) — 84,262 rows (after filtering)
-- Target: `log10(mec)` (0–5.7, mean 4.14 ± 0.64)
-- Models: RF only (DL on 84K too expensive for current scope)
-- Expected: RF dominates
-
-**D3. Lipophilicity / LogP (CONTROL)** — INTERMEDIATE/GLOBAL property
-- Dataset: MoleculeNet Lipophilicity — ~4,200 rows (download from DeepChem S3)
-- Target: `exp` (LogP), no solvent
-- Models: RF + BiGRU + ChemBERTa, 5-fold CV (~14h GPU)
-- Expected: Pattern equalizes or reverses (RF advantage disappears)
-
-**Implementation:**
-- New script: `run_multi_property.py` (parameterized by property + model)
-- Preprocessed data: `data/chemfluor_emission_processed.csv`, `data/mamede_log_mec_processed.csv`, `data/lipophilicity_processed.csv`
-- Results: `results/emission/`, `results/log_mec/`, `results/lipophilicity/`
-- Paper: New section "Multi-Property Generalization" (~100-120 lines) + table + figure
-- Total GPU: ~32h (recommended scope)
-
-#### Dropped from Plan
-- Transfer learning (high risk, uncertain payoff)
-- nablaColors / UniProp / 3D comparison (removed from paper)
-- ChemBERTa attention visualization (interesting but not critical)
+**Remaining:** Finish log_mec RF (folds 3-4), then BiGRU + ChemBERTa on emission & lipophilicity (~32h GPU)
 
 #### Priority Execution Order
 ```
-Phase A (DONE except A3+A5): A0 ✅ → A2 ✅ → A4 ✅ → A6 ✅ → A3 🔄 → A5
-Phase B (DONE: B3 ✅, B4 ✅): B2 optional
-Phase C (optional): C1 → C2 → C3 → C4
-Phase D (after Phase A complete): D1 → D2 → D3 → paper integration
+Phase I: A3 ⏸ (5 trials left) → full-cv → wetlab → paper updates → A7 → A5 → final proofread
+Phase II (after Phase I): log_mec RF ⏸ → BiGRU (GPU) → ChemBERTa (GPU) → paper_v2
 ```
 
 ---
@@ -250,7 +151,8 @@ ln -sf ~/.local/lib/python3.12/site-packages/triton/backends/nvidia/lib/libdevic
 
 ## Training Config
 
-**BiGRU**: batch_size=32, lr=0.001, mixed_float16, epochs=250, patience=25, RMSprop, loss=MAE
+**BiGRU (default)**: batch_size=32, lr=0.001, mixed_float16, epochs=250, patience=25, RMSprop, loss=MAE
+**BiGRU (tuned, from HPO Trial 25)**: n_units=256, n_layers=3, embed_dim=50, batch_size=128, dropout=0.105, lr=0.00111, val_loss=33.33 (8.6% better than default 36.45)
 
 **ChemBERTa** (thermal-safe config): MAX_LEN=256, batch_size=8, grad_accum=4 (effective=32), lr=5e-5, AdamW, fp16, epochs=100, patience=15, num_workers=0, gpu_cooldown=10s between folds. RTX 4090 Laptop idles at 71°C — the old config (batch=32, MAX_LEN=512, 12 worker processes) caused thermal shutdown. First run (50 epochs, patience=10) didn't converge (RMSE=116.79). **Crash-resilient**: full checkpoint format (model+optimizer+scheduler+scaler+epoch+history), periodic saves every 10 epochs to `_latest.pt`, SIGINT/SIGTERM handler saves checkpoint before exit, results saved inside `train_chemberta()` not just caller. Resume auto-detects checkpoint format. ~100-110s/epoch on GPU, ~3h per fold.
 
@@ -279,6 +181,9 @@ Files: `ml_chemistry_template.tex`, `Proposal.bib` (77K tokens — read with off
 - **`notes_on_paper.tex`** — Revision notes, reviewer Q&A, submission checklist, fallback git hashes
 - **`ml_chemistry_template.tex`** — Original DL-focused paper (preserved, Overleaf-synced)
 - **`tune_rf.py`** — RF hyperparameter grid search (432 configs)
+- **`tune_bigru.py`** — BiGRU Optuna HPO (30 trials, SQLite storage, stop/resume safe)
+- **`run_multi_property.py`** — Phase II multi-property experiments (emission, log_mec, lipophilicity)
+- **`ROADMAP.txt`** — Full execution guide with commands and stop/resume safety
 - **`results/`** — All outputs. **`data/`** — Datasets. **`previous_code/`** — Original work.
 
 ## Datasets
@@ -287,8 +192,11 @@ Files: `ml_chemistry_template.tex`, `Proposal.bib` (77K tokens — read with off
 - **Deep4Chem**: `data/deep4chem_processed.csv` — ~20K (Joung 2020, Figshare)
 - **Jung 2024**: `data/jung2024_processed.csv` — ~26K (GitHub)
 - **nablaColors**: `data/nablacolors_processed.csv` — 24,567 (Zenodo), splits in `nablacolors_splits.npz`
-- **ChemFluor**: `data/chemfluor_processed.csv` — 4,232 entries
-- **Reaxys**: `data/raw/reaxys_uv_raw.csv` — 114,699 records (from 24/75 exports, needs re-run after all 75)
+- **ChemFluor**: `data/chemfluor_processed.csv` — 4,232 entries (emission wavelength)
+- **Mamede log₁₀(MEC)**: `data/mamede_log_mec_processed.csv` — 81,638 rows (MEC ∈ [1,500000], 88% methanol)
+- **Lipophilicity**: `data/lipophilicity_processed.csv` — 4,200 rows (LogP, MoleculeNet, no solvent)
+- **Mamede/Reaxys classification**: ~74K compounds, binary photosafety labels
+- **Reaxys**: `data/raw/reaxys_uv_raw.csv` — 114,699 records (from 24/75 exports)
 - **Reaxys exports**: `data/raw/reaxys_exports/` — 48/75 TSV files collected
 
 ## Commands

@@ -41,6 +41,20 @@ After A3 search completes:
   4. A5: GitHub repo + Zenodo DOI
   5. Final compile + proofread
 
+### A7: BiGRU Direct Classification on Mamede (after A3 full-cv)
+- Use tuned BiGRU architecture from A3 with task="classification" (sigmoid + BCE)
+- Train on Mamede/Reaxys binary labels (POS = λ_max ∈ [290,700] AND MEC ≥ 1000)
+- Dataset: ~74K compounds (same split as RF classifier)
+- Compare against: Mamede RF (Sens=0.90, Spec=0.88) and our RF (Sens=0.876, Spec=0.882)
+- Previous regression→threshold BiGRU was 0.22 sensitivity — direct classification should be much better
+- Strengthens the paper: shows tuned BiGRU architecture generalizes to classification, not just regression
+- Publish trained model weights with GitHub repo (A5)
+- Paper updates:
+    - Update Table 4 (classification) with BiGRU direct classifier row
+    - Add discussion paragraph: tuned BiGRU matches/approaches RF on classification
+    - Update conclusion bullet point on classification
+- Estimated time: ~3-5h GPU (single train/test, no 5-fold needed — matches Mamede protocol)
+
 ==============================================================================
 # PHASE II: Multi-Property Expansion (`benchmark_paper_v2.tex`)
 ==============================================================================

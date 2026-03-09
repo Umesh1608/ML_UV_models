@@ -51,12 +51,12 @@
 % ===== Abstract =====
 \begin{abstract}
 Accurate prediction of UV absorption wavelengths ($\lambda_{\max}$) from molecular structure is essential for photosafety screening, materials design, and photochemistry.
-We present a systematic benchmark of machine learning approaches for $\lambda_{\max}$ prediction, comparing Random Forest (RF) with Morgan fingerprints, XGBoost, a Bidirectional GRU (BiGRU) sequence model, and ChemBERTa---a pretrained Transformer fine-tuned on SMILES strings.
+We present a systematic benchmark of machine learning approaches for $\lambda_{\max}$ prediction, comparing Random Forest (RF) with Morgan fingerprints, XGBoost, a Bidirectional GRU (BiGRU) sequence model, and ChemBERTa, a pretrained Transformer fine-tuned on SMILES strings.
 Models are evaluated on a primary dataset of 18,755 solute--solvent pairs (Joung + Beard) using stratified 5-fold cross-validation, with external validation on two independent datasets totaling over 45,000 molecules using each dataset's published split protocol for direct comparison with prior work.
 RF with concatenated solute--solvent Morgan fingerprints achieves the best cross-validated performance (RMSE = $31.34 \pm 1.82$ nm, $R^2 = 0.914$), outperforming BiGRU (RMSE = $36.45 \pm 1.12$ nm, $R^2 = 0.884$) and matching or exceeding published deep learning baselines on external datasets, including GCNN on Deep4Chem (our RMSE = 22.70 vs.\ 26.6 nm) and GBFS on Jung et al.\ (our RMSE = 29.82 vs.\ 32.2 nm).
 ChemBERTa, a pretrained Transformer (44.1M parameters), achieves the worst cross-validated performance (RMSE = $50.39 \pm 2.30$ nm), yet experimental validation on 16 novel UV-absorbing compounds reveals that both deep learning models outperform RF on out-of-distribution molecules (ChemBERTa MAE = 26.3, BiGRU = 28.6 vs.\ 38.5 nm for RF), suggesting that learned representations generalize beyond fixed substructural features.
 We introduce a solvent concatenation strategy encoding solute and solvent as a single representation, yielding consistent improvement across both model families (8\% RMSE reduction for RF, 7\% for BiGRU).
-These complementary strengths---RF for interpolation within known chemical space, deep learning for extrapolation to novel scaffolds---provide practical guidance for model selection in UV property prediction.
+These complementary strengths (RF for interpolation within known chemical space, deep learning for extrapolation to novel scaffolds) provide practical guidance for model selection in UV property prediction.
 \end{abstract}
 
 \textbf{Keywords:} machine learning, UV absorption, molecular property prediction, SMILES, random forest, benchmarking, solvent effects
@@ -82,12 +82,12 @@ Recent work has highlighted that well-tuned classical models can match or exceed
 The UV absorption prediction task presents several distinctive challenges that make it an ideal benchmarking target:
 \begin{enumerate}
     \item \textbf{Solvent dependence:} $\lambda_{\max}$ varies with solvent environment (solvatochromism), requiring models to encode both solute structure and solvent identity.
-    \item \textbf{3D sensitivity:} Absorption properties depend on electronic structure, which is influenced by molecular geometry---a dimension not captured by 1D SMILES representations.
+    \item \textbf{3D sensitivity:} Absorption properties depend on electronic structure, which is influenced by molecular geometry, a dimension not captured by 1D SMILES representations.
     \item \textbf{Diverse benchmarks:} Multiple published datasets with varying sizes, chemical spaces, and evaluation protocols enable comprehensive assessment.
     \item \textbf{Practical relevance:} ICH~S10 guidelines require photosafety screening of pharmaceutical compounds, where $\lambda_{\max}$ prediction serves as a first-pass filter.
 \end{enumerate}
 
-In this work, we present a rigorous benchmark study comparing four ML approaches---Random Forest (RF), XGBoost, Bidirectional GRU (BiGRU), and ChemBERTa (a pretrained Transformer)---for $\lambda_{\max}$ prediction.
+In this work, we present a benchmark study comparing four ML approaches (Random Forest, XGBoost, Bidirectional GRU, and ChemBERTa) for $\lambda_{\max}$ prediction.
 Our key contributions are:
 \begin{itemize}
     \item A comprehensive comparison across three datasets using each dataset's published evaluation protocol, enabling direct comparison with prior work.
@@ -139,7 +139,7 @@ Bidirectional variants (BiGRU, BiLSTM)~\cite{schuster1997bidirectional} capture 
 Liu et al.\ applied BiGRU to molecular toxicity prediction~\cite{liuPredictionMolecularToxicity2023}, demonstrating the effectiveness of sequence models for chemical property tasks.
 More recently, Transformer architectures~\cite{vaswani2017attention} have been applied to SMILES-based property prediction with attention mechanisms that provide interpretable molecular representations~\cite{hondaSMILESTransformerPretrained2019}.
 Chen et al.~\cite{chenMolecularLanguage2023} systematically compared RNNs and Transformers for molecular language modeling, finding that in molecular generation tasks, RNNs better capture local structural features while Transformers excel at global molecular properties and longer sequences.
-Although their comparison focused primarily on molecular generation, their conclusion---that the optimal architecture depends on the data characteristics---may extend to property prediction tasks like UV absorption, where $\lambda_{\max}$ is fundamentally determined by local chromophore features: conjugation length, aromatic character, and heteroatom substituents, as formalized in the classical Woodward--Fieser rules.
+Although their comparison focused primarily on molecular generation, their conclusion that the optimal architecture depends on the data characteristics may extend to property prediction tasks like UV absorption, where $\lambda_{\max}$ is fundamentally determined by local chromophore features: conjugation length, aromatic character, and heteroatom substituents, as formalized in the classical Woodward--Fieser rules.
 This suggests that models encoding local structural information (fingerprints, RNNs) may have an advantage over global-attention architectures for this property, though the extent of this advantage requires empirical validation.
 Jiang et al.~\cite{jiang2023trangru} further validated this local/global dichotomy in their TranGRU architecture, which combines BiGRU for local features with self-attention for global features.
 Alternative string representations such as SELFIES~\cite{krenn2020selfies} guarantee chemical validity but have shown mixed results compared to SMILES for property prediction tasks.
@@ -151,7 +151,7 @@ Jung et al.~\cite{jung2024machine} compared multiple architectures including a G
 Ghosh et al.~\cite{ghosh2019deep} further showed that neural networks trained on quantum-chemical descriptors can accurately predict excitation spectra, underscoring the importance of electronic structure features.
 
 \textbf{Solvent effects.}
-Solvatochromism---the shift in absorption wavelength as a function of solvent environment---is a well-studied phenomenon in physical chemistry~\cite{reichardt2011solvents}.
+Solvatochromism, the shift in absorption wavelength as a function of solvent environment, is a well-studied phenomenon in physical chemistry~\cite{reichardt2011solvents}.
 Despite its importance, most ML studies for UV absorption either ignore solvent effects entirely or use categorical solvent labels.
 Transfer learning approaches have shown promise for incorporating solvent information in related property prediction tasks~\cite{vermeire2021transfer}, but systematic evaluation of solvent encoding strategies for UV absorption prediction has been limited.
 
@@ -199,7 +199,7 @@ Max sequence length (solute+solvent) & 650 tokens \\
 
 For the primary dataset, we use \textbf{stratified 5-fold cross-validation}~\cite{kohavi1995study} with a 64/16/20 train/validation/test split.
 Stratification is performed on solvent identity (top 20 solvents binned, remainder grouped as ``other'') to ensure representative solvent coverage in each fold, addressing the risk that rare solvents could be absent from test folds.
-For deep learning models, the validation set is used exclusively for early stopping (patience = 25 epochs), preventing data leakage from the test set---a methodological concern highlighted in recent benchmarking studies~\cite{panapitiya2022evaluation}.
+For deep learning models, the validation set is used exclusively for early stopping (patience = 25 epochs), preventing data leakage from the test set, a methodological concern highlighted in recent benchmarking studies~\cite{panapitiya2022evaluation}.
 For fingerprint-based models (RF, XGBoost), training uses only the training fold (validation set unused), ensuring equivalent evaluation conditions.
 
 Metrics are reported as mean $\pm$ standard deviation across five folds: root-mean-square error (RMSE), mean absolute error (MAE), coefficient of determination ($R^2$), and Pearson correlation coefficient ($r$).
@@ -263,7 +263,7 @@ Recurrent neural networks (RNNs)~\cite{elman1990finding} process sequential inpu
 where $\vect{x}_t$ is the input at step $t$, $\matr{W}_h$ and $\matr{W}_x$ are weight matrices, and $\sigma$ is a nonlinear activation.
 Standard RNNs suffer from vanishing gradients over long sequences, motivating gated architectures.
 
-The Gated Recurrent Unit (GRU)~\cite{cho2014learning} addresses this through two gating mechanisms---an update gate $\vect{z}_t$ and a reset gate $\vect{r}_t$---that control information flow:
+The Gated Recurrent Unit (GRU)~\cite{cho2014learning} addresses this through two gating mechanisms, an update gate $\vect{z}_t$ and a reset gate $\vect{r}_t$, that control information flow:
 \begin{align}
     \vect{z}_t &= \sigma(\matr{W}_z \vect{x}_t + \matr{U}_z \vect{h}_{t-1} + \vect{b}_z) \label{eq:gru_update} \\
     \vect{r}_t &= \sigma(\matr{W}_r \vect{x}_t + \matr{U}_r \vect{h}_{t-1} + \vect{b}_r) \label{eq:gru_reset} \\
@@ -356,12 +356,12 @@ ChemBERTa (pretrained)& 50.39 $\pm$ 2.30          & 24.31 $\pm$ 1.04          & 
 \end{tabular}
 \end{table}
 
-RF with Morgan fingerprints achieves the best performance across all metrics, with RMSE = 31.34~nm compared to 36.45~nm for BiGRU---a 14\% improvement.
+RF with Morgan fingerprints achieves the best performance across all metrics, with RMSE = 31.34~nm compared to 36.45~nm for BiGRU, a 14\% improvement.
 This difference is statistically significant (paired $t$-test across 5 folds: $t = -7.08$, $p = 0.002$), as are all pairwise model comparisons in Table~\ref{tab:model_comparison} ($p < 0.02$ for all pairs).
 Hyperparameters were selected via grid search over 432 configurations (varying $n_\text{trees}$, max depth, min leaf size, features per split, FP radius, and FP length) evaluated on a held-out validation fold, with the optimal configuration ($B = 1000$, $\texttt{max\_features} = 0.3$, radius = 2, $n = 2048$) applied to all folds.
-The critical finding was that \texttt{max\_features} = $0.3d$ (30\% of features per split) substantially outperformed the default $\sqrt{d}$ ($\sim$1.6\% of features)---all top 10 configurations in the grid search used this setting.
+The critical finding was that \texttt{max\_features} = $0.3d$ (30\% of features per split) substantially outperformed the default $\sqrt{d}$ ($\sim$1.6\% of features); all top 10 configurations in the grid search used this setting.
 This result is consistent with recent observations in molecular property prediction that well-tuned fingerprint-based methods can match or exceed deep learning approaches, particularly when operating on the same 1D molecular information~\cite{zhuo2024machine, walters2021applications}.
-Importantly, the default RF configuration (scikit-learn defaults with $\sqrt{d}$ feature sampling) achieves RMSE = 32.18~nm; tuning improves this by only 2.6\%, indicating that RF's advantage over BiGRU is not an artifact of asymmetric hyperparameter optimization.
+The default RF configuration (scikit-learn defaults with $\sqrt{d}$ feature sampling) achieves RMSE = 32.18~nm; tuning improves this by only 2.6\%, indicating that RF's advantage over BiGRU is not an artifact of asymmetric hyperparameter optimization.
 
 Despite lower absolute performance, BiGRU exhibits the lowest cross-fold variance (RMSE std = 1.12 vs.\ 1.82 for RF), suggesting more consistent generalization.
 BiGRU also offers the advantage of end-to-end learning from raw SMILES strings without requiring descriptor engineering~\cite{chenMolecularLanguage2023}, potentially enabling transfer learning from larger pretraining corpora~\cite{vermeire2021transfer}.
@@ -420,11 +420,11 @@ Kang et al.~\cite{kang2020prediction} and Beard et al.~\cite{beard2022uvadvisor}
     \label{fig:local_vs_global}
 \end{figure}
 
-Figure~\ref{fig:local_vs_global} illustrates this conceptual alignment: models whose inductive bias matches the locality of the target property---RF encoding radius-2 atom neighborhoods, BiGRU capturing sequential SMILES context---achieve better in-distribution performance for UV absorption prediction than Transformers whose self-attention mechanism distributes information globally across the entire molecular representation~\cite{chenMolecularLanguage2023, jiang2023trangru}.
+Figure~\ref{fig:local_vs_global} illustrates this conceptual alignment: models whose inductive bias matches the locality of the target property (RF encoding radius-2 atom neighborhoods, BiGRU capturing sequential SMILES context) achieve better in-distribution performance for UV absorption prediction than Transformers whose self-attention mechanism distributes information globally across the entire molecular representation~\cite{chenMolecularLanguage2023, jiang2023trangru}.
 
-ChemBERTa, despite being pretrained on $\sim$77M SMILES strings from ZINC and having 44.1M parameters (94$\times$ more than BiGRU), achieves RMSE = 50.39~nm---substantially worse than both BiGRU (36.45~nm) and RF (31.34~nm).
+ChemBERTa, despite being pretrained on $\sim$77M SMILES strings from ZINC and having 44.1M parameters (94$\times$ more than BiGRU), achieves RMSE = 50.39~nm, substantially worse than both BiGRU (36.45~nm) and RF (31.34~nm).
 This 61\% gap relative to RF is consistent with the hypothesis that Transformer representations are less sample-efficient for local properties on moderately-sized datasets, though ChemBERTa's superior wetlab generalization (Section~\ref{sec:experimental}) suggests pretrained knowledge partially compensates.
-Notably, however, ChemBERTa achieves the lowest wetlab MAE on novel compounds (26.3~nm vs.\ 28.6~nm for BiGRU; Section~\ref{sec:experimental}), suggesting that pretrained representations may offer complementary generalization advantages despite poor in-distribution performance.
+However, ChemBERTa achieves the lowest wetlab MAE on novel compounds (26.3~nm vs.\ 28.6~nm for BiGRU; Section~\ref{sec:experimental}), suggesting that pretrained representations may offer complementary generalization advantages despite poor in-distribution performance.
 
 XGBoost trained with MAE loss (pseudo-Huber approximation) performs substantially worse than MSE-trained XGBoost (RMSE 40.75 vs.\ 33.70~nm).
 This degradation occurs because MAE loss produces non-smooth gradients at zero error, which interacts poorly with XGBoost's second-order Taylor expansion of the loss function~\cite{chen2016xgboost}; the near-zero Hessian values destabilize leaf weight estimation.
@@ -500,7 +500,7 @@ This result demonstrates that Morgan fingerprints, which encode local chemical e
 \textbf{Jung et al.\ (2024).}
 RF again achieves the best result among all methods (RMSE = 29.82~nm), outperforming the published GBFS (32.2~nm) and multifidelity (31.3~nm) approaches.
 BiGRU (RMSE = 36.31~nm) and ChemBERTa (38.27~nm) fall between the GBFS and DR-CNN published baselines.
-Notably, our RF model uses a simpler architecture than both published methods (which involve feature selection pipelines and multi-task learning, respectively), yet achieves superior performance.
+Our RF model uses a simpler architecture than both published methods (which involve feature selection pipelines and multi-task learning, respectively), yet achieves superior performance.
 
 Across both external datasets, RF consistently outperforms BiGRU and ChemBERTa, reinforcing the finding from our primary dataset that fingerprint-based models excel at in-distribution prediction.
 
@@ -534,7 +534,7 @@ Across both external datasets, RF consistently outperforms BiGRU and ChemBERTa, 
 Figure~\ref{fig:parity_4models} shows parity plots for all four model families on the primary dataset.
 RF predictions cluster most tightly around the diagonal, consistent with its lowest RMSE, while ChemBERTa shows the broadest scatter.
 All models perform best in the 250--400~nm range where training data is most abundant (Figure~\ref{fig:error_breakdown}a).
-Errors increase substantially for $\lambda_{\max} > 500$~nm, reflecting both data scarcity in this wavelength range and the greater structural complexity of long-wavelength chromophores---many of which are extended conjugated systems (porphyrins, phthalocyanines, cyanine dyes) with properties strongly dependent on 3D geometry~\cite{flemingMolecular2010}.
+Errors increase substantially for $\lambda_{\max} > 500$~nm, reflecting both data scarcity in this wavelength range and the greater structural complexity of long-wavelength chromophores, many of which are extended conjugated systems (porphyrins, phthalocyanines, cyanine dyes) with properties strongly dependent on 3D geometry~\cite{flemingMolecular2010}.
 Error distributions across the five most common solvents (Figure~\ref{fig:error_breakdown}b) show relatively consistent performance, with slightly higher errors for chloroform and dichloromethane, consistent with the known tendency of halogenated solvents to produce larger solvatochromic shifts~\cite{reichardt2011solvents}.
 
 
@@ -543,7 +543,7 @@ Error distributions across the five most common solvents (Figure~\ref{fig:error_
 \label{sec:interpretability}
 
 A key advantage of fingerprint-based models is their interpretability through feature importance analysis.
-In contrast to deep learning models, which operate as black-box function approximators, Random Forest models provide direct access to the contribution of each input feature through Gini importance---a measure of how much each feature reduces prediction variance across all decision trees in the ensemble.
+In contrast to deep learning models, which operate as black-box function approximators, Random Forest models provide direct access to the contribution of each input feature through Gini importance, a measure of how much each feature reduces prediction variance across all decision trees in the ensemble.
 
 Since each bit in a Morgan fingerprint corresponds to a specific molecular substructure (a circular neighborhood of radius $\leq 2$ around each atom), high-importance bits can be decoded back to chemically meaningful structural motifs.
 We averaged Gini importances across all five fold models and decoded the top features using RDKit.
@@ -580,7 +580,7 @@ We averaged Gini importances across all five fold models and decoded the top fea
 \textbf{Feature importance reveals known photochemistry.}
 The most important feature (bit 463, Gini importance = 12.7\%) corresponds to aryl diazo/hydrazine substructures.
 Molecules containing this substructure exhibit a mean $\lambda_{\max}$ of 543~nm compared to 401~nm without ($\Delta\lambda_{\max} = +143$~nm), consistent with the well-known bathochromic effect of nitrogen-nitrogen double bonds extending $\pi$-conjugation.
-Other high-ranking features include BODIPY cores ($\Delta\lambda_{\max} = +162$~nm), enamine linkages ($\Delta\lambda_{\max} = +141$~nm), and alkynyl silane groups ($\Delta\lambda_{\max} = +153$~nm)---all recognized chromophore motifs in photochemistry (Figure~\ref{fig:rf_interpretability}a).
+Other high-ranking features include BODIPY cores ($\Delta\lambda_{\max} = +162$~nm), enamine linkages ($\Delta\lambda_{\max} = +141$~nm), and alkynyl silane groups ($\Delta\lambda_{\max} = +153$~nm), all recognized chromophore motifs in photochemistry (Figure~\ref{fig:rf_interpretability}a).
 
 \textbf{Solute dominates, solvent contributes modestly.}
 Partitioning feature importance between solute and solvent fingerprint bits reveals that solute structure accounts for 96.1\% of total importance, with solvent contributing 3.9\% (Figure~\ref{fig:rf_interpretability}b).
@@ -593,10 +593,10 @@ A single fingerprint bit corresponding to aryl diazo/hydrazine substructures acc
 
 \textbf{Practical advantages of classical ML.}
 Beyond interpretability, RF offers substantial practical advantages for molecular property prediction tasks.
-RF training completes in approximately 15 minutes on a single CPU, compared to 25 hours of GPU time for BiGRU---a 100$\times$ speedup---while achieving 14\% lower RMSE (Figure~\ref{fig:rf_practical}b).
+RF training completes in approximately 15 minutes on a single CPU, compared to 25 hours of GPU time for BiGRU (a 100$\times$ speedup) while achieving 14\% lower RMSE (Figure~\ref{fig:rf_practical}b).
 RF requires no GPU hardware, no hyperparameter tuning of learning rates or batch sizes, and no early stopping strategy.
 These results highlight that, depending on the dataset and molecular application domain, it is prudent to evaluate classical ML models where appropriate to gain insights into relative performance before directly deploying deep learning architectures.
-While deep learning retains clear advantages in scenarios requiring transfer learning, end-to-end learning from raw data, or scalability to very large datasets, the simplicity, speed, and interpretability of fingerprint-based models make them a valuable complement---and in some cases a preferred alternative---in the molecular property prediction toolkit.
+While deep learning retains clear advantages in scenarios requiring transfer learning, end-to-end learning from raw data, or scalability to very large datasets, the simplicity, speed, and interpretability of fingerprint-based models make them a valuable complement, and in some cases a preferred alternative, in the molecular property prediction toolkit.
 
 
 % --- Photosafety Classification ---
@@ -624,7 +624,7 @@ Our RF                      & 1,996 & 0.876 & 0.882 & 0.879 & 0.942 \\
 \end{table}
 
 Our RF classifier closely reproduces the published Mamede results (accuracy 0.879 vs.\ 0.89), validating both our Reaxys dataset reconstruction and the effectiveness of Morgan fingerprints for photosafety screening.
-The regression-based thresholding approach using BiGRU predictions proved ineffective (accuracy = 0.588), primarily due to low sensitivity---the regression model's prediction errors span both sides of the classification boundary, producing many false negatives.
+The regression-based thresholding approach using BiGRU predictions proved ineffective (accuracy = 0.588), primarily due to low sensitivity. The regression model's prediction errors span both sides of the classification boundary, producing many false negatives.
 This finding suggests that direct classification is preferable to regression-then-threshold approaches for photosafety screening.
 
 
@@ -686,16 +686,16 @@ RF + Morgan FP    & 38.5 [31.6--45.9]          & 43.7 [35.3--51.7] \\
 \end{tabular}
 \end{table}
 
-Notably, both deep learning models outperform RF on this experimental validation set, with ChemBERTa achieving the lowest MAE (26.3~nm [95\% bootstrap CI: 20.1--33.0]), followed by BiGRU (28.6~nm [22.7--35.0]) and RF (38.5~nm [31.6--45.9]).
+Both deep learning models outperform RF on this experimental validation set, with ChemBERTa achieving the lowest MAE (26.3~nm [95\% bootstrap CI: 20.1--33.0]), followed by BiGRU (28.6~nm [22.7--35.0]) and RF (38.5~nm [31.6--45.9]).
 This \textit{reverses} the ranking observed on the cross-validated primary dataset, where ChemBERTa was worst (RMSE = 50.39~nm).
 The overlapping confidence intervals between ChemBERTa and BiGRU indicate comparable generalization, while both significantly outperform RF (non-overlapping CIs; 10,000 bootstrap resamples).
 This reversal reveals a fundamental distinction: RF relies on exact substructure matching through Morgan fingerprint bits, excelling at interpolation within the training distribution but struggling when novel functional groups or conjugation patterns are underrepresented.
-The deep learning models, by contrast, learn representations---BiGRU from sequential SMILES patterns, ChemBERTa from pretrained molecular language understanding---that can generalize to unseen molecular motifs.
+The deep learning models, by contrast, learn representations (BiGRU from sequential SMILES patterns, ChemBERTa from pretrained molecular language understanding) that can generalize to unseen molecular motifs.
 All three models show substantially higher errors than their cross-validated performance (ChemBERTa: 26.3 vs.\ 24.3~nm MAE; BiGRU: 28.6 vs.\ 20.7~nm; RF: 38.5 vs.\ 15.2~nm), confirming that these 16 compounds are genuinely challenging out-of-distribution examples.
 
 Cinnamic Acid (experimental $\lambda_{\max}$ = 275--276~nm) is a notable outlier: all three models overpredict by $\sim$65--75~nm.
 The experimental peak lies at the edge of the 270--400~nm scan range, suggesting measurement limitations.
-Octocrylene is particularly problematic for RF (error $\sim$89~nm vs.\ 43~nm for BiGRU and 52~nm for ChemBERTa), likely because its extended cyano-acrylate conjugation is underrepresented in the training data---precisely the scenario where fingerprint-based models are expected to fail.
+Octocrylene is particularly problematic for RF (error $\sim$89~nm vs.\ 43~nm for BiGRU and 52~nm for ChemBERTa), likely because its extended cyano-acrylate conjugation is underrepresented in the training data, precisely the scenario where fingerprint-based models are expected to fail.
 
 All three models capture the small solvent sensitivity between EtOH and MeOH (typically 0--1~nm experimentally), though with some overestimation of the solvent shift magnitude (average predicted shifts of 2.5~nm for BiGRU, 2.9~nm for RF, and 4.9~nm for ChemBERTa).
 
@@ -703,7 +703,7 @@ These results highlight the complementary strengths of the model families: RF is
 This data-dependent model selection finding is consistent with the observations of Chen et al.~\cite{chenMolecularLanguage2023}, who found that RNNs outperform Transformers on local-feature-dependent molecular generation tasks.
 Our cross-validated results suggest that a similar architectural trade-off may apply in property prediction: since UV absorption depends on local chromophore features, models that capture local patterns (RF with fingerprints, BiGRU processing SMILES subsequences) achieve the best in-distribution performance.
 ChemBERTa's poor cross-validated ranking but strong wetlab generalization suggests that pretrained representations may encode transferable molecular knowledge that compensates for the architecture's inductive bias mismatch, but only when evaluated on truly novel compounds outside the training distribution.
-The complementarity extends further---beyond the local/global distinction---because RF's fixed-vocabulary substructure matching excels at interpolation while learned representations (both BiGRU and ChemBERTa) enable extrapolation to novel scaffolds.
+This complementarity extends beyond the local/global distinction: RF's fixed-vocabulary substructure matching excels at interpolation, while learned representations (both BiGRU and ChemBERTa) enable extrapolation to novel scaffolds.
 
 \begin{figure}[htbp]
     \centering
@@ -729,7 +729,7 @@ Our key findings are:
     This indicates that RF excels at interpolation within known chemical space, while deep learning models learn transferable representations that extend beyond fixed substructural features.
 
     \item \textbf{Solvent encoding improves both model families.}
-    The solvent concatenation strategy---encoding solute and solvent as a single representation---reduces RF RMSE by 8\% (34.13 $\to$ 31.34~nm) and BiGRU RMSE by 7\% (39.03 $\to$ 36.45~nm).
+    Encoding solute and solvent as a single concatenated representation reduces RF RMSE by 8\% (34.13 $\to$ 31.34~nm) and BiGRU RMSE by 7\% (39.03 $\to$ 36.45~nm).
     This simple approach requires no domain-specific descriptor engineering and is applicable to any model that accepts molecular representations.
 
     \item \textbf{RF provides interpretable, efficient predictions.}
@@ -741,7 +741,7 @@ Our key findings are:
     RF-based photosafety classification (accuracy = 0.879) closely reproduces the published Mamede benchmark (accuracy = 0.89), validating both the methodology and dataset reconstruction.
 \end{enumerate}
 
-Taken together, these findings suggest that model selection for UV absorption prediction should be guided by the relationship between target compounds and available training data: RF is preferred for screening within well-characterized chemical libraries, while sequence-based deep learning (BiGRU, ChemBERTa) is better suited for exploration of novel molecular architectures.
+These findings suggest that model selection for UV absorption prediction should be guided by the relationship between target compounds and available training data: RF is preferred for screening within well-characterized chemical libraries, while sequence-based deep learning (BiGRU, ChemBERTa) is better suited for exploration of novel molecular architectures.
 
 \subsection*{Limitations}
 Our models use only 1D molecular representations, lacking 3D conformational information that may be important for diverse chromophores where electronic properties depend on molecular geometry~\cite{lupopasini2023excited}.
@@ -754,11 +754,11 @@ These factors make it difficult to attribute the full cross-validated performanc
 Finally, the Wilcoxon signed-rank test (a non-parametric alternative appropriate for small samples) yields $p = 0.0625$ for all model comparisons due to the minimum achievable $p$-value with $n = 5$ concordant pairs; larger-scale cross-validation (e.g., 10-fold) would provide stronger non-parametric statistical power.
 
 \subsection*{Future Work}
-Transfer learning from larger UV absorption databases (e.g., the Reaxys dataset of $\sim$70K records) may improve BiGRU performance and narrow the gap with RF on cross-validated benchmarks, leveraging deep learning's capacity for pretraining~\cite{vermeire2021transfer}---an advantage that classical ML cannot replicate.
+Transfer learning from larger UV absorption databases (e.g., the Reaxys dataset of $\sim$70K records) may improve BiGRU performance and narrow the gap with RF on cross-validated benchmarks, leveraging deep learning's capacity for pretraining~\cite{vermeire2021transfer}, an advantage that classical ML cannot replicate.
 Incorporating 3D structural information through hybrid architectures~\cite{gilmer2017neural} or precomputed quantum-chemical descriptors~\cite{lupopasini2023excited} could improve predictions for geometry-dependent chromophores.
 Ensemble approaches combining RF and BiGRU predictions could potentially leverage the complementary strengths of both model families, using RF's interpolation accuracy for well-represented scaffolds and BiGRU's extrapolation capability for novel structures.
 While RF provides global feature importance, attention mechanisms in Transformer-based sequence models~\cite{vaswani2017attention, hondaSMILESTransformerPretrained2019} could offer instance-level interpretability by highlighting which molecular substructures drive individual predictions.
-More broadly, our in-distribution results are consistent with the hypothesis that architecture choice in molecular ML may be influenced by the locality of the target property~\cite{chenMolecularLanguage2023, jiang2023trangru}: properties determined by local substructures (UV absorption, functional group-dependent activity) favor fingerprint and RNN-based approaches on cross-validated benchmarks, while out-of-distribution evaluation reveals that additional factors---pretraining data, learned representations---can overcome architectural mismatch.
+More broadly, our in-distribution results are consistent with the hypothesis that architecture choice in molecular ML may be influenced by the locality of the target property~\cite{chenMolecularLanguage2023, jiang2023trangru}: properties determined by local substructures (UV absorption, functional group-dependent activity) favor fingerprint and RNN-based approaches on cross-validated benchmarks, while out-of-distribution evaluation reveals that additional factors such as pretraining data and learned representations can overcome architectural mismatch.
 
 
 % ===== Data and Code Availability =====
@@ -859,7 +859,7 @@ Tables~\ref{tab:perfold_rf}--\ref{tab:perfold_chemberta} present per-fold result
 
 Table~\ref{tab:significance} presents paired $t$-test results across the five cross-validation folds.
 All model comparisons are statistically significant at $\alpha = 0.05$ using the parametric paired $t$-test.
-With only $n = 5$ folds, the Wilcoxon signed-rank test (a non-parametric alternative) yields $p = 0.0625$ for all comparisons---the minimum achievable $p$-value when all 5 paired differences are concordant---providing strong directional evidence despite not reaching conventional significance.
+With only $n = 5$ folds, the Wilcoxon signed-rank test (a non-parametric alternative) yields $p = 0.0625$ for all comparisons (the minimum achievable $p$-value when all 5 paired differences are concordant), providing strong directional evidence despite not reaching conventional significance.
 
 \begin{table}[h]
 \centering
