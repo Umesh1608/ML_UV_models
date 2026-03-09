@@ -354,7 +354,6 @@ Figure~\ref{fig:model_overview} provides a high-level comparison of the three mo
 % ---- (a) RANDOM FOREST ----
 \begin{minipage}[t]{0.30\textwidth}
 \centering
-\vbox to 11cm{%
 \begin{tikzpicture}[node distance=1.25cm, scale=0.82, transform shape, baseline=(current bounding box.north)]
 \node (smi)  [archbox, fill=gray!15]                     {SMILES Input};
 \node (fp)   [archbox, fill=green!12, below of=smi]      {Morgan FP ($r{=}2$)};
@@ -379,8 +378,14 @@ Figure~\ref{fig:model_overview} provides a high-level comparison of the three mo
 
 % Dimension annotations
 \node[font=\scriptsize, gray, right] at (2.2, -1.25) {$\{0,1\}^{2048}$};
+
+% Invisible spacer to match height of (b) and (c) which have 9 nodes
+\node[below=1.25cm of out, minimum height=0.85cm] (sp1) {};
+\node[below=1.25cm of sp1, minimum height=0.85cm] (sp2) {};
+\node[below=1.25cm of sp2, minimum height=0.85cm] (sp3) {};
+\node[below=1.25cm of sp3, minimum height=0.85cm] (sp4) {};
 \end{tikzpicture}
-\vfill}%
+
 \textbf{(a)} Random Forest\\[2pt]
 {\small Morgan fingerprints\\No GPU --- trains in $\sim$3 min}
 \end{minipage}
@@ -388,7 +393,6 @@ Figure~\ref{fig:model_overview} provides a high-level comparison of the three mo
 % ---- (b) BiGRU (optimized) ----
 \begin{minipage}[t]{0.30\textwidth}
 \centering
-\vbox to 11cm{%
 \begin{tikzpicture}[node distance=1.25cm, scale=0.82, transform shape, baseline=(current bounding box.north)]
 \node (smi)  [archbox, fill=gray!15]                     {SMILES Input};
 \node (tok)  [archbox, fill=teal!10, below of=smi]       {Char Tokenization};
@@ -418,7 +422,7 @@ Figure~\ref{fig:model_overview} provides a high-level comparison of the three mo
 \draw[decorate, decoration={brace, amplitude=4pt, mirror}, thick, teal!60]
   (2.15, -3.2) -- (2.15, -6.9) node[midway, right=5pt, font=\scriptsize, teal!70] {$\times 3$};
 \end{tikzpicture}
-\vfill}%
+
 \textbf{(b)} BiGRU (optimized)\\[2pt]
 {\small 2.1M params --- $\sim$5 hr/fold}
 \end{minipage}
@@ -426,7 +430,6 @@ Figure~\ref{fig:model_overview} provides a high-level comparison of the three mo
 % ---- (c) ChemBERTa ----
 \begin{minipage}[t]{0.30\textwidth}
 \centering
-\vbox to 11cm{%
 \begin{tikzpicture}[node distance=1.25cm, scale=0.82, transform shape, baseline=(current bounding box.north)]
 \node (smi)  [archbox, fill=gray!15]                      {SMILES Input};
 \node (tok)  [archbox, fill=violet!10, below of=smi]      {BPE Tokenization};
@@ -454,7 +457,7 @@ Figure~\ref{fig:model_overview} provides a high-level comparison of the three mo
 % Pretrained label
 \node[font=\tiny, violet!60, anchor=west] at (2.2, -2.5) {77M SMILES};
 \end{tikzpicture}
-\vfill}%
+
 \textbf{(c)} ChemBERTa\\[2pt]
 {\small 44.1M params --- $\sim$3 hr/fold}
 \end{minipage}
