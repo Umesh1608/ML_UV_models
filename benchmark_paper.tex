@@ -209,7 +209,7 @@ Recent work has highlighted that well-tuned classical models can match or exceed
 The UV absorption prediction task presents several distinctive challenges that make it an ideal benchmarking target:
 \begin{enumerate}
     \item \textbf{Solvent dependence:} $\lambda_{\max}$ varies with solvent environment (solvatochromism), requiring models to encode both solute structure and solvent identity.
-    \item \textbf{3D sensitivity:} Absorption properties depend on electronic structure, which is influenced by molecular geometry, a dimension not captured by 1D SMILES representations.
+    \item \textbf{Representation diversity:} Although absorption depends on electronic structure influenced by molecular geometry, our results show that 1D representations (fingerprints, SMILES) capture the dominant structure--property relationships for UV absorption, with 3D methods offering advantages primarily for structurally diverse datasets (Section~\ref{sec:cross_dataset}).
     \item \textbf{Diverse benchmarks:} Multiple published datasets with varying sizes, chemical spaces, and evaluation protocols enable comprehensive assessment.
     \item \textbf{Practical relevance:} ICH~S10 guidelines require photosafety screening of pharmaceutical compounds, where $\lambda_{\max}$ prediction serves as a first-pass filter.
 \end{enumerate}
@@ -1061,7 +1061,7 @@ Our key findings are:
 These findings suggest that model selection for UV absorption prediction should be guided by the relationship between target compounds and available training data: RF is preferred for screening within well-characterized chemical libraries, while sequence-based deep learning (BiGRU, ChemBERTa) is better suited for exploration of novel molecular architectures.
 
 \subsection*{Limitations}
-Our models use only 1D molecular representations, lacking 3D conformational information that may be important for diverse chromophores where electronic properties depend on molecular geometry~\cite{lupopasini2023excited}.
+Our models use only 1D molecular representations; while our cross-dataset results show that 1D approaches are competitive with published graph and 3D methods on most benchmarks, the large performance gap on nablaColors (Table~\ref{tab:cross_dataset}) suggests that 3D conformational information becomes important for structurally diverse chromophores where electronic properties depend on molecular geometry~\cite{lupopasini2023excited}.
 Solvents are encoded purely through their molecular structure (SMILES or fingerprints), without explicit physical properties such as dielectric constant, refractive index, or Hansen solubility parameters~\cite{reichardt2011solvents}, which may limit the models' ability to capture fine-grained solvatochromic effects.
 The BiGRU model uses character-level tokenization, which may miss chemically meaningful substructures; ChemBERTa's BPE tokenizer partially addresses this but still operates on 1D SMILES strings.
 The experimental validation set (16 molecules) is small; larger out-of-distribution evaluations would strengthen the generalization finding, though the qualitative reversal of model rankings is robust.
