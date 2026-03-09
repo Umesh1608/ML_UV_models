@@ -343,259 +343,123 @@ Figure~\ref{fig:model_overview} provides a high-level comparison of the three mo
 \begin{figure}[htbp]
 \centering
 
-% ============== (a) RANDOM FOREST ==============
-\begin{minipage}[t]{0.31\textwidth}
+% ============== Architecture Overview: 3-panel ==============
+
+\tikzstyle{archbox} = [rectangle, rounded corners=4pt, minimum width=4cm, minimum height=0.85cm, text centered, draw=black, font=\small]
+\tikzstyle{archarrow} = [thick,-{Stealth[length=2.5mm]}]
+
+\begin{figure}[htbp]
 \centering
-\vbox to 10.5cm{%
-\begin{tikzpicture}[scale=0.72, transform shape, baseline=(current bounding box.north)]
-% --- Molecule label ---
-\node[font=\small\ttfamily, fill=gray!15, rounded corners=2pt, inner sep=3pt]
-  (mol) at (2, 0) {CC(=O)Oc1ccccc1};
 
-% --- Fingerprint barcode ---
-\node[font=\scriptsize, anchor=south] at (2, -1.0) {Morgan FP ($r{=}2$, 2048 bits)};
-% Fingerprint bits: filled=1, light=0
-\foreach \i/\c in {0/45,1/8,2/45,3/45,4/8,5/8,6/45,7/8,8/45,9/45,10/8,11/45,12/8,13/45,14/45,15/8} {
-    \fill[green!\c] (\i*0.25, -1.3) rectangle ++(0.22, 0.45);
-    \draw[gray!60, thin] (\i*0.25, -1.3) rectangle ++(0.22, 0.45);
+% ---- (a) RANDOM FOREST ----
+\begin{minipage}[t]{0.30\textwidth}
+\centering
+\vbox to 11cm{%
+\begin{tikzpicture}[node distance=1.25cm, scale=0.82, transform shape, baseline=(current bounding box.north)]
+\node (smi)  [archbox, fill=gray!15]                     {SMILES Input};
+\node (fp)   [archbox, fill=green!12, below of=smi]      {Morgan FP ($r{=}2$)};
+
+% --- Fingerprint barcode between fp and trees ---
+\node[below=0.35cm of fp] (barlabel) {};
+\foreach \i/\c in {0/45,1/8,2/45,3/45,4/8,5/8,6/45,7/8,8/45,9/45,10/8,11/45} {
+    \fill[green!\c] (-1.5+\i*0.3, -3.55) rectangle ++(0.27, 0.5);
+    \draw[gray!50, thin] (-1.5+\i*0.3, -3.55) rectangle ++(0.27, 0.5);
 }
-\node[font=\tiny, gray] at (4.3, -1.08) {$\cdots$};
+\node[font=\scriptsize, gray] at (2.3, -3.3) {$\cdots$2048};
 
-\draw[-{Stealth[length=2mm]}, thick] (2, -0.25) -- (2, -0.8);
+\node (trees) [archbox, fill=green!22, below=2.0cm of fp] {1000 Decision Trees};
+\node (avg)   [archbox, fill=green!12, below of=trees]    {Ensemble Average};
+\node (out)   [archbox, fill=red!12, below of=avg]        {$\hat{\lambda}_{\max}$};
 
-% --- Decision trees ---
-\draw[-{Stealth[length=2mm]}, thick] (2, -1.95) -- (2, -2.5);
-\node[font=\scriptsize, anchor=south] at (2, -2.55) {1000 Decision Trees};
+\draw [archarrow] (smi)   -- (fp);
+\draw [archarrow] (fp)    -- ++(0,-0.35) -- ++(0,-0.15);
+\draw [archarrow] ([yshift=-0.05cm]barlabel.south) ++(0,-0.65) -- (trees);
+\draw [archarrow] (trees) -- (avg);
+\draw [archarrow] (avg)   -- (out);
 
-% Tree 1
-\begin{scope}[shift={(0.0, -3.2)}, scale=0.65,
-  every node/.style={circle, draw, inner sep=1pt, font=\tiny, minimum size=10pt}]
-  \node[fill=green!25] (r1) at (0,0) {$x_3$}
-    child[level distance=8mm, sibling distance=10mm] {
-      node[fill=green!25] {$x_7$}
-        child[level distance=7mm, sibling distance=6mm] { node[rectangle, fill=blue!30, rounded corners=1pt] {342} }
-        child[level distance=7mm, sibling distance=6mm] { node[rectangle, fill=orange!30, rounded corners=1pt] {401} }
-    }
-    child[level distance=8mm, sibling distance=10mm] {
-      node[rectangle, fill=red!25, rounded corners=1pt] {518}
-    };
-\end{scope}
-
-% Tree 2
-\begin{scope}[shift={(2.1, -3.2)}, scale=0.65,
-  every node/.style={circle, draw, inner sep=1pt, font=\tiny, minimum size=10pt}]
-  \node[fill=green!25] (r2) at (0,0) {$x_1$}
-    child[level distance=8mm, sibling distance=10mm] {
-      node[rectangle, fill=yellow!40, rounded corners=1pt] {385}
-    }
-    child[level distance=8mm, sibling distance=10mm] {
-      node[fill=green!25] {$x_5$}
-        child[level distance=7mm, sibling distance=6mm] { node[rectangle, fill=blue!40, rounded corners=1pt] {310} }
-        child[level distance=7mm, sibling distance=6mm] { node[rectangle, fill=orange!25, rounded corners=1pt] {428} }
-    };
-\end{scope}
-
-% Tree 3 (partial)
-\begin{scope}[shift={(4.0, -3.2)}, scale=0.65,
-  every node/.style={circle, draw, inner sep=1pt, font=\tiny, minimum size=10pt}]
-  \node[fill=green!25] (r3) at (0,0) {$x_9$}
-    child[level distance=8mm, sibling distance=10mm] {
-      node[rectangle, fill=orange!35, rounded corners=1pt] {445}
-    }
-    child[level distance=8mm, sibling distance=10mm] {
-      node[rectangle, fill=blue!25, rounded corners=1pt] {362}
-    };
-\end{scope}
-
-\node[font=\tiny, gray] at (4.9, -3.2) {$\cdots$};
-
-% --- Average + output ---
-\draw[-{Stealth[length=2mm]}, thick] (2, -5.3) -- (2, -5.8);
-\node[rounded corners=3pt, draw, fill=green!10, font=\small, minimum width=2.5cm, minimum height=0.55cm]
-  (avg) at (2, -6.2) {Average};
-\draw[-{Stealth[length=2mm]}, thick] (2, -6.5) -- (2, -7.0);
-\node[rounded corners=3pt, draw, fill=red!15, font=\small, minimum width=1.8cm, minimum height=0.55cm]
-  (out1) at (2, -7.35) {$\hat{\lambda}_{\max}$};
+% Dimension annotations
+\node[font=\scriptsize, gray, right] at (2.2, -1.25) {$\{0,1\}^{2048}$};
 \end{tikzpicture}
 \vfill}%
 \textbf{(a)} Random Forest\\[2pt]
-{\small Morgan fingerprints\\Train: $\sim$3 min/fold}
+{\small Morgan fingerprints\\No GPU --- trains in $\sim$3 min}
 \end{minipage}
 \hfill
-% ============== (b) BiGRU ==============
-\begin{minipage}[t]{0.34\textwidth}
+% ---- (b) BiGRU (optimized) ----
+\begin{minipage}[t]{0.30\textwidth}
 \centering
-\vbox to 10.5cm{%
-\begin{tikzpicture}[scale=0.72, transform shape, baseline=(current bounding box.north)]
-% --- SMILES tokens ---
-\node[font=\small\ttfamily, fill=gray!15, rounded corners=2pt, inner sep=3pt]
-  (mol) at (2.4, 0) {CC(=O)Oc1ccccc1};
+\vbox to 11cm{%
+\begin{tikzpicture}[node distance=1.25cm, scale=0.82, transform shape, baseline=(current bounding box.north)]
+\node (smi)  [archbox, fill=gray!15]                     {SMILES Input};
+\node (tok)  [archbox, fill=teal!10, below of=smi]       {Char Tokenization};
+\node (emb)  [archbox, fill=teal!20, below of=tok]       {Embedding ($d{=}50$)};
+\node (gru1) [archbox, fill=teal!30, below of=emb]       {BiGRU Layer 1 (256$\times$2)};
+\node (gru2) [archbox, fill=teal!30, below of=gru1]      {BiGRU Layer 2 (256$\times$2)};
+\node (gru3) [archbox, fill=teal!30, below of=gru2]      {BiGRU Layer 3 (256$\times$2)};
+\node (den)  [archbox, fill=purple!12, below of=gru3]    {Dense (128, ReLU)};
+\node (drop) [archbox, fill=orange!10, below of=den]     {Dropout (0.105)};
+\node (out)  [archbox, fill=red!12, below of=drop]       {$\hat{\lambda}_{\max}$};
 
-\draw[-{Stealth[length=2mm]}, thick] (2.4, -0.25) -- (2.4, -0.7);
-\node[font=\scriptsize, anchor=south] at (2.4, -0.75) {Character tokenization};
+\draw [archarrow] (smi)  -- (tok);
+\draw [archarrow] (tok)  -- (emb);
+\draw [archarrow] (emb)  -- (gru1);
+\draw [archarrow] (gru1) -- (gru2);
+\draw [archarrow] (gru2) -- (gru3);
+\draw [archarrow] (gru3) -- (den);
+\draw [archarrow] (den)  -- (drop);
+\draw [archarrow] (drop) -- (out);
 
-% Token boxes
-\foreach \i/\ch in {0/C, 1/C, 2/(, 3/=, 4/O, 5/), 6/O, 7/c} {
-    \node[draw, fill=teal!10, minimum width=0.42cm, minimum height=0.42cm, font=\tiny\ttfamily,
-          inner sep=0pt] (t\i) at (\i*0.5, -1.2) {\ch};
-}
-\node[font=\tiny, gray] at (4.3, -1.2) {$\cdots$};
+% Dimension annotations
+\node[font=\scriptsize, gray, right] at (2.2, -2.5)  {$T \times 50$};
+\node[font=\scriptsize, gray, right] at (2.2, -3.75) {$T \times 512$};
+\node[font=\scriptsize, gray, right] at (2.2, -6.25) {$512$};
 
-% Embedding columns
-\draw[-{Stealth[length=2mm]}, thick] (2.4, -1.55) -- (2.4, -1.9);
-\node[font=\scriptsize, anchor=south] at (2.4, -1.95) {Embedding ($d{=}50$)};
-\foreach \i in {0,...,7} {
-    \foreach \j/\c in {0/teal!40, 1/teal!20, 2/teal!55, 3/teal!15} {
-        \fill[\c] (\i*0.5-0.15, -2.35-\j*0.18) rectangle ++(0.3, 0.16);
-        \draw[gray!40, very thin] (\i*0.5-0.15, -2.35-\j*0.18) rectangle ++(0.3, 0.16);
-    }
-}
-\node[font=\tiny, gray] at (4.3, -2.6) {$\cdots$};
-
-% --- Unrolled BiGRU ---
-\draw[-{Stealth[length=2mm]}, thick] (2.4, -3.15) -- (2.4, -3.55);
-\node[font=\scriptsize, anchor=south] at (2.4, -3.6) {BiGRU $\times$ 3 layers};
-
-% Forward cells (green)
-\foreach \i in {0,...,7} {
-    \node[circle, fill=teal!35, draw=teal!70, minimum size=7pt, inner sep=0pt]
-      (fwd\i) at (\i*0.5, -4.1) {};
-}
-% Backward cells (orange)
-\foreach \i in {0,...,7} {
-    \node[circle, fill=orange!35, draw=orange!70, minimum size=7pt, inner sep=0pt]
-      (bwd\i) at (\i*0.5, -4.65) {};
-}
-% Forward arrows
-\foreach \i [evaluate=\i as \j using int(\i+1)] in {0,...,6} {
-    \draw[->, teal!70, thin] (fwd\i) -- (fwd\j);
-}
-% Backward arrows
-\foreach \i [evaluate=\i as \j using int(\i+1)] in {0,...,6} {
-    \draw[<-, orange!70, thin] (bwd\i) -- (bwd\j);
-}
-% Legend
-\node[font=\tiny, teal!70, anchor=west] at (4.5, -4.1) {$\overrightarrow{h}$};
-\node[font=\tiny, orange!70, anchor=west] at (4.5, -4.65) {$\overleftarrow{h}$};
-
-% Concatenate
-\draw[-{Stealth[length=2mm]}, thick] (2.4, -5.05) -- (2.4, -5.4);
-\node[rounded corners=3pt, draw, fill=purple!12, font=\small, minimum width=2.5cm, minimum height=0.5cm]
-  (dense) at (2.4, -5.75) {Dense (128, ReLU)};
-\draw[-{Stealth[length=2mm]}, thick] (2.4, -6.05) -- (2.4, -6.35);
-\node[rounded corners=3pt, draw, fill=orange!12, font=\small, minimum width=2.5cm, minimum height=0.5cm]
-  (drop) at (2.4, -6.7) {Dropout (0.105)};
-\draw[-{Stealth[length=2mm]}, thick] (2.4, -7.0) -- (2.4, -7.3);
-\node[rounded corners=3pt, draw, fill=red!15, font=\small, minimum width=1.8cm, minimum height=0.55cm]
-  (out2) at (2.4, -7.65) {$\hat{\lambda}_{\max}$};
+% Brace for 3 BiGRU layers
+\draw[decorate, decoration={brace, amplitude=4pt, mirror}, thick, teal!60]
+  (2.15, -3.2) -- (2.15, -6.9) node[midway, right=5pt, font=\scriptsize, teal!70] {$\times 3$};
 \end{tikzpicture}
 \vfill}%
 \textbf{(b)} BiGRU (optimized)\\[2pt]
-{\small 2.1M params\\Train: $\sim$5 hr/fold}
+{\small 2.1M params --- $\sim$5 hr/fold}
 \end{minipage}
 \hfill
-% ============== (c) ChemBERTa ==============
-\begin{minipage}[t]{0.31\textwidth}
+% ---- (c) ChemBERTa ----
+\begin{minipage}[t]{0.30\textwidth}
 \centering
-\vbox to 10.5cm{%
-\begin{tikzpicture}[scale=0.72, transform shape, baseline=(current bounding box.north)]
-% --- SMILES + BPE ---
-\node[font=\small\ttfamily, fill=gray!15, rounded corners=2pt, inner sep=3pt]
-  (mol) at (2, 0) {CC(=O)Oc1ccccc1};
+\vbox to 11cm{%
+\begin{tikzpicture}[node distance=1.25cm, scale=0.82, transform shape, baseline=(current bounding box.north)]
+\node (smi)  [archbox, fill=gray!15]                      {SMILES Input};
+\node (tok)  [archbox, fill=violet!10, below of=smi]      {BPE Tokenization};
+\node (pre)  [archbox, fill=violet!20, below of=tok]      {Pretrained Embeddings};
+\node (trn1) [archbox, fill=violet!30, below of=pre]      {Transformer Layer};
+\node (trn2) [archbox, fill=violet!30, below of=trn1]     {Transformer Layer};
+\node (trn3) [archbox, fill=violet!30, below of=trn2]     {Transformer Layer};
+\node (cls)  [archbox, fill=violet!15, below of=trn3]     {{[CLS]} Pooling};
+\node (head) [archbox, fill=purple!15, below of=cls]      {Regression Head};
+\node (out)  [archbox, fill=red!12, below of=head]        {$\hat{\lambda}_{\max}$};
 
-\draw[-{Stealth[length=2mm]}, thick] (2, -0.25) -- (2, -0.7);
-\node[font=\scriptsize, anchor=south] at (2, -0.75) {BPE tokenization};
+\draw [archarrow] (smi)  -- (tok);
+\draw [archarrow] (tok)  -- (pre);
+\draw [archarrow] (pre)  -- (trn1);
+\draw [archarrow] (trn1) -- (trn2);
+\draw [archarrow] (trn2) -- (trn3);
+\draw [archarrow] (trn3) -- (cls);
+\draw [archarrow] (cls)  -- (head);
+\draw [archarrow] (head) -- (out);
 
-% BPE token boxes (subwords)
-\foreach \i/\ch/\w in {0/{[CLS]}/0.7, 1/CC/0.45, 2/{(=O)}/0.6, 3/Oc/0.45, 4/{1cc}/0.5} {
-    \pgfmathsetmacro{\xpos}{\i*0.85+0.1}
-    \node[draw, fill=violet!12, minimum height=0.42cm, font=\tiny\ttfamily,
-          inner sep=2pt] (b\i) at (\xpos, -1.2) {\ch};
-}
-\node[font=\tiny, gray] at (4.4, -1.2) {$\cdots$};
+% Brace for 6 transformer layers
+\draw[decorate, decoration={brace, amplitude=4pt, mirror}, thick, violet!60]
+  (2.15, -3.2) -- (2.15, -6.9) node[midway, right=5pt, font=\scriptsize, violet!70] {$\times 6$};
 
-% Highlight [CLS]
-\draw[violet!70, thick, rounded corners=1pt] ([xshift=-2pt, yshift=2pt]b0.north west)
-  rectangle ([xshift=2pt, yshift=-2pt]b0.south east);
-
-\draw[-{Stealth[length=2mm]}, thick] (2, -1.55) -- (2, -1.9);
-
-% --- Transformer stack ---
-\node[font=\scriptsize, anchor=south] at (2, -1.95) {Pretrained on 77M SMILES};
-
-% Stacked transformer blocks
-\foreach \layer/\yoff in {1/-2.3, 2/-3.1, 3/-3.9} {
-    \node[draw, fill=violet!8, rounded corners=2pt, minimum width=3.8cm, minimum height=0.6cm]
-      (tl\layer) at (2, \yoff) {};
-    % Multi-head attention sub-block
-    \fill[violet!25, rounded corners=1pt] (0.15, \yoff-0.18) rectangle ++(1.5, 0.36);
-    \node[font=\tiny, white] at (0.9, \yoff) {Multi-Head Attn};
-    % FFN sub-block
-    \fill[violet!15, rounded corners=1pt] (1.85, \yoff-0.18) rectangle ++(1.8, 0.36);
-    \node[font=\tiny] at (2.75, \yoff) {Feed-Forward};
-}
-\draw[->, thick, gray!60] (2, -2.65) -- (2, -2.8);
-\draw[->, thick, gray!60] (2, -3.45) -- (2, -3.6);
-
-% Layer label with brace
-\draw[decorate, decoration={brace, amplitude=4pt, mirror}, thick, violet!50]
-  (4.1, -2.1) -- (4.1, -4.15) node[midway, right=5pt, font=\tiny, violet!70] {$\times 6$};
-
-% --- Attention heatmap inset (hardcoded values) ---
-\node[font=\tiny, anchor=south] at (2, -4.55) {Attention pattern:};
-% Row 0 ([CLS] row - high attention)
-\fill[violet!70] (0.70,-4.80) rectangle ++(0.23,0.23);
-\fill[violet!50] (0.95,-4.80) rectangle ++(0.23,0.23);
-\fill[violet!40] (1.20,-4.80) rectangle ++(0.23,0.23);
-\fill[violet!20] (1.45,-4.80) rectangle ++(0.23,0.23);
-\fill[violet!10] (1.70,-4.80) rectangle ++(0.23,0.23);
-% Row 1
-\fill[violet!12] (0.70,-5.05) rectangle ++(0.23,0.23);
-\fill[violet!55] (0.95,-5.05) rectangle ++(0.23,0.23);
-\fill[violet!12] (1.20,-5.05) rectangle ++(0.23,0.23);
-\fill[violet!12] (1.45,-5.05) rectangle ++(0.23,0.23);
-\fill[violet!12] (1.70,-5.05) rectangle ++(0.23,0.23);
-% Row 2
-\fill[violet!12] (0.70,-5.30) rectangle ++(0.23,0.23);
-\fill[violet!12] (0.95,-5.30) rectangle ++(0.23,0.23);
-\fill[violet!55] (1.20,-5.30) rectangle ++(0.23,0.23);
-\fill[violet!12] (1.45,-5.30) rectangle ++(0.23,0.23);
-\fill[violet!12] (1.70,-5.30) rectangle ++(0.23,0.23);
-% Row 3
-\fill[violet!12] (0.70,-5.55) rectangle ++(0.23,0.23);
-\fill[violet!12] (0.95,-5.55) rectangle ++(0.23,0.23);
-\fill[violet!12] (1.20,-5.55) rectangle ++(0.23,0.23);
-\fill[violet!55] (1.45,-5.55) rectangle ++(0.23,0.23);
-\fill[violet!12] (1.70,-5.55) rectangle ++(0.23,0.23);
-% Row 4
-\fill[violet!12] (0.70,-5.80) rectangle ++(0.23,0.23);
-\fill[violet!12] (0.95,-5.80) rectangle ++(0.23,0.23);
-\fill[violet!12] (1.20,-5.80) rectangle ++(0.23,0.23);
-\fill[violet!12] (1.45,-5.80) rectangle ++(0.23,0.23);
-\fill[violet!55] (1.70,-5.80) rectangle ++(0.23,0.23);
-% Grid lines
-\foreach \r in {0,...,4} {
-    \foreach \c in {0,...,4} {
-        \draw[gray!30, very thin] (0.70+\c*0.25, -4.80-\r*0.25) rectangle ++(0.23, 0.23);
-    }
-}
-% CLS label
-\node[font=\tiny, violet!70, rotate=90, anchor=south] at (0.55, -5.3) {[CLS]};
-
-% --- [CLS] pooling + head ---
-\draw[-{Stealth[length=2mm]}, thick] (2, -6.15) -- (2, -6.45);
-\node[rounded corners=3pt, draw, fill=violet!15, font=\small, minimum width=2.8cm, minimum height=0.5cm]
-  (head) at (2, -6.8) {Regression Head};
-\draw[-{Stealth[length=2mm]}, thick] (2, -7.1) -- (2, -7.4);
-\node[rounded corners=3pt, draw, fill=red!15, font=\small, minimum width=1.8cm, minimum height=0.55cm]
-  (out3) at (2, -7.75) {$\hat{\lambda}_{\max}$};
+% Pretrained label
+\node[font=\tiny, violet!60, anchor=west] at (2.2, -2.5) {77M SMILES};
 \end{tikzpicture}
 \vfill}%
 \textbf{(c)} ChemBERTa\\[2pt]
-{\small 44.1M params\\Train: $\sim$3 hr/fold}
+{\small 44.1M params --- $\sim$3 hr/fold}
 \end{minipage}
 
-\caption{Architecture comparison of the three model families. (a)~Random Forest: Morgan circular fingerprints are hashed into a 2048-bit vector; an ensemble of 1000 decision trees votes on $\lambda_{\max}$ --- no GPU required, trains in minutes. (b)~BiGRU (optimized): character-level SMILES tokens are embedded and processed by 3 stacked bidirectional GRU layers (forward $\protect\overrightarrow{h}$, backward $\protect\overleftarrow{h}$), capturing sequential context in both directions. (c)~ChemBERTa: BPE-tokenized SMILES are processed by a 6-layer Transformer pretrained on 77M molecules; the \texttt{[CLS]} token representation (highlighted) is passed to a regression head. Leaf-colored values in (a) represent predicted $\lambda_{\max}$ (nm). All models receive solvent information via SMILES concatenation (Section~\ref{sec:solvent}).}
+\caption{Architecture comparison of the three model families. (a)~Random Forest operates on precomputed Morgan fingerprints (binary barcode); an ensemble of 1000 trees votes on $\lambda_{\max}$, requiring no GPU. (b)~BiGRU processes character-level SMILES through 3 stacked bidirectional GRU layers (256 units per direction), optimized via Bayesian HPO (Section~\ref{sec:bigru}). (c)~ChemBERTa fine-tunes a 6-layer Transformer pretrained on 77M SMILES from ZINC; the \texttt{[CLS]} token is passed to a regression head. All models receive solvent information via SMILES concatenation (Section~\ref{sec:solvent}).}
 \label{fig:model_overview}
 \end{figure}
 
