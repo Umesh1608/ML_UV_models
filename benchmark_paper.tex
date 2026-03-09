@@ -559,7 +559,6 @@ Figure~\ref{fig:bigru_architectures} compares the default and optimized BiGRU ar
 
 \begin{minipage}[t]{0.45\textwidth}
 \centering
-\vbox to 9cm{%
 \begin{tikzpicture}[node distance=1.3cm, scale=0.82, transform shape, baseline=(current bounding box.north)]
 \node (emb)  [layerbox, fill=blue!15]                    {Embedding ($d=50$)};
 \node (gru1) [layerbox, fill=green!20, below of=emb]     {BiGRU Layer 1 (128$\times$2)};
@@ -578,15 +577,16 @@ Figure~\ref{fig:bigru_architectures} compares the default and optimized BiGRU ar
 \node[font=\scriptsize, gray, right] at (2.4, -3.9)  {$128$};
 \node[font=\scriptsize, gray, right] at (2.4, -5.2)  {$128$};
 \node[font=\scriptsize, gray, right] at (2.4, -6.5)  {$1$};
+% Invisible spacer to match height of (b)
+\node[below=1.3cm of out] (spacer) {};
 \end{tikzpicture}
-\vfill}%
+
 \textbf{(a)} Default BiGRU\\[2pt]
 {\small 2 layers, 128 units, $\sim$470K params\\Liu et al.\ (2023) architecture}
 \end{minipage}
 \hfill
 \begin{minipage}[t]{0.45\textwidth}
 \centering
-\vbox to 9cm{%
 \begin{tikzpicture}[node distance=1.3cm, scale=0.82, transform shape, baseline=(current bounding box.north)]
 \node (emb)  [layerbox, fill=blue!15]                    {Embedding ($d=50$)};
 \node (gru1) [layerbox, fill=green!35, below of=emb]     {BiGRU Layer 1 (256$\times$2)};
@@ -609,7 +609,7 @@ Figure~\ref{fig:bigru_architectures} compares the default and optimized BiGRU ar
 \node[font=\scriptsize, gray, right] at (2.4, -6.5)  {$128$};
 \node[font=\scriptsize, gray, right] at (2.4, -7.8)  {$1$};
 \end{tikzpicture}
-\vfill}%
+
 \textbf{(b)} Optimized BiGRU\\[2pt]
 {\small 3 layers, 256 units, $\sim$2.1M params\\Optuna HPO (25 trials, 8.6\% $\downarrow$ RMSE)}
 \end{minipage}
