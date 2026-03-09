@@ -83,17 +83,19 @@ Single train/val/test splits matching each paper's published protocol. Val used 
 - After HPO: `python3 tune_bigru.py --full-cv` (~25h GPU, trains best config on all 5 folds)
 
 **Remaining Phase I steps (in order):**
-1. Finish A3 HPO (5 remaining trials): `python3 tune_bigru.py --n-trials 30`
-2. Run full-cv with best config: `python3 tune_bigru.py --full-cv`
-3. Re-evaluate wetlab: `python3 eval_wetlab.py`
-4. Update paper: Table 2, Table S5, TikZ, discussion
-5. A7: BiGRU direct classification on Mamede (~3-5h GPU)
+1. ✅ A3 HPO: 25/30 trials complete (stopped — sufficient). Best: Trial 25, val_loss=33.33
+   - Config saved: `results/bigru_tuned_best_config.json`
+2. Run full-cv with best config: `python3 tune_bigru.py --full-cv` (~15-25h GPU)
+3. Re-evaluate wetlab with tuned BiGRU: update `eval_wetlab.py` to load tuned models
+4. Update paper: Table 2, Table S5, TikZ, discussion with tuned BiGRU numbers
+5. ✅ A8: BiGRU saliency interpretability — `analyze_bigru_saliency.py`, figures + paper text done
+6. A7: BiGRU direct classification on Mamede (~3-5h GPU)
    - Use tuned architecture (256u/3l) with task="classification" (sigmoid + BCE)
    - Train on Mamede/Reaxys ~74K binary labels (POS = λ_max ∈ [290,700] AND MEC ≥ 1000)
    - Compare vs: Mamede RF (Sens=0.90, Spec=0.88) and our RF (Sens=0.876, Spec=0.882)
    - Update Table 4, discussion, conclusion; publish model weights
-6. A5: GitHub repo + Zenodo DOI + model weights
-7. Final compile + proofread
+7. A5: GitHub repo + Zenodo DOI + model weights
+8. Final compile + proofread
 
 #### What's DONE ✅
 
@@ -109,6 +111,8 @@ Single train/val/test splits matching each paper's published protocol. Val used 
 | B4 ChemBERTa learning curves (supplementary) | 3f7b8cf |
 | Figure 7 fix (vertical layout) | 189c44e |
 | Paper title updated to "When Do Simple Models Win?" | latest |
+| A8 BiGRU saliency interpretability (gradient → atom heatmaps) | pending commit |
+| A3 HPO stopped at 25/30 trials (sufficient), best config saved | pending commit |
 
 #### Phase II — Multi-Property Expansion (`benchmark_paper_v2.tex`)
 
@@ -126,7 +130,7 @@ Single train/val/test splits matching each paper's published protocol. Val used 
 
 #### Priority Execution Order
 ```
-Phase I: A3 ⏸ (5 trials left) → full-cv → wetlab → paper updates → A7 → A5 → final proofread
+Phase I: full-cv (GPU) → wetlab re-eval → paper number updates → A7 classification (GPU) → A5 repo → final proofread
 Phase II (after Phase I): log_mec RF ⏸ → BiGRU (GPU) → ChemBERTa (GPU) → paper_v2
 ```
 
@@ -181,7 +185,8 @@ Files: `ml_chemistry_template.tex`, `Proposal.bib` (77K tokens — read with off
 - **`notes_on_paper.tex`** — Revision notes, reviewer Q&A, submission checklist, fallback git hashes
 - **`ml_chemistry_template.tex`** — Original DL-focused paper (preserved, Overleaf-synced)
 - **`tune_rf.py`** — RF hyperparameter grid search (432 configs)
-- **`tune_bigru.py`** — BiGRU Optuna HPO (30 trials, SQLite storage, stop/resume safe)
+- **`tune_bigru.py`** — BiGRU Optuna HPO (25/30 trials done, SQLite storage, stop/resume safe)
+- **`analyze_bigru_saliency.py`** — BiGRU gradient saliency → atom-level 2D heatmaps (InputxGradient)
 - **`run_multi_property.py`** — Phase II multi-property experiments (emission, log_mec, lipophilicity)
 - **`ROADMAP.txt`** — Full execution guide with commands and stop/resume safety
 - **`results/`** — All outputs. **`data/`** — Datasets. **`previous_code/`** — Original work.

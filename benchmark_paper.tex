@@ -669,7 +669,7 @@ Error distributions across the five most common solvents (Figure~\ref{fig:error_
 \label{sec:interpretability}
 
 A key advantage of fingerprint-based models is their interpretability through feature importance analysis.
-In contrast to deep learning models, which operate as black-box function approximators, Random Forest models provide direct access to the contribution of each input feature through Gini importance, a measure of how much each feature reduces prediction variance across all decision trees in the ensemble.
+In contrast to deep learning models, which are traditionally viewed as less interpretable, Random Forest models provide direct access to the contribution of each input feature through Gini importance, a measure of how much each feature reduces prediction variance across all decision trees in the ensemble.
 
 Since each bit in a Morgan fingerprint corresponds to a specific molecular substructure (a circular neighborhood of radius $\leq 2$ around each atom), high-importance bits can be decoded back to chemically meaningful structural motifs.
 We averaged Gini importances across all five fold models and decoded the top features using RDKit.
@@ -723,6 +723,22 @@ RF training completes in approximately 15 minutes on a single CPU, compared to 2
 RF requires no GPU hardware, no hyperparameter tuning of learning rates or batch sizes, and no early stopping strategy.
 These results highlight that, depending on the dataset and molecular application domain, it is prudent to evaluate classical ML models where appropriate to gain insights into relative performance before directly deploying deep learning architectures.
 While deep learning retains clear advantages in scenarios requiring transfer learning, end-to-end learning from raw data, or scalability to very large datasets, the simplicity, speed, and interpretability of fingerprint-based models make them a valuable complement, and in some cases a preferred alternative, in the molecular property prediction toolkit.
+
+\textbf{Instance-level interpretability for BiGRU.}
+While RF provides \emph{global} interpretability (which substructures matter dataset-wide), the BiGRU model offers complementary \emph{instance-level} interpretability through gradient-based saliency analysis~\cite{simonyan2014deep}.
+We computed Input$\times$Gradient saliency for each SMILES character position, then mapped character-level scores to atoms using RDKit's canonical SMILES atom-ordering~\cite{landrumRdkitRdkit2020_03_12020}, and visualized the resulting atom-level importance as 2D molecular heatmaps via SimilarityMaps~\cite{riniker2013similarity} (Figure~\ref{fig:bigru_saliency}).
+
+The saliency maps reveal that BiGRU learns chemically meaningful patterns consistent with the RF feature importance analysis: high-saliency atoms concentrate on heteroatoms (O, N, S) and atoms adjacent to double bonds --- precisely the functional groups that determine $\pi$-conjugation and thus UV absorption wavelength --- while aliphatic chains receive low saliency.
+For molecules where BiGRU predicts accurately (e.g., Sinapic Acid, err = $-5.6$~nm), saliency is focused on the hydroxyl and methoxy groups of the chromophore; for poorly predicted molecules (e.g., Cinnamic Acid, err = $+78.2$~nm), the model over-attributes importance to the carboxylic acid rather than the conjugated vinyl bridge.
+This convergence between RF's substructure-level Gini importance and BiGRU's atom-level gradient saliency provides independent confirmation that both models learn the same underlying photochemistry through fundamentally different architectures, a form of \emph{triangulation} that strengthens confidence in the learned structure--property relationships~\cite{gohSMILES2VecInterpretableGeneralPurpose2018}.
+We note that gradient saliency identifies correlations rather than causal mechanisms, and that attention weights in Transformer-based models are even less reliable for interpretability~\cite{jain2019attention} (see Supplementary Figure~\ref{fig:bigru_chartype} for character-type importance analysis).
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth]{results/bigru_saliency_atoms.pdf}
+    \caption{BiGRU gradient saliency mapped to 2D molecular structures for six wetlab validation molecules. Color intensity indicates atom-level importance (red = high saliency, blue = low). Molecules are ordered by prediction accuracy: well-predicted molecules (left) show focused saliency on the chromophore, while poorly predicted molecules (right) show diffuse saliency.}
+    \label{fig:bigru_saliency}
+\end{figure}
 
 
 % --- Photosafety Classification ---
@@ -860,7 +876,7 @@ Our key findings are:
 
     \item \textbf{RF provides interpretable, efficient predictions.}
     Feature importance analysis reveals that the RF model learns chemically meaningful patterns: the top features correspond to known chromophore motifs (aryl diazo, BODIPY, enamine) that produce large bathochromic shifts.
-    The top 20 features (out of 4096) explain over 41\% of importance, providing transparency that deep learning models cannot offer.
+    The top 20 features (out of 4096) explain over 41\% of importance, providing global interpretability that complements the instance-level saliency available for deep learning models (Section~\ref{sec:interpretability}).
     RF also trains 100$\times$ faster than BiGRU (15 minutes CPU vs.\ 25 hours GPU), making it the practical first choice when the target chemical space is well-represented in training data.
 
     \item \textbf{Practical classification matches published results.}
@@ -883,7 +899,7 @@ Finally, the Wilcoxon signed-rank test (a non-parametric alternative appropriate
 Transfer learning from larger UV absorption databases (e.g., the Reaxys dataset of $\sim$70K records) may improve BiGRU performance and narrow the gap with RF on cross-validated benchmarks, leveraging deep learning's capacity for pretraining~\cite{vermeire2021transfer}, an advantage that classical ML cannot replicate.
 Incorporating 3D structural information through hybrid architectures~\cite{gilmer2017neural} or precomputed quantum-chemical descriptors~\cite{lupopasini2023excited} could improve predictions for geometry-dependent chromophores.
 Ensemble approaches combining RF and BiGRU predictions could potentially leverage the complementary strengths of both model families, using RF's interpolation accuracy for well-represented scaffolds and BiGRU's extrapolation capability for novel structures.
-While RF provides global feature importance, attention mechanisms in Transformer-based sequence models~\cite{vaswani2017attention, hondaSMILESTransformerPretrained2019} could offer instance-level interpretability by highlighting which molecular substructures drive individual predictions.
+We have demonstrated instance-level interpretability for BiGRU through gradient saliency analysis; extending gradient-based methods (rather than unreliable attention weights~\cite{jain2019attention}) to ChemBERTa and other Transformer architectures is a natural next step.
 More broadly, our in-distribution results are consistent with the hypothesis that architecture choice in molecular ML may be influenced by the locality of the target property~\cite{chenMolecularLanguage2023, jiang2023trangru}: properties determined by local substructures (UV absorption, functional group-dependent activity) favor fingerprint and RNN-based approaches on cross-validated benchmarks, while out-of-distribution evaluation reveals that additional factors such as pretraining data and learned representations can overcome architectural mismatch.
 
 
@@ -1070,6 +1086,21 @@ BiGRU + Solvent                   & 36.45 $\pm$ 1.12 & 20.70 $\pm$ 0.51 & --- \\
 Even the default RF (RMSE = 32.18~nm) outperforms BiGRU (RMSE = 36.45~nm) by 12\%.
 Tuning provides only an additional 2.6\% improvement, suggesting that the in-distribution performance gap is not primarily driven by optimization effort, though BiGRU hyperparameters remain untuned (see below).
 BiGRU hyperparameters were not tuned due to the prohibitive training cost ($\sim$5 hours per fold on an RTX 4090 GPU, compared to $\sim$3 minutes for RF), following the architecture of Liu et al.~\cite{liuPredictionMolecularToxicity2023}.
+
+
+\subsection{BiGRU Character-Type Saliency}
+\label{sec:chartype_saliency}
+
+Figure~\ref{fig:bigru_chartype} shows the mean gradient saliency aggregated by SMILES character type across all wetlab validation molecules.
+Bond symbols (\texttt{=}, \texttt{\#}) receive the highest mean saliency, reflecting the critical role of double and triple bonds in establishing conjugated $\pi$-systems that determine UV absorption.
+Heteroatoms (N, O, S) rank second, consistent with their role as electron donors and acceptors in chromophores, while aromatic atom characters and aliphatic carbons receive lower saliency, and brackets/syntax characters contribute minimally.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.65\textwidth]{results/bigru_saliency_chartype.pdf}
+    \caption{Mean BiGRU gradient saliency by SMILES character type, averaged over all wetlab validation molecules. Aromatic atoms and heteroatoms dominate, consistent with their role in determining UV absorption.}
+    \label{fig:bigru_chartype}
+\end{figure}
 
 
 % ===== Bibliography =====

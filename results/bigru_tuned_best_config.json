@@ -1,0 +1,9 @@
+{
+  "n_units": 256,
+  "n_layers": 3,
+  "embed_dim": 50,
+  "dropout": 0.10530539512683038,
+  "lr": 0.00111312461003007,
+  "batch_size": 128,
+  "best_val_rmse": 33.33
+}
