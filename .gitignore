@@ -15,3 +15,28 @@ env/
 *.so
 .coverage
 htmlcov/
+
+# Model weights and large binary files
+*.keras
+*.pt
+*.joblib
+*.npy
+*.npz
+*.db
+
+# Raw data (too large for git)
+data/raw/
+previous_code/
+
+# Windows zone identifiers
+*:Zone.Identifier
+
+# LaTeX build artifacts
+*.aux
+*.bbl
+*.blg
+*.log
+*.out
+*.synctex.gz
+*.fdb_latexmk
+*.fls
