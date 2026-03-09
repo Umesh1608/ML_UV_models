@@ -18,6 +18,7 @@
 \usepackage{multirow}
 \usepackage[dvipsnames]{xcolor}
 \usepackage[margin=1in]{geometry}
+\usepackage{float}   % For [H] exact float placement in appendix
 \usepackage{lineno}  % For line numbers during review
 
 % ===== Hyperref Setup =====
@@ -920,7 +921,7 @@ All code for model training, evaluation, and analysis will be released on GitHub
 
 Tables~\ref{tab:perfold_rf}--\ref{tab:perfold_chemberta} present per-fold results for all four model families on the primary Joung+Beard dataset (stratified 5-fold CV, 64/16/20 split).
 
-\begin{table}[h]
+\begin{table}[H]
 \centering
 \caption{Per-fold RF + Morgan FP results (tuned, with solvent).}
 \label{tab:perfold_rf}
@@ -939,7 +940,7 @@ Tables~\ref{tab:perfold_rf}--\ref{tab:perfold_chemberta} present per-fold result
 \end{tabular}
 \end{table}
 
-\begin{table}[h]
+\begin{table}[H]
 \centering
 \caption{Per-fold BiGRU + Solvent results (v2).}
 \label{tab:perfold_bigru}
@@ -958,7 +959,7 @@ Tables~\ref{tab:perfold_rf}--\ref{tab:perfold_chemberta} present per-fold result
 \end{tabular}
 \end{table}
 
-\begin{table}[h]
+\begin{table}[H]
 \centering
 \caption{Per-fold XGBoost + Morgan FP results (MSE loss, v2).}
 \label{tab:perfold_xgboost}
@@ -977,7 +978,7 @@ Tables~\ref{tab:perfold_rf}--\ref{tab:perfold_chemberta} present per-fold result
 \end{tabular}
 \end{table}
 
-\begin{table}[h]
+\begin{table}[H]
 \centering
 \caption{Per-fold ChemBERTa results (v2).}
 \label{tab:perfold_chemberta}
@@ -1003,7 +1004,7 @@ Table~\ref{tab:significance} presents paired $t$-test results across the five cr
 All model comparisons are statistically significant at $\alpha = 0.05$ using the parametric paired $t$-test.
 With only $n = 5$ folds, the Wilcoxon signed-rank test (a non-parametric alternative) yields $p = 0.0625$ for all comparisons (the minimum achievable $p$-value when all 5 paired differences are concordant), providing strong directional evidence despite not reaching conventional significance.
 
-\begin{table}[h]
+\begin{table}[H]
 \centering
 \caption{Paired $t$-test results for RMSE comparisons across 5 folds.}
 \label{tab:significance}
@@ -1041,7 +1042,7 @@ Figure~\ref{fig:learning_curves} shows the training and validation MAE curves fo
 Both models converge within 75--125 epochs, with early stopping preventing overfitting.
 The gap between training and validation curves indicates mild overfitting, consistent with the relatively small dataset size (12K training samples per fold).
 
-\begin{figure}[htbp]
+\begin{figure}[H]
     \centering
     \includegraphics[width=0.9\textwidth]{results/learning_curves.png}
     \caption{BiGRU training curves showing training and validation MAE vs.\ epoch, averaged across folds. Shaded regions denote $\pm 1$ standard deviation. Left: BiGRU with solvent encoding. Right: BiGRU with solute only.}
@@ -1055,7 +1056,7 @@ Figure~\ref{fig:chemberta_curves} shows the ChemBERTa training and validation MA
 All folds converge within 40--60 epochs, with the final validation MAE plateauing around 24--26~nm.
 The gap between training and validation MAE is larger than for BiGRU, consistent with ChemBERTa's 44.1M parameters being overparameterized for the $\sim$12K training samples available per fold.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
     \centering
     \includegraphics[width=\textwidth]{results/chemberta_learning_curves.png}
     \caption{ChemBERTa fine-tuning learning curves. Left: per-fold validation MAE (solid) and training MAE (dashed). Right: mean $\pm$ 1 standard deviation across folds, with final values annotated.}
@@ -1068,7 +1069,7 @@ The gap between training and validation MAE is larger than for BiGRU, consistent
 
 Table~\ref{tab:tuning_asymmetry} compares the effect of RF hyperparameter tuning against the default scikit-learn configuration, demonstrating that RF's advantage over BiGRU is not an artifact of asymmetric tuning effort.
 
-\begin{table}[h]
+\begin{table}[H]
 \centering
 \caption{Effect of RF hyperparameter tuning on cross-validated performance (stratified 5-fold CV).}
 \label{tab:tuning_asymmetry}
@@ -1095,7 +1096,7 @@ Figure~\ref{fig:bigru_chartype} shows the mean gradient saliency aggregated by S
 Bond symbols (\texttt{=}, \texttt{\#}) receive the highest mean saliency, reflecting the critical role of double and triple bonds in establishing conjugated $\pi$-systems that determine UV absorption.
 Heteroatoms (N, O, S) rank second, consistent with their role as electron donors and acceptors in chromophores, while aromatic atom characters and aliphatic carbons receive lower saliency, and brackets/syntax characters contribute minimally.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
     \centering
     \includegraphics[width=0.65\textwidth]{results/bigru_saliency_chartype.pdf}
     \caption{Mean BiGRU gradient saliency by SMILES character type, averaged over all wetlab validation molecules. Aromatic atoms and heteroatoms dominate, consistent with their role in determining UV absorption.}
@@ -1103,6 +1104,7 @@ Heteroatoms (N, O, S) rank second, consistent with their role as electron donors
 \end{figure}
 
 
+\clearpage
 % ===== Bibliography =====
 \bibliographystyle{unsrtnat}
 \bibliography{Proposal}
