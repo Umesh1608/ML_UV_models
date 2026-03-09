@@ -428,7 +428,7 @@ Figure~\ref{fig:bigru_architectures} compares the default and optimized BiGRU ar
 
 \begin{minipage}[t]{0.45\textwidth}
 \centering
-\begin{tikzpicture}[node distance=1.3cm, scale=0.82, transform shape]
+\begin{tikzpicture}[node distance=1.3cm, scale=0.82, transform shape, baseline=(current bounding box.north)]
 \node (emb)  [layerbox, fill=blue!15]                    {Embedding ($d=50$)};
 \node (gru1) [layerbox, fill=green!20, below of=emb]     {BiGRU Layer 1 (128$\times$2)};
 \node (gru2) [layerbox, fill=green!20, below of=gru1]    {BiGRU Layer 2 (128$\times$2)};
@@ -454,7 +454,7 @@ Figure~\ref{fig:bigru_architectures} compares the default and optimized BiGRU ar
 \hfill
 \begin{minipage}[t]{0.45\textwidth}
 \centering
-\begin{tikzpicture}[node distance=1.3cm, scale=0.82, transform shape]
+\begin{tikzpicture}[node distance=1.3cm, scale=0.82, transform shape, baseline=(current bounding box.north)]
 \node (emb)  [layerbox, fill=blue!15]                    {Embedding ($d=50$)};
 \node (gru1) [layerbox, fill=green!35, below of=emb]     {BiGRU Layer 1 (256$\times$2)};
 \node (gru2) [layerbox, fill=green!35, below of=gru1]    {BiGRU Layer 2 (256$\times$2)};
