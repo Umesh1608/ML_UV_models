@@ -1041,10 +1041,10 @@ Our key findings are:
     Encoding solute and solvent as a single concatenated representation reduces RF RMSE by 8\% (34.13 $\to$ 31.34~nm) and BiGRU RMSE by 7\% (39.03 $\to$ 36.45~nm).
     This simple approach requires no domain-specific descriptor engineering and is applicable to any model that accepts molecular representations.
 
-    \item \textbf{RF provides interpretable, efficient predictions.}
-    Feature importance analysis reveals that the RF model learns chemically meaningful patterns: the top features correspond to known chromophore motifs (aryl diazo, BODIPY, enamine) that produce large bathochromic shifts.
-    The top 20 features (out of 4096) explain over 41\% of importance, providing global interpretability that complements the instance-level saliency available for deep learning models (Section~\ref{sec:interpretability}).
-    RF also trains 100$\times$ faster than BiGRU (15 minutes CPU vs.\ 25 hours GPU), making it the practical first choice when the target chemical space is well-represented in training data.
+    \item \textbf{Both model families offer interpretability.}
+    RF provides global interpretability through feature importance: the top 20 Morgan fingerprint bits (out of 4096) explain over 41\% of importance and map to known chromophore motifs (aryl diazo, BODIPY, enamine).
+    BiGRU, optimized via Bayesian HPO (3-layer, 256-unit architecture, 8.6\% RMSE improvement over the default), provides instance-level interpretability through gradient saliency analysis, with atom-level heatmaps highlighting the same conjugated regions identified by RF (Section~\ref{sec:interpretability}).
+    RF trains 100$\times$ faster (15 minutes CPU vs.\ 25 hours GPU), making it the practical first choice when the target chemical space is well-represented in training data, while BiGRU's learned representations offer better generalization to novel scaffolds.
 
     \item \textbf{Practical classification matches published results.}
     RF-based photosafety classification (accuracy = 0.879) closely reproduces the published Mamede benchmark (accuracy = 0.89), validating both the methodology and dataset reconstruction.
