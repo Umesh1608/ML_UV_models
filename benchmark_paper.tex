@@ -1051,6 +1051,7 @@ Our key findings are:
 \end{enumerate}
 
 These findings suggest that model selection for UV absorption prediction should be guided by the relationship between target compounds and available training data: RF is preferred for screening within well-characterized chemical libraries, while sequence-based deep learning (BiGRU, ChemBERTa) is better suited for exploration of novel molecular architectures.
+While demonstrated here for UV absorption, the benchmarking framework and complementary-strengths finding are likely to generalize to other molecular optical properties (e.g., emission wavelength, molar extinction coefficient) and solvent-dependent endpoints, where the same trade-off between local substructural features and learned representations applies.
 
 \subsection*{Limitations}
 Our models use only 1D molecular representations; while our cross-dataset results show that 1D approaches are competitive with published graph and 3D methods on most benchmarks, the large performance gap on nablaColors (Table~\ref{tab:cross_dataset}) suggests that 3D conformational information becomes important for structurally diverse chromophores where electronic properties depend on molecular geometry~\cite{lupopasini2023excited}.
