@@ -53,6 +53,39 @@ These results demonstrate that models encoding local structural information (fin
 \section{Introduction}
 \label{sec:introduction}
 
+Ultraviolet--visible (UV--Vis) absorption spectroscopy is a fundamental technique in chemistry, with the wavelength of maximum absorption ($\lambda_{\max}$) serving as a key property for molecular characterization, photosafety assessment, and materials design~\cite{flemingMolecular2010}.
+When a molecule absorbs UV--Vis light, electrons undergo transitions between molecular orbitals; $\lambda_{\max}$ corresponds to the most probable electronic transition and is governed by the extent of $\pi$-conjugation, heteroatom substituents, and molecular geometry~\cite{reichardt2011solvents}.
+Experimental determination of $\lambda_{\max}$ requires synthesizing and measuring each compound, creating a demand for accurate \textit{in silico} prediction methods that can accelerate screening of large chemical libraries~\cite{ghosh2019deep}.
+
+Machine learning (ML) approaches for molecular property prediction have proliferated in recent years, spanning classical methods using engineered molecular descriptors (e.g., Morgan fingerprints~\cite{rogers2010extended} with Random Forest~\cite{breiman2001random}) to deep learning architectures that learn representations directly from molecular strings (SMILES~\cite{weininger1988smiles}) or graphs~\cite{gilmer2017neural}.
+Large curated datasets such as the Joung+Beard database~\cite{joung2020experimental, beard2019comparative} and benchmarking suites like MoleculeNet~\cite{wuMoleculeNet2018} have accelerated progress, yet systematic comparisons across multiple UV absorption datasets with consistent methodology remain rare.
+Recent work has highlighted that well-tuned classical models can match or exceed complex deep learning architectures for molecular property prediction~\cite{panapitiya2022evaluation, walters2021applications}, making it difficult to assess when complex architectures offer genuine advantages over simpler baselines.
+
+The UV absorption prediction task presents several distinctive challenges that make it an ideal benchmarking target:
+\begin{enumerate}
+    \item \textbf{Solvent dependence:} $\lambda_{\max}$ varies with solvent environment (solvatochromism), requiring models to encode both solute structure and solvent identity.
+    \item \textbf{Representation diversity:} Although absorption depends on electronic structure influenced by molecular geometry, our results show that 1D representations (fingerprints, SMILES) capture the dominant structure--property relationships for UV absorption, with 3D methods offering advantages primarily for structurally diverse datasets (Section~\ref{sec:cross_dataset}).
+    \item \textbf{Diverse benchmarks:} Multiple published datasets with varying sizes, chemical spaces, and evaluation protocols enable comprehensive assessment.
+    \item \textbf{Practical relevance:} ICH~S10 guidelines require photosafety screening of pharmaceutical compounds, where $\lambda_{\max}$ prediction serves as a first-pass filter.
+\end{enumerate}
+
+In this work, we present a benchmark study comparing four ML approaches (Random Forest, XGBoost, Bidirectional GRU, and ChemBERTa) for $\lambda_{\max}$ prediction.
+Our key contributions are:
+\begin{itemize}
+    \item A comprehensive comparison across four datasets using each dataset's published evaluation protocol, enabling direct comparison with prior work.
+    \item Demonstration that RF with Morgan fingerprints achieves the best cross-validated performance, reaching state-of-the-art results on two of three external datasets.
+    \item Evidence that deep learning models (ChemBERTa and BiGRU) generalize better to novel out-of-distribution compounds, revealing distinct advantages for fingerprint-based and sequence-based approaches.
+    \item A solvent concatenation strategy that improves prediction accuracy for both sequence models and fingerprint-based methods.
+    \item Evidence that UV absorption prediction favors local-feature architectures on in-distribution benchmarks~\cite{chenMolecularLanguage2023}: RF feature importance analysis maps directly to known chromophore motifs, and both RF and BiGRU gradient saliency highlight the same conjugated regions, supporting the hypothesis that local electronic structure determines $\lambda_{\max}$. RF also trains 100$\times$ faster (15 minutes CPU vs.\ 25 hours GPU), though out-of-distribution evaluation reveals complementary advantages for pretrained representations.
+    \item Practical validation through ICH~S10 photosafety classification and experimental UV measurements on 16 novel compounds.
+\end{itemize}
+
+
+The choice of molecular representation fundamentally determines which ML methods can be applied.
+SMILES (Simplified Molecular Input Line Entry System)~\cite{weininger1988smiles} encodes molecular graphs as character strings, enabling NLP-inspired sequence models (RNNs, Transformers), while Morgan circular fingerprints~\cite{rogers2010extended} encode local chemical environments as fixed-length binary vectors amenable to classical tree-based ensembles~\cite{landrum2016rdkit, wuMoleculeNet2018}.
+Our benchmark compares both representation families: fingerprint-based models (RF, XGBoost) against sequence-based models (BiGRU, ChemBERTa) on the same prediction task.
+Figure~\ref{fig:benchmark_framework} provides an overview of this dual-pathway framework.
+
 \begin{figure*}[!ht]
     \centering
     % ===== (a) Input and Representation =====
@@ -178,38 +211,6 @@ These results demonstrate that models encoding local structural information (fin
     \caption{Benchmark framework for UV absorption prediction. (a)~Morgan fingerprints are computed independently per molecule and horizontally stacked (4096-bit), while token sequences are formed by string concatenation before tokenization. (b)~Four models predict $\lambda_{\max}$ from the same molecular input.}
     \label{fig:benchmark_framework}
 \end{figure*}
-
-Ultraviolet--visible (UV--Vis) absorption spectroscopy is a fundamental technique in chemistry, with the wavelength of maximum absorption ($\lambda_{\max}$) serving as a key property for molecular characterization, photosafety assessment, and materials design~\cite{flemingMolecular2010}.
-When a molecule absorbs UV--Vis light, electrons undergo transitions between molecular orbitals; $\lambda_{\max}$ corresponds to the most probable electronic transition and is governed by the extent of $\pi$-conjugation, heteroatom substituents, and molecular geometry~\cite{reichardt2011solvents}.
-Experimental determination of $\lambda_{\max}$ requires synthesizing and measuring each compound, creating a demand for accurate \textit{in silico} prediction methods that can accelerate screening of large chemical libraries~\cite{ghosh2019deep}.
-
-Machine learning (ML) approaches for molecular property prediction have proliferated in recent years, spanning classical methods using engineered molecular descriptors (e.g., Morgan fingerprints~\cite{rogers2010extended} with Random Forest~\cite{breiman2001random}) to deep learning architectures that learn representations directly from molecular strings (SMILES~\cite{weininger1988smiles}) or graphs~\cite{gilmer2017neural}.
-Large curated datasets such as the Joung+Beard database~\cite{joung2020experimental, beard2019comparative} and benchmarking suites like MoleculeNet~\cite{wuMoleculeNet2018} have accelerated progress, yet systematic comparisons across multiple UV absorption datasets with consistent methodology remain rare.
-Recent work has highlighted that well-tuned classical models can match or exceed complex deep learning architectures for molecular property prediction~\cite{panapitiya2022evaluation, walters2021applications}, making it difficult to assess when complex architectures offer genuine advantages over simpler baselines.
-
-The UV absorption prediction task presents several distinctive challenges that make it an ideal benchmarking target:
-\begin{enumerate}
-    \item \textbf{Solvent dependence:} $\lambda_{\max}$ varies with solvent environment (solvatochromism), requiring models to encode both solute structure and solvent identity.
-    \item \textbf{Representation diversity:} Although absorption depends on electronic structure influenced by molecular geometry, our results show that 1D representations (fingerprints, SMILES) capture the dominant structure--property relationships for UV absorption, with 3D methods offering advantages primarily for structurally diverse datasets (Section~\ref{sec:cross_dataset}).
-    \item \textbf{Diverse benchmarks:} Multiple published datasets with varying sizes, chemical spaces, and evaluation protocols enable comprehensive assessment.
-    \item \textbf{Practical relevance:} ICH~S10 guidelines require photosafety screening of pharmaceutical compounds, where $\lambda_{\max}$ prediction serves as a first-pass filter.
-\end{enumerate}
-
-In this work, we present a benchmark study comparing four ML approaches (Random Forest, XGBoost, Bidirectional GRU, and ChemBERTa) for $\lambda_{\max}$ prediction.
-Our key contributions are:
-\begin{itemize}
-    \item A comprehensive comparison across four datasets using each dataset's published evaluation protocol, enabling direct comparison with prior work.
-    \item Demonstration that RF with Morgan fingerprints achieves the best cross-validated performance, reaching state-of-the-art results on two of three external datasets.
-    \item Evidence that deep learning models (ChemBERTa and BiGRU) generalize better to novel out-of-distribution compounds, revealing distinct advantages for fingerprint-based and sequence-based approaches.
-    \item A solvent concatenation strategy that improves prediction accuracy for both sequence models and fingerprint-based methods.
-    \item Evidence that UV absorption prediction favors local-feature architectures on in-distribution benchmarks~\cite{chenMolecularLanguage2023}: RF feature importance analysis maps directly to known chromophore motifs, and both RF and BiGRU gradient saliency highlight the same conjugated regions, supporting the hypothesis that local electronic structure determines $\lambda_{\max}$. RF also trains 100$\times$ faster (15 minutes CPU vs.\ 25 hours GPU), though out-of-distribution evaluation reveals complementary advantages for pretrained representations.
-    \item Practical validation through ICH~S10 photosafety classification and experimental UV measurements on 16 novel compounds.
-\end{itemize}
-
-
-The choice of molecular representation fundamentally determines which ML methods can be applied.
-SMILES (Simplified Molecular Input Line Entry System)~\cite{weininger1988smiles} encodes molecular graphs as character strings, enabling NLP-inspired sequence models (RNNs, Transformers), while Morgan circular fingerprints~\cite{rogers2010extended} encode local chemical environments as fixed-length binary vectors amenable to classical tree-based ensembles~\cite{landrum2016rdkit, wuMoleculeNet2018}.
-Our benchmark compares both representation families: fingerprint-based models (RF, XGBoost) against sequence-based models (BiGRU, ChemBERTa) on the same prediction task.
 
 % ===== Related Work =====
 \section{Related Work}

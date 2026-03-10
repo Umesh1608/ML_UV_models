@@ -1,114 +1,160 @@
 ==============================================================================
   FULL PROJECT ROADMAP — UV Absorption Benchmark Paper
-  Last updated: March 6, 2026
+  Last updated: March 10, 2026
 ==============================================================================
 
 # Overview
 
+Target journal: JCIM (J. Chem. Inf. Model., ACS)
+Two tex files: benchmark_paper_jcim.tex (submission), benchmark_paper.tex (Overleaf)
+SI file: supporting_information.tex (standalone achemso suppinfo)
+
 Two phases:
-1. Phase I: Complete `benchmark_paper.tex` (UV-only, submission-ready)
-2. Phase II: Create `benchmark_paper_v2.tex` with 3 additional properties
+1. Phase I: Complete and submit to JCIM
+2. Phase II: Create benchmark_paper_v2.tex with 3 additional properties
 
 ==============================================================================
-# PHASE I: Complete Current Paper (`benchmark_paper.tex`)
+# PHASE I: Submit to JCIM
 ==============================================================================
 
-## What's DONE
+## What's DONE (steps 1-15)
 
-| Task | Commit |
-|------|--------|
-| A0.1 Factual errors (ChemBERTa params, multirow, TikZ) | 215736e |
-| A0.2 Citations (Chen et al. journal, Joung GCNN, scope caveats) | 215736e |
-| A0.3 Soften 6 overclaimed statements + confounders paragraph | 215736e |
-| A2 Supplementary (XGBoost+ChemBERTa per-fold, significance) | aa8800d |
-| A4 4-model parity plot (shared axes) | 3057f34 |
-| A6 Full proofread (12+ issues fixed) | aa8800d |
-| B3 Wetlab per-molecule figure (horizontal bars) | 0f8043d |
-| B4 ChemBERTa learning curves (supplementary) | 3f7b8cf |
-| Figure 7 fix (vertical layout) | 189c44e |
+| # | Task | Commit |
+|---|------|--------|
+| 1 | A0: Claims/citations/factual errors | 215736e |
+| 2 | A2: Supplementary tables (XGBoost+ChemBERTa per-fold, significance) | aa8800d |
+| 3 | A4: 4-model parity plot (shared axes) | 3057f34 |
+| 4 | A6: Full proofread (12+ issues) | aa8800d |
+| 5 | B3: Wetlab per-molecule figure | 0f8043d |
+| 6 | B4: ChemBERTa learning curves | 3f7b8cf |
+| 7 | A8: BiGRU saliency (redesigned green/red grouped figure) | 7d5a8c2 |
+| 8 | Architecture diagrams (3-panel RF/BiGRU/ChemBERTa + 2-panel default/optimized) | done |
+| 9 | HPO methodology + tuning asymmetry table | done |
+| 10 | GitHub repo files (README, requirements.txt, .gitignore) | done |
+| 11 | Citation fixes (GCNN joung2021deep, SMILES2Vec moved) | 935d12d |
+| 12 | JCIM paper created (benchmark_paper_jcim.tex, achemso) | f8c43e5 |
+| 13 | JCIM compliance: abstract 4 sentences, data curation, COI, QSAR cites | edb5fd4 |
+| 14 | SI file created (supporting_information.tex) | edb5fd4 |
+| 15 | Abstract/conclusion broadened: locality-of-property, optimized BiGRU | ea808f4 |
 
-## What REMAINS
+## IN PROGRESS
 
-### A3: BiGRU HPO
-- Script: `tune_bigru.py --n-trials 30`
-- Storage: SQLite at `results/bigru_hpo.db` (stop/resume safe)
-- Check: python3 -c "import optuna; s=optuna.load_study(study_name='bigru_hpo',storage='sqlite:///results/bigru_hpo.db'); print(f'{len([t for t in s.trials if t.state.name==\"COMPLETE\"])}/30')"
+| # | Task | Status |
+|---|------|--------|
+| 16 | A3 full-cv fold 4 | TRAINING (epoch ~110, best val_loss=19.62) |
 
-After A3 search completes:
-  1. Run best config: python3 tune_bigru.py --full-cv
-  2. Re-evaluate wetlab: python3 eval_wetlab.py
-  3. Update paper: Table 2, Table S5, TikZ, discussion
-  4. A5: GitHub repo + Zenodo DOI
-  5. Final compile + proofread
+## REMAINING (after fold 4 completes)
 
-### A7: BiGRU Direct Classification on Mamede (after A3 full-cv)
-- Use tuned BiGRU architecture from A3 with task="classification" (sigmoid + BCE)
-- Train on Mamede/Reaxys binary labels (POS = λ_max ∈ [290,700] AND MEC ≥ 1000)
-- Dataset: ~74K compounds (same split as RF classifier)
-- Compare against: Mamede RF (Sens=0.90, Spec=0.88) and our RF (Sens=0.876, Spec=0.882)
-- Previous regression→threshold BiGRU was 0.22 sensitivity — direct classification should be much better
-- Strengthens the paper: shows tuned BiGRU architecture generalizes to classification, not just regression
-- Publish trained model weights with GitHub repo (A5)
-- Paper updates:
-    - Update Table 4 (classification) with BiGRU direct classifier row
-    - Add discussion paragraph: tuned BiGRU matches/approaches RF on classification
-    - Update conclusion bullet point on classification
-- Estimated time: ~3-5h GPU (single train/test, no 5-fold needed — matches Mamede protocol)
+### Step 17: Collect 5-fold aggregate (~5 min)
+  python3 tune_bigru.py --full-cv --summary
+  # Or manually from results/bigru_tuned_fold{0-4}_metrics.json
+  # Save results/bigru_tuned_cv_aggregate.json
+
+### Step 18: Re-evaluate wetlab with tuned BiGRU (~5 min)
+  python3 eval_wetlab.py
+  # Already has predict_bigru_tuned() function
+  # Compare tuned BiGRU MAE vs default (28.6), RF (38.5), ChemBERTa (26.3)
+  # Regenerates results/wetlab_per_molecule.png
+
+### Step 19: Regenerate saliency with tuned models (~5 min CPU)
+  python3 analyze_bigru_saliency.py --tuned
+  # Updates results/bigru_saliency_atoms.pdf
+  # Updates results/bigru_saliency_chartype.pdf
+
+### Step 20: Update paper numbers (~1-2 hrs)
+  Both benchmark_paper.tex AND benchmark_paper_jcim.tex AND supporting_information.tex:
+  - Table 2: update BiGRU row with tuned 5-fold RMSE/MAE/R²
+  - Table S6 (tuning asymmetry): replace fold-0-only "33.33†" with full 5-fold numbers
+  - TikZ diagrams: update RMSE values if changed
+  - Abstract: update BiGRU RMSE claim
+  - Discussion: update "14% lower RMSE" claim if gap narrows
+  - Conclusion: update finding #3 with tuned BiGRU numbers
+
+### Step 21: A7 — BiGRU direct classification on Mamede (~3-5h GPU)
+  python3 eval_classification.py --model bigru --task direct
+  # Tuned architecture (256u/3l) with sigmoid + BCE
+  # Train on Mamede/Reaxys ~74K binary labels (POS = λ_max ∈ [290,700] AND MEC ≥ 1000)
+  # Compare vs: Mamede RF (Sens=0.90, Spec=0.88), our RF (0.876/0.882)
+  # Previous regress→threshold: Sens=0.22 (failed)
+  # Update Table 4, discussion, conclusion in both tex files
+
+### Step 22: Convert figure formats (~30 min)
+  # ACS accepts: TIF, JPG, PNG, EPS (NOT PDF for final submission)
+  # Convert .pdf figures → high-res .png or .eps
+  # Check color contrast (WCAG 4.5:1 text, 3:1 non-text)
+  # Figures: parity_plot_4models.png, error_by_wavelength.png, error_by_solvent.png,
+  #   rf_feature_importance.pdf, rf_solute_vs_solvent.pdf, rf_cumulative_importance.pdf,
+  #   rf_training_comparison.pdf, bigru_saliency_atoms.pdf, wetlab_per_molecule.png
+
+### Step 23: Create TOC graphic (~1 hr)
+  # 3.25" × 1.75" summary image at 300 dpi
+  # Recommended for Articles (required for Viewpoints)
+  # Mini framework figure or key result visual
+
+### Step 24: A5 — GitHub repo + Zenodo DOI (~2 hrs)
+  # Clean repo, add trained model weights (tuned BiGRU, RF, ChemBERTa)
+  # Create Zenodo archive → get DOI
+  # Update Data Availability section with DOI in both tex files
+
+### Step 25: Write cover letter (~30 min)
+  # Required for ACS submission (separate document)
+  # Mention novelty, relevance to JCIM readership
+  # Note any preprint deposits (arXiv, ChemRxiv)
+
+### Step 26: Prepare 5 reviewer suggestions (~15 min)
+  # Academic email addresses, no institutional conflicts
+  # People in UV/molecular ML/QSAR/benchmarking space
+
+### Step 27: Final proofread + compile (~2 hrs)
+  # Verify ALL numbers match result files
+  # Check all figure/table references resolve
+  # Compile both tex files — zero warnings
+  # Cross-check SI tables vs main text
+
+### Step 28: Submit to JCIM via ACS Paragon Plus
+  # Upload: main text PDF, SI PDF, figures (TIF/PNG/EPS), cover letter
+  # Enter ORCIDs for all authors
+  # Add reviewer suggestions
+  # Funding info in Funder Registry Tool
+  # Submit
+
+## Critical Path
+  16 → 17 → 18 → 19 → 20 → 21 (GPU) → 22-27 (parallel) → 28
+
+## Stop/Resume Safety
+
+| Step | Persistence | Lost on Stop |
+|------|-------------|--------------|
+| Fold 4 training | Checkpoint every 10 epochs | At most 10 epochs |
+| Wetlab re-eval | Instant | Nothing |
+| Saliency regen | Instant (CPU) | Nothing |
+| A7 classification | Per-epoch checkpoints | Current epoch only |
 
 ==============================================================================
 # PHASE II: Multi-Property Expansion (`benchmark_paper_v2.tex`)
 ==============================================================================
 
 ## Data Files (all preprocessed and ready)
-- data/chemfluor_processed.csv        — Emission (4,232 rows, lambda_max = emission wavelength)
-- data/mamede_log_mec_processed.csv   — log10(MEC) (81,638 rows, MEC in [1, 500000])
+- data/chemfluor_processed.csv        — Emission (4,232 rows)
+- data/mamede_log_mec_processed.csv   — log10(MEC) (81,638 rows)
 - data/lipophilicity_processed.csv    — LogP (4,200 rows, from MoleculeNet)
 
-## Experiment Runner: run_multi_property.py
+## RF Results (complete or paused)
+| Property | RMSE | R² | Status |
+|----------|------|----|--------|
+| Emission | 25.28±2.81 | 0.936 | 5/5 done |
+| Lipophilicity | 0.83±0.02 | 0.528 | 5/5 done |
+| log10(MEC) | ~0.47 | ~0.45 | 3/5 (paused) |
 
-### Step 1: RF on all 3 properties (~30 min total CPU):
-  python3 run_multi_property.py --property emission --model rf
-  python3 run_multi_property.py --property log_mec --model rf
-  python3 run_multi_property.py --property lipophilicity --model rf
-
-### Step 2: BiGRU (~18h GPU total):
-  python3 run_multi_property.py --property emission --model bigru --fold 0
-  python3 run_multi_property.py --property emission --model bigru --fold 1
-  python3 run_multi_property.py --property emission --model bigru --fold 2
-  python3 run_multi_property.py --property emission --model bigru --fold 3
-  python3 run_multi_property.py --property emission --model bigru --fold 4
-  python3 run_multi_property.py --property lipophilicity --model bigru --fold 0
-  python3 run_multi_property.py --property lipophilicity --model bigru --fold 1
-  python3 run_multi_property.py --property lipophilicity --model bigru --fold 2
-  python3 run_multi_property.py --property lipophilicity --model bigru --fold 3
-  python3 run_multi_property.py --property lipophilicity --model bigru --fold 4
-
-### Step 3: ChemBERTa (~14h GPU total):
-  python3 run_multi_property.py --property emission --model chemberta --fold 0
-  python3 run_multi_property.py --property emission --model chemberta --fold 1
-  python3 run_multi_property.py --property emission --model chemberta --fold 2
-  python3 run_multi_property.py --property emission --model chemberta --fold 3
-  python3 run_multi_property.py --property emission --model chemberta --fold 4
-  python3 run_multi_property.py --property lipophilicity --model chemberta --fold 0
-  python3 run_multi_property.py --property lipophilicity --model chemberta --fold 1
-  python3 run_multi_property.py --property lipophilicity --model chemberta --fold 2
-  python3 run_multi_property.py --property lipophilicity --model chemberta --fold 3
-  python3 run_multi_property.py --property lipophilicity --model chemberta --fold 4
-
-### Step 4: Summary table:
+## Remaining
+  python3 run_multi_property.py --property log_mec --model rf          # finish folds 3-4
+  python3 run_multi_property.py --property emission --model bigru      # 5 folds, ~18h GPU
+  python3 run_multi_property.py --property lipophilicity --model bigru  # 5 folds
+  python3 run_multi_property.py --property emission --model chemberta  # 5 folds, ~14h GPU
+  python3 run_multi_property.py --property lipophilicity --model chemberta
   python3 run_multi_property.py --summary
 
-## Stop/Resume Safety
-
-| Step              | Persistence               | Lost on Stop         |
-|-------------------|---------------------------|----------------------|
-| RF any property   | Per-fold .joblib + .npy   | Nothing (<1 min)     |
-| BiGRU any prop    | Per-fold .keras + .npy    | Current fold only    |
-| ChemBERTa any     | Ckpt every 10 ep + SIGINT | At most 10 epochs    |
-
-## Paper Integration (after experiments)
-- Copy benchmark_paper.tex -> benchmark_paper_v2.tex
-- Add "Multi-Property Generalization" section (~100-120 lines)
-- New table: 4 properties x 3 models
-- New figure: grouped bar chart
-- Update abstract + conclusion
+## Paper Integration
+- Copy benchmark_paper.tex → benchmark_paper_v2.tex
+- Add "Multi-Property Generalization" section
+- Test locality-of-property hypothesis: emission (local) vs lipophilicity (global)
