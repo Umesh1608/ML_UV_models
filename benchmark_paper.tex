@@ -274,7 +274,9 @@ Our study extends this perspective specifically to UV absorption prediction, pro
 \label{sec:dataset}
 
 Our primary dataset combines the Joung et al.\ Experimental Database of Optical Properties~\cite{joung2020experimental} and the Beard et al.\ Comparative Dataset of UV/Vis Absorption Spectra~\cite{beard2019comparative}.
-After merging, deduplication, and canonicalization of SMILES strings, the combined dataset contains \textbf{18,755 solute--solvent pairs} spanning 7,016 unique chromophores and 365 solvents.
+Data curation proceeded as follows: (1)~SMILES strings were canonicalized using RDKit~\cite{landrumRdkitRdkit2020_03_12020} to ensure consistent molecular representations; (2)~entries with invalid or unparseable SMILES were removed; (3)~duplicate records were identified by matching canonical SMILES and solvent identity, retaining the first occurrence; (4)~solvent names were standardized and mapped to canonical SMILES where possible.
+After merging, deduplication, and canonicalization, the combined dataset contains \textbf{18,755 solute--solvent pairs} spanning 7,016 unique chromophores and 365 solvents.
+No outlier filtering on $\lambda_{\max}$ values was applied; all experimentally reported values in the 200--900~nm range were retained.
 Target values ($\lambda_{\max}$) range from 200 to 900~nm, with a median of 325~nm.
 
 \begin{table}[t]

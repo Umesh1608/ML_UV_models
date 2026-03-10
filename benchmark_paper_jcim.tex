@@ -43,13 +43,10 @@
 
 % ===== Abstract =====
 \begin{abstract}
-Accurate prediction of UV absorption wavelengths ($\lambda_{\max}$) from molecular structure is essential for photosafety screening, materials design, and photochemistry.
-We present a systematic benchmark of machine learning approaches for $\lambda_{\max}$ prediction, comparing Random Forest (RF) with Morgan fingerprints, XGBoost, a Bidirectional GRU (BiGRU) sequence model, and ChemBERTa, a pretrained Transformer fine-tuned on SMILES strings.
-Models are evaluated on a primary dataset of 18,755 solute--solvent pairs (Joung + Beard) using stratified 5-fold cross-validation, with external validation on three independent datasets totaling over 70,000 molecules using each dataset's published split protocol for direct comparison with prior work.
-RF with concatenated solute--solvent Morgan fingerprints achieves the best cross-validated performance (RMSE = $31.34 \pm 1.82$ nm, $R^2 = 0.914$), outperforming BiGRU (RMSE = $36.45 \pm 1.12$ nm, $R^2 = 0.884$) and matching or exceeding published deep learning baselines on external datasets, including GCNN on Deep4Chem (our RMSE = 22.70 vs.\ 26.6 nm) and GBFS on Jung et al.\ (our RMSE = 29.82 vs.\ 32.2 nm).
-ChemBERTa, a pretrained Transformer (44.1M parameters), achieves the worst cross-validated performance (RMSE = $50.39 \pm 2.30$ nm), yet experimental validation on 16 novel UV-absorbing compounds reveals that both deep learning models outperform RF on out-of-distribution molecules (ChemBERTa MAE = 26.3, BiGRU = 28.6 vs.\ 38.5 nm for RF), suggesting that learned representations generalize beyond fixed substructural features.
-We introduce a solvent concatenation strategy encoding solute and solvent as a single representation, yielding consistent improvement across both model families (8\% RMSE reduction for RF, 7\% for BiGRU).
-These complementary strengths (RF for interpolation within known chemical space, deep learning for extrapolation to novel scaffolds) provide practical guidance for model selection in UV property prediction.
+We benchmark Random Forest (RF), XGBoost, Bidirectional GRU (BiGRU), and ChemBERTa for predicting UV absorption wavelengths ($\lambda_{\max}$) on 18,755 solute--solvent pairs with stratified 5-fold cross-validation and three external datasets totaling over 70,000 molecules; RF with concatenated solute--solvent Morgan fingerprints achieves the best cross-validated RMSE ($31.34 \pm 1.82$~nm, $R^2 = 0.914$) and surpasses published deep learning baselines on two external benchmarks.
+However, experimental validation on 16 novel UV-absorbing compounds reverses the ranking: both deep learning models outperform RF on out-of-distribution molecules (ChemBERTa MAE = 26.3, BiGRU = 28.6 vs.\ 38.5~nm), revealing that learned representations generalize beyond fixed substructural features.
+A solvent concatenation strategy yields consistent 7--8\% RMSE reductions across model families, and interpretability analysis shows that RF feature importance and BiGRU gradient saliency independently highlight the same chromophore motifs, confirming that both architectures learn meaningful photochemistry.
+These complementary strengths---RF for interpolation within known chemical space, deep learning for extrapolation to novel scaffolds---provide practical guidance for model selection in UV property prediction.
 \end{abstract}
 
 % ===== Introduction =====
@@ -264,7 +261,9 @@ Our study extends this perspective specifically to UV absorption prediction, pro
 \label{sec:dataset}
 
 Our primary dataset combines the Joung et al.\ Experimental Database of Optical Properties~\cite{joung2020experimental} and the Beard et al.\ Comparative Dataset of UV/Vis Absorption Spectra~\cite{beard2019comparative}.
-After merging, deduplication, and canonicalization of SMILES strings, the combined dataset contains \textbf{18,755 solute--solvent pairs} spanning 7,016 unique chromophores and 365 solvents.
+Data curation proceeded as follows: (1)~SMILES strings were canonicalized using RDKit~\cite{landrumRdkitRdkit2020_03_12020} to ensure consistent molecular representations; (2)~entries with invalid or unparseable SMILES were removed; (3)~duplicate records were identified by matching canonical SMILES and solvent identity, retaining the first occurrence; (4)~solvent names were standardized and mapped to canonical SMILES where possible.
+After merging, deduplication, and canonicalization, the combined dataset contains \textbf{18,755 solute--solvent pairs} spanning 7,016 unique chromophores and 365 solvents.
+No outlier filtering on $\lambda_{\max}$ values was applied; all experimentally reported values in the 200--900~nm range were retained.
 Target values ($\lambda_{\max}$) range from 200 to 900~nm, with a median of 325~nm.
 
 \begin{table}[htbp]
@@ -888,7 +887,7 @@ We computed Input$\times$Gradient saliency for each SMILES character position, t
 The saliency maps reveal that BiGRU learns chemically meaningful patterns consistent with the RF feature importance analysis: high-saliency atoms concentrate on heteroatoms (O, N, S) and atoms adjacent to double bonds, the functional groups that determine $\pi$-conjugation and UV absorption wavelength, while aliphatic chains receive low saliency.
 For molecules where BiGRU predicts accurately (e.g., Sinapic Acid, err = $-5.6$~nm), saliency is focused on the hydroxyl and methoxy groups of the chromophore; for poorly predicted molecules (e.g., Cinnamic Acid, err = $+78.2$~nm), the model over-attributes importance to the carboxylic acid rather than the conjugated vinyl bridge.
 This convergence between RF's substructure-level Gini importance and BiGRU's atom-level gradient saliency provides independent confirmation that both models learn the same underlying photochemistry through fundamentally different architectures, a form of \emph{triangulation} that strengthens confidence in the learned structure--property relationships.
-We note that gradient saliency identifies correlations rather than causal mechanisms, and that attention weights in Transformer-based models are even less reliable for interpretability~\cite{jain2019attention} (see Supplementary Figure~\ref{fig:bigru_chartype} for character-type importance analysis).
+We note that gradient saliency identifies correlations rather than causal mechanisms, and that attention weights in Transformer-based models are even less reliable for interpretability~\cite{jain2019attention} (see Supporting Information, Figure~S1, for character-type importance analysis).
 
 \begin{figure}[htbp]
     \centering
@@ -1073,11 +1072,14 @@ All code for model training, evaluation, and analysis will be released on GitHub
 % ===== Acknowledgement =====
 \begin{acknowledgement}
 The authors thank the University of Iowa and the Midwest Bioprocessing Center for computational resources.
+Portions of this manuscript were prepared with the assistance of Claude (Anthropic, Claude Code). The authors reviewed and edited all AI-generated content and take full responsibility for the accuracy of the final text.
 \end{acknowledgement}
 
 % ===== Supporting Information =====
 \begin{suppinfo}
-Per-fold cross-validation results for all four model families (Tables S1--S4), statistical significance tests (Table S5), RF hyperparameter sensitivity analysis, BiGRU and ChemBERTa learning curves, hyperparameter tuning asymmetry analysis, and BiGRU character-type saliency analysis. Available as a separate PDF.
+The Supporting Information is available free of charge at [DOI].
+
+Per-fold cross-validation results for all four model families (Tables~S1--S4), statistical significance tests (Table~S5), RF hyperparameter sensitivity analysis, BiGRU and ChemBERTa learning curves (Figures~S1--S2), hyperparameter tuning asymmetry analysis (Table~S6), and BiGRU character-type saliency analysis (Figure~S3) (PDF).
 \end{suppinfo}
 
 % ===== Bibliography =====
