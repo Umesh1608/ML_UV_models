@@ -61,8 +61,8 @@ DATASET_INFO = {
     "deep4chem": {
         "file": os.path.join(DATA_DIR, "deep4chem_processed.csv"),
         "display": "Deep4Chem (Joung 2020)",
-        "published": {"method": "GCNN", "RMSE": 26.6, "source": "Joung 2020"},
-        # Joung 2020: single random 80/10/10 split
+        "published": {"method": "GCNN", "RMSE": 26.6, "source": "Joung 2021"},
+        # Joung 2021 JACS Au: GCNN on full 30,094 records; split: random 80/10/10
         "random_split": {"train": 0.8, "val": 0.1, "test": 0.1},
     },
     "jung2024": {

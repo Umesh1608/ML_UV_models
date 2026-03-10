@@ -250,7 +250,7 @@ Alternative string representations such as SELFIES~\cite{krenn2020selfies} guara
 
 \textbf{Graph neural networks.}
 GNNs operate directly on molecular graphs through iterative message passing~\cite{gilmer2017neural}, learning atom-level representations from connectivity and atomic features.
-Joung et al.~\cite{joung2020experimental} reported a Graph Convolutional Neural Network (GCNN) baseline of RMSE = 26.6~nm on their Deep4Chem dataset of UV absorption measurements.
+Joung et al.~\cite{joung2021deep} reported a Graph Convolutional Neural Network (GCNN) achieving RMSE = 26.6~nm for absorption peak prediction on their Deep4Chem database of 30,094 chromophore--solvent combinations.
 Jung et al.~\cite{jung2024machine} compared multiple architectures including a Gradient Boosted Feature Selection (GBFS) pipeline achieving RMSE = 32.2~nm, and a multifidelity approach reaching RMSE = 31.3~nm.
 Ghosh et al.~\cite{ghosh2019deep} further showed that neural networks trained on quantum-chemical descriptors can accurately predict excitation spectra, confirming the importance of electronic structure features.
 
@@ -600,7 +600,7 @@ To assess generalizability beyond the primary Joung+Beard dataset, we evaluate o
 For each external dataset, models are trained from scratch on the dataset's training split and evaluated on its test split, matching the exact protocol used by the original authors.
 
 \subsection{Deep4Chem (Joung 2020)}
-Approximately 20,000 UV absorption records with a reported GCNN baseline (RMSE = 26.6~nm)~\cite{joung2020experimental}.
+Approximately 20,000 UV absorption records with a reported GCNN baseline (RMSE = 26.6~nm)~\cite{joung2021deep}.
 We replicate the 80/10/10 random train/validation/test split.
 
 \subsection{Jung et al.\ (2024)}
@@ -780,7 +780,7 @@ Table~\ref{tab:cross_dataset} presents results on three external datasets, with 
 \end{table}
 
 \textbf{Deep4Chem.}
-Our RF model achieves RMSE = 22.70~nm, \textit{surpassing} the published GCNN baseline of 26.6~nm by 15\%.
+Our RF model achieves RMSE = 22.70~nm, \textit{surpassing} the published GCNN baseline of 26.6~nm~\cite{joung2021deep} by 15\%.
 BiGRU also performs competitively (RMSE = 27.07~nm), within 2\% of the GCNN result, while ChemBERTa (35.90~nm) trails behind both.
 This result demonstrates that Morgan fingerprints, which encode local chemical environments through circular substructure enumeration, capture sufficient structural information for UV absorption prediction in this chemical space.
 
@@ -1033,7 +1033,7 @@ Our key findings are:
 
 \begin{enumerate}
     \item \textbf{RF and deep learning have complementary strengths.}
-    RF with Morgan fingerprints achieves the best cross-validated performance on the primary Joung+Beard dataset (RMSE = 31.34~nm vs.\ 36.45~nm for BiGRU, 50.39~nm for ChemBERTa) and on both external datasets, surpassing published deep learning baselines on Deep4Chem (RMSE = 22.70 vs.\ GCNN 26.6) and Jung 2024 (RMSE = 29.82 vs.\ GBFS 32.2).
+    RF with Morgan fingerprints achieves the best cross-validated performance on the primary Joung+Beard dataset (RMSE = 31.34~nm vs.\ 36.45~nm for BiGRU, 50.39~nm for ChemBERTa) and on both external datasets, surpassing published deep learning baselines on Deep4Chem (RMSE = 22.70 vs.\ GCNN 26.6~\cite{joung2021deep}) and Jung 2024 (RMSE = 29.82 vs.\ GBFS 32.2).
     However, experimental validation on 16 novel compounds reverses this ranking: both ChemBERTa (MAE = 26.3~nm) and BiGRU (28.6~nm) outperform RF (38.5~nm) on out-of-distribution molecules.
     This indicates that RF excels at interpolation within known chemical space, while deep learning models learn transferable representations that extend beyond fixed substructural features.
 
