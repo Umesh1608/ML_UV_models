@@ -8,7 +8,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **New LaTeX file**: `benchmark_paper.tex` (benchmark framing). Original `ml_chemistry_template.tex` preserved.
 
-**Target journals**: J. Cheminformatics (Springer), Digital Discovery (RSC), Mol. Informatics (Wiley).
+**Target journal**: **J. Chem. Inf. Model. (JCIM)** — ACS, IF ~6.5, achemso format (`benchmark_paper_jcim.tex`).
+Also have `benchmark_paper.tex` (generic article format, Overleaf-synced).
 
 ---
 
@@ -69,36 +70,33 @@ Single train/val/test splits matching each paper's published protocol. Val used 
 
 ### What Still Needs To Be Done — Publication Roadmap
 
-**Target**: J. Cheminformatics (IF ~8, Springer, open access) or Digital Discovery (RSC)
+**Target**: **J. Chem. Inf. Model. (JCIM)** — ACS, achemso format
 
-#### Phase I Remaining Tasks
+#### Phase I Remaining Tasks — Execution Order
 
-**A3. BiGRU HPO — #1 reviewer concern** ⏸ PAUSED (25/30 trials complete)
-- Optuna TPE, 30 trials on fold 0 val set, SQLite at `results/bigru_hpo.db`
-- Search space: units {64,128,256}, layers {1,2,3}, embed {32,50,100}, dropout {0.1-0.4}, lr [1e-4,3e-3], batch {32,64,128}
-- **Best config (Trial 25): val_loss=33.33 — 8.6% better than default (36.45)**
-  - n_units=256, n_layers=3, embed_dim=50, batch_size=128, dropout=0.105, lr=0.00111
-- Key findings: 3L/256u > 2L/128u (default), 1 layer fails, embed=50 optimal, low dropout (~0.10) best for large arch
-- Resume HPO: `python3 tune_bigru.py --n-trials 30` (picks up at trial 27, ~10-15h GPU for 5 remaining)
-- After HPO: `python3 tune_bigru.py --full-cv` (~25h GPU, trains best config on all 5 folds)
+**A3 full-cv**: 🔄 RUNNING — folds 0-3 complete, fold 4 training (epoch ~100, val_loss=19.62)
+- Folds 0-3 RMSE: 35.42, 35.51, 32.02, 35.91 → mean 34.72 ± 1.57 (~5% better than default 36.45)
+- Fold 4 still improving, estimated 1-2h remaining
 
-**Remaining Phase I steps (in order):**
-1. ✅ A3 HPO: 25/30 trials complete (stopped — sufficient). Best: Trial 25, val_loss=33.33
-   - Config saved: `results/bigru_tuned_best_config.json`
-2. ✅ HPO methodology + architecture diagrams added to paper
-3. ✅ A8: BiGRU saliency interpretability — `analyze_bigru_saliency.py`, figures + paper text done
-4. ✅ GitHub repo files created (README.md, requirements.txt, .gitignore)
-5. ✅ Appendix float placement fixed, 3D sensitivity claim reframed
-6. **NEXT: Run full-cv with best config**: `python3 tune_bigru.py --full-cv` (~15-25h GPU)
-7. **Re-evaluate wetlab** with tuned BiGRU: update `eval_wetlab.py` to load tuned models
-8. **Update paper numbers**: Table 2, Table S5, TikZ, discussion with tuned BiGRU CV results
-9. **A7: BiGRU direct classification on Mamede** (~3-5h GPU)
-   - Use tuned architecture (256u/3l) with task="classification" (sigmoid + BCE)
+**After fold 4 completes (in order):**
+1. **Collect 5-fold aggregate** — read metrics, compute mean±std, save `bigru_tuned_cv_aggregate.json`
+2. **Re-evaluate wetlab** with tuned BiGRU — `python3 eval_wetlab.py` (already updated to load tuned models)
+3. **Regenerate saliency** with tuned models — `python3 analyze_bigru_saliency.py --tuned`
+4. **Update paper numbers** in BOTH `benchmark_paper.tex` AND `benchmark_paper_jcim.tex`:
+   - Table 2: add/update BiGRU (tuned) row with full 5-fold results
+   - Table S5 (tuning asymmetry): replace fold-0-only with full CV numbers
+   - TikZ diagrams: update RMSE values if needed
+   - Abstract, discussion, conclusion: update BiGRU RMSE claims
+   - Saliency paragraph: update if tuned models change the story
+5. **Create SI file** — `benchmark_paper_jcim_si.tex` with per-fold tables, significance tests, learning curves, chartype saliency
+6. **A7: BiGRU direct classification on Mamede** (~3-5h GPU)
+   - Tuned architecture (256u/3l) with task="classification" (sigmoid + BCE)
    - Train on Mamede/Reaxys ~74K binary labels (POS = λ_max ∈ [290,700] AND MEC ≥ 1000)
    - Compare vs: Mamede RF (Sens=0.90, Spec=0.88) and our RF (Sens=0.876, Spec=0.882)
-   - Update Table 4, discussion, conclusion; publish model weights
-10. **A5: GitHub repo finalization + Zenodo DOI + model weights**
-11. **Final compile + proofread**
+   - Update Table 4, discussion, conclusion in both tex files
+7. **A5: GitHub repo finalization + Zenodo DOI + model weights**
+8. **Final proofread + compile** both tex files
+9. **Submit to JCIM**
 
 #### What's DONE ✅
 
@@ -124,6 +122,12 @@ Single train/val/test splits matching each paper's published protocol. Val used 
 | 3D sensitivity claim reframed (1D models competitive except nablaColors) | done |
 | GitHub repo files: README.md, requirements.txt, .gitignore updated | done |
 | Bib entry: akiba2019optuna (Optuna KDD 2019) | done |
+| GCNN citation fix: joung2020experimental → joung2021deep (all locations) | 935d12d |
+| SMILES2Vec citation moved to saliency intro (removed from triangulation) | 6320547 |
+| Saliency figure redesigned: green/red grouped, prominent error labels | 7d5a8c2 |
+| **JCIM paper created**: `benchmark_paper_jcim.tex` (achemso, journal=jcisd8) | f8c43e5 |
+| eval_wetlab.py updated: added predict_bigru_tuned() for tuned models | a45130d |
+| Bib entry: joung2021deep (JACS Au 2021, GCNN RMSE=26.6 source) | 935d12d |
 
 #### Phase II — Multi-Property Expansion (`benchmark_paper_v2.tex`)
 
@@ -141,8 +145,10 @@ Single train/val/test splits matching each paper's published protocol. Val used 
 
 #### Priority Execution Order
 ```
-Phase I: full-cv (GPU) → wetlab re-eval → paper number updates → A7 classification (GPU) → A5 repo → final proofread
-Phase II (after Phase I): log_mec RF ⏸ → BiGRU (GPU) → ChemBERTa (GPU) → paper_v2
+Phase I: [fold 4 finishes] → collect aggregate → wetlab re-eval → saliency --tuned
+  → paper number updates (both tex) → create SI file → A7 classification (GPU)
+  → A5 repo/Zenodo → final proofread → submit JCIM
+Phase II (after submission): log_mec RF ⏸ → BiGRU (GPU) → ChemBERTa (GPU) → paper_v2
 ```
 
 ---
@@ -192,7 +198,8 @@ Files: `ml_chemistry_template.tex`, `Proposal.bib` (77K tokens — read with off
 - **`download_datasets.py`** — Download external datasets (CLI: `--dataset`)
 - **`convert_reaxys_web_export.py`** — Reaxys TSV → raw CSV
 - **`postprocess_reaxys.py`** — Raw Reaxys → clean regression + classification datasets (CLI: `--solvent`)
-- **`benchmark_paper.tex`** — NEW benchmark-framed paper (preferred for submission)
+- **`benchmark_paper.tex`** — Benchmark paper (generic article format, Overleaf-synced)
+- **`benchmark_paper_jcim.tex`** — JCIM submission version (achemso, journal=jcisd8)
 - **`notes_on_paper.tex`** — Revision notes, reviewer Q&A, submission checklist, fallback git hashes
 - **`ml_chemistry_template.tex`** — Original DL-focused paper (preserved, Overleaf-synced)
 - **`tune_rf.py`** — RF hyperparameter grid search (432 configs)
