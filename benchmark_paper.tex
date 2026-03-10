@@ -219,17 +219,9 @@ Our key contributions are:
 \end{itemize}
 
 
-% ===== Molecular Representations =====
-\subsection{Molecular Representations}
-\label{sec:representations}
-
-SMILES (Simplified Molecular Input Line Entry System)~\cite{weininger1988smiles} encodes molecular graphs as character strings using conventions for atoms, bonds, branches, and ring closures.
-This representation enables the application of natural language processing (NLP) techniques to chemical structures, treating molecules as ``sentences'' composed of atomic ``tokens.''
-SMILES has become the most widely used molecular string representation in cheminformatics, though alternatives such as SELFIES~\cite{krenn2020selfies} have been proposed to guarantee syntactic validity.
-
-For fingerprint-based models, we use Morgan circular fingerprints~\cite{rogers2010extended}, which encode local chemical environments as fixed-length binary vectors by enumerating all atom-centered circular substructures up to a specified radius.
-Each bit in the fingerprint corresponds to the presence or absence of a particular substructural pattern, and the representations are computed using the RDKit cheminformatics toolkit~\cite{landrum2016rdkit}.
-We use radius 2 with 2048 bits as the default representation, consistent with standard practice in cheminformatics~\cite{wuMoleculeNet2018}.
+The choice of molecular representation fundamentally determines which ML methods can be applied.
+SMILES (Simplified Molecular Input Line Entry System)~\cite{weininger1988smiles} encodes molecular graphs as character strings, enabling NLP-inspired sequence models (RNNs, Transformers), while Morgan circular fingerprints~\cite{rogers2010extended} encode local chemical environments as fixed-length binary vectors amenable to classical tree-based ensembles~\cite{landrum2016rdkit, wuMoleculeNet2018}.
+Our benchmark exploits this dichotomy, comparing fingerprint-based models (RF, XGBoost) against sequence-based models (BiGRU, ChemBERTa) on the same prediction task.
 
 % ===== Related Work =====
 \section{Related Work}
