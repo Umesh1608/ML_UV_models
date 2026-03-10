@@ -214,9 +214,8 @@ Our key contributions are:
     \item Demonstration that RF with Morgan fingerprints achieves the best cross-validated performance, reaching state-of-the-art results on two of three external datasets.
     \item Evidence that deep learning models (ChemBERTa and BiGRU) generalize better to novel out-of-distribution compounds, revealing complementary strengths between fingerprint-based and sequence-based approaches.
     \item A solvent concatenation strategy that improves prediction accuracy for both sequence models and fingerprint-based methods.
-    \item Interpretability analysis of RF feature importances, revealing that the model learns chemically meaningful chromophore motifs, and practical comparison of training cost (15 minutes CPU vs.\ 25 hours GPU).
+    \item Evidence that UV absorption prediction favors local-feature architectures on in-distribution benchmarks~\cite{chenMolecularLanguage2023}: RF feature importance analysis maps directly to known chromophore motifs, and both RF and BiGRU gradient saliency highlight the same conjugated regions, supporting the hypothesis that local electronic structure determines $\lambda_{\max}$. RF also trains 100$\times$ faster (15 minutes CPU vs.\ 25 hours GPU), though out-of-distribution evaluation reveals complementary advantages for pretrained representations.
     \item Practical validation through ICH~S10 photosafety classification and experimental UV measurements on 16 novel compounds.
-    \item Evidence that UV absorption prediction favors local-feature architectures on in-distribution benchmarks~\cite{chenMolecularLanguage2023}: the strong cross-validated performance of local-substructure models (Morgan fingerprints, BiGRU) and the interpretable mapping of top features to known chromophore motifs are consistent with the hypothesis that local-feature architectures are well-suited for properties determined by local electronic structure, though out-of-distribution evaluation reveals complementary advantages for pretrained representations.
 \end{itemize}
 
 
