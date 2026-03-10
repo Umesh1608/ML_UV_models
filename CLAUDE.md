@@ -85,17 +85,20 @@ Single train/val/test splits matching each paper's published protocol. Val used 
 **Remaining Phase I steps (in order):**
 1. ✅ A3 HPO: 25/30 trials complete (stopped — sufficient). Best: Trial 25, val_loss=33.33
    - Config saved: `results/bigru_tuned_best_config.json`
-2. Run full-cv with best config: `python3 tune_bigru.py --full-cv` (~15-25h GPU)
-3. Re-evaluate wetlab with tuned BiGRU: update `eval_wetlab.py` to load tuned models
-4. Update paper: Table 2, Table S5, TikZ, discussion with tuned BiGRU numbers
-5. ✅ A8: BiGRU saliency interpretability — `analyze_bigru_saliency.py`, figures + paper text done
-6. A7: BiGRU direct classification on Mamede (~3-5h GPU)
+2. ✅ HPO methodology + architecture diagrams added to paper
+3. ✅ A8: BiGRU saliency interpretability — `analyze_bigru_saliency.py`, figures + paper text done
+4. ✅ GitHub repo files created (README.md, requirements.txt, .gitignore)
+5. ✅ Appendix float placement fixed, 3D sensitivity claim reframed
+6. **NEXT: Run full-cv with best config**: `python3 tune_bigru.py --full-cv` (~15-25h GPU)
+7. **Re-evaluate wetlab** with tuned BiGRU: update `eval_wetlab.py` to load tuned models
+8. **Update paper numbers**: Table 2, Table S5, TikZ, discussion with tuned BiGRU CV results
+9. **A7: BiGRU direct classification on Mamede** (~3-5h GPU)
    - Use tuned architecture (256u/3l) with task="classification" (sigmoid + BCE)
    - Train on Mamede/Reaxys ~74K binary labels (POS = λ_max ∈ [290,700] AND MEC ≥ 1000)
    - Compare vs: Mamede RF (Sens=0.90, Spec=0.88) and our RF (Sens=0.876, Spec=0.882)
    - Update Table 4, discussion, conclusion; publish model weights
-7. A5: GitHub repo + Zenodo DOI + model weights
-8. Final compile + proofread
+10. **A5: GitHub repo finalization + Zenodo DOI + model weights**
+11. **Final compile + proofread**
 
 #### What's DONE ✅
 
@@ -111,8 +114,16 @@ Single train/val/test splits matching each paper's published protocol. Val used 
 | B4 ChemBERTa learning curves (supplementary) | 3f7b8cf |
 | Figure 7 fix (vertical layout) | 189c44e |
 | Paper title updated to "When Do Simple Models Win?" | latest |
-| A8 BiGRU saliency interpretability (gradient → atom heatmaps) | pending commit |
-| A3 HPO stopped at 25/30 trials (sufficient), best config saved | pending commit |
+| A8 BiGRU saliency interpretability (gradient → atom heatmaps) | done |
+| A3 HPO stopped at 25/30 trials (sufficient), best config saved | done |
+| Architecture diagrams: 3-panel RF/BiGRU/ChemBERTa overview (fig:model_overview) | done |
+| Architecture diagrams: 2-panel default vs optimized BiGRU (fig:bigru_architectures) | done |
+| HPO methodology paragraph in Section 3.3 (Optuna search description) | done |
+| Supplementary tuning asymmetry table: added tuned BiGRU row (33.33, -8.6%) | done |
+| Appendix float placement: all `[h]`/`[htbp]` → `[H]`, `\clearpage` before bib | done |
+| 3D sensitivity claim reframed (1D models competitive except nablaColors) | done |
+| GitHub repo files: README.md, requirements.txt, .gitignore updated | done |
+| Bib entry: akiba2019optuna (Optuna KDD 2019) | done |
 
 #### Phase II — Multi-Property Expansion (`benchmark_paper_v2.tex`)
 
@@ -187,6 +198,7 @@ Files: `ml_chemistry_template.tex`, `Proposal.bib` (77K tokens — read with off
 - **`tune_rf.py`** — RF hyperparameter grid search (432 configs)
 - **`tune_bigru.py`** — BiGRU Optuna HPO (25/30 trials done, SQLite storage, stop/resume safe)
 - **`analyze_bigru_saliency.py`** — BiGRU gradient saliency → atom-level 2D heatmaps (InputxGradient)
+- **`analyze_rf_interpretability.py`** — RF feature importance analysis (Morgan FP bit → substructure)
 - **`run_multi_property.py`** — Phase II multi-property experiments (emission, log_mec, lipophilicity)
 - **`ROADMAP.txt`** — Full execution guide with commands and stop/resume safety
 - **`results/`** — All outputs. **`data/`** — Datasets. **`previous_code/`** — Original work.

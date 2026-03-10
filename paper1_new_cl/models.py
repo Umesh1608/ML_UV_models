@@ -139,7 +139,8 @@ def get_tqdm_callback():
 
 # ─── Deep learning model builder ───────────────────────────────────────────
 
-def create_dl_model(model_type, num_words, input_length, task="regression"):
+def create_dl_model(model_type, num_words, input_length, task="regression",
+                    n_units=128, n_layers=2, embed_dim=50, dropout=0.2):
     """Build a Keras Sequential model for SMILES-based prediction.
 
     Args:
@@ -147,6 +148,10 @@ def create_dl_model(model_type, num_words, input_length, task="regression"):
         num_words: Vocabulary size (charset length).
         input_length: Sequence length (embed_len - 1).
         task: "regression" (linear output) or "classification" (sigmoid output).
+        n_units: Units per direction for BiGRU/BiLSTM (default 128).
+        n_layers: Number of stacked recurrent layers (default 2).
+        embed_dim: Embedding dimension (default 50).
+        dropout: Dropout rate before output (default 0.2).
     """
     import tensorflow as tf
     from tensorflow.keras.layers import (
@@ -155,23 +160,26 @@ def create_dl_model(model_type, num_words, input_length, task="regression"):
     from tensorflow.keras.models import Sequential
 
     model = Sequential()
-    model.add(Embedding(num_words, 50, input_length=input_length))
+    model.add(Embedding(num_words, embed_dim, input_length=input_length))
 
     if model_type == "bigru":
-        model.add(Bidirectional(GRU(128, return_sequences=True)))
-        model.add(Bidirectional(GRU(128)))
+        for i in range(n_layers):
+            return_seq = (i < n_layers - 1)
+            model.add(Bidirectional(GRU(n_units, return_sequences=return_seq)))
     elif model_type == "bilstm":
-        model.add(Bidirectional(LSTM(128, return_sequences=True)))
-        model.add(Bidirectional(LSTM(128)))
+        for i in range(n_layers):
+            return_seq = (i < n_layers - 1)
+            model.add(Bidirectional(LSTM(n_units, return_sequences=return_seq)))
     elif model_type == "cnn_bigru":
         model.add(Conv1D(192, 3, activation="relu"))
-        model.add(Bidirectional(GRU(128, return_sequences=True)))
-        model.add(Bidirectional(GRU(128)))
+        for i in range(n_layers):
+            return_seq = (i < n_layers - 1)
+            model.add(Bidirectional(GRU(n_units, return_sequences=return_seq)))
     else:
         raise ValueError(f"Unknown model type: {model_type}")
 
     model.add(Dense(128, activation="relu"))
-    model.add(Dropout(0.2))
+    model.add(Dropout(dropout))
 
     if task == "classification":
         model.add(Dense(1, activation="sigmoid", dtype="float32"))
@@ -184,7 +192,9 @@ def train_dl_model(model_type, X_train, X_test, y_train, y_test,
                    num_words, input_length, name="model",
                    results_dir="results", seed=7, epochs=250,
                    batch_size=80, patience=25,
-                   X_val=None, y_val=None, task="regression"):
+                   X_val=None, y_val=None, task="regression",
+                   n_units=128, n_layers=2, embed_dim=50, dropout=0.2,
+                   lr=0.001):
     """Train a DL model with early stopping. Returns (y_pred, metrics, model).
 
     Args:
@@ -197,6 +207,11 @@ def train_dl_model(model_type, X_train, X_test, y_train, y_test,
                If provided, early stopping uses (X_val, y_val) instead of (X_test, y_test).
         y_val: Validation targets (required if X_val is provided).
         task: "regression" (MAE loss) or "classification" (BCE loss, sigmoid output).
+        n_units: Units per direction for BiGRU/BiLSTM (default 128).
+        n_layers: Number of stacked recurrent layers (default 2).
+        embed_dim: Embedding dimension (default 50).
+        dropout: Dropout rate before output (default 0.2).
+        lr: Learning rate (default 0.001).
     """
     import tensorflow as tf
 
@@ -206,8 +221,10 @@ def train_dl_model(model_type, X_train, X_test, y_train, y_test,
     # Verify GPU is available before DL training
     verify_gpu_available()
 
-    model = create_dl_model(model_type, num_words, input_length, task=task)
-    optimizer = tf.keras.optimizers.RMSprop(learning_rate=0.001, rho=0.9, epsilon=1e-8)
+    model = create_dl_model(model_type, num_words, input_length, task=task,
+                            n_units=n_units, n_layers=n_layers,
+                            embed_dim=embed_dim, dropout=dropout)
+    optimizer = tf.keras.optimizers.RMSprop(learning_rate=lr, rho=0.9, epsilon=1e-8)
 
     if task == "classification":
         model.compile(loss="binary_crossentropy", optimizer=optimizer,

@@ -69,6 +69,16 @@ EPOCHS = 250
 BATCH_SIZE = 32
 PATIENCE = 25
 
+# Tuned BiGRU architecture (from HPO Trial 25)
+TUNED_CONFIG = {
+    "n_units": 256,
+    "n_layers": 3,
+    "embed_dim": 50,
+    "dropout": 0.105,
+    "lr": 0.00111,
+    "batch_size": 128,
+}
+
 # ICH S10 photosafety thresholds
 POS_LO = 290.0
 POS_HI = 700.0
@@ -295,7 +305,8 @@ def print_comparison_table():
     # Load experiment results
     experiments = [
         ("mamede_rf_cls", "RF + Morgan FP 1024-bit (ours)"),
-        ("mamede_bigru_cls", "BiGRU classifier (no solvent)"),
+        ("mamede_bigru_cls", "BiGRU classifier (default 2L/128u)"),
+        ("mamede_bigru_cls_tuned", "BiGRU classifier (tuned 3L/256u)"),
         ("mamede_bigru_cls_solvent", "BiGRU classifier (solvent)"),
         ("mamede_hybrid_cls", "Hybrid BiGRU+FP classifier"),
         ("mamede_nosolvent", "BiGRU regression → threshold"),
@@ -353,10 +364,23 @@ def print_comparison_table():
 
 def run_bigru_cls(args):
     """Train BiGRU as binary classifier on bare SMILES (no solvent)."""
+    tuned = getattr(args, "tuned", False)
+    arch_label = "tuned 3L/256u" if tuned else "default 2L/128u"
+    prefix = "mamede_bigru_cls_tuned" if tuned else "mamede_bigru_cls"
+
     print("=" * 60)
-    print("  EXPERIMENT 1: BiGRU BINARY CLASSIFIER (no solvent)")
+    print(f"  EXPERIMENT 1: BiGRU BINARY CLASSIFIER (no solvent, {arch_label})")
     print("  74,783 molecules, sigmoid + BCE")
     print("=" * 60)
+
+    # Architecture config
+    if tuned:
+        arch = TUNED_CONFIG
+    else:
+        arch = {"n_units": 128, "n_layers": 2, "embed_dim": 50,
+                "dropout": 0.2, "lr": 0.001, "batch_size": BATCH_SIZE}
+
+    batch_size = arch["batch_size"]
 
     # Load data
     df = load_classification_data()
@@ -384,7 +408,7 @@ def run_bigru_cls(args):
     y_train, y_val, y_test = class_bin[train_idx], class_bin[val_idx], class_bin[test_idx]
 
     # Train
-    print("\n  Training BiGRU classifier...")
+    print(f"\n  Training BiGRU classifier ({arch_label})...")
     y_pred_proba, _, model = train_dl_model(
         model_type="bigru",
         X_train=X_train, X_test=X_test,
@@ -392,30 +416,34 @@ def run_bigru_cls(args):
         y_test=y_test.astype(np.float32),
         num_words=num_words,
         input_length=embed_len - 1,
-        name="mamede_bigru_cls",
+        name=prefix,
         results_dir=RESULTS_DIR,
         seed=SEED, epochs=EPOCHS,
-        batch_size=BATCH_SIZE, patience=PATIENCE,
+        batch_size=batch_size, patience=PATIENCE,
         X_val=X_val, y_val=y_val.astype(np.float32),
         task="classification",
+        n_units=arch["n_units"], n_layers=arch["n_layers"],
+        embed_dim=arch["embed_dim"], dropout=arch["dropout"],
+        lr=arch["lr"],
     )
 
     # Evaluate
     y_pred_bin = (y_pred_proba >= 0.5).astype(int)
     cls_metrics = compute_classification_metrics(y_test, y_pred_bin, y_pred_proba)
-    print_metrics_table(cls_metrics, "BiGRU classifier (no solvent)")
+    print_metrics_table(cls_metrics, f"BiGRU classifier ({arch_label})")
 
     # Save
     config = {
-        "model": "bigru_cls", "solvent": False,
+        "model": "bigru_cls", "tuned": tuned, "solvent": False,
+        "architecture": arch,
         "n_total": len(df),
         "n_train": int(len(train_idx)), "n_val": int(len(val_idx)),
         "n_test": int(len(test_idx)),
-        "epochs": EPOCHS, "batch_size": BATCH_SIZE, "patience": PATIENCE,
+        "epochs": EPOCHS, "batch_size": batch_size, "patience": PATIENCE,
         "seed": SEED, "threshold": 0.5,
     }
     save_experiment_results(
-        "mamede_bigru_cls", cls_metrics, model,
+        prefix, cls_metrics, model,
         y_pred_proba, y_test, y_pred_bin, test_idx, config
     )
     return cls_metrics
@@ -868,6 +896,10 @@ def main():
     parser.add_argument(
         "--model", choices=list(MODEL_DISPATCH.keys()),
         help="Experiment to run"
+    )
+    parser.add_argument(
+        "--tuned", action="store_true",
+        help="Use tuned BiGRU architecture (3L/256u) instead of default (2L/128u)"
     )
     parser.add_argument(
         "--summary", action="store_true",
