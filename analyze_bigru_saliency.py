@@ -239,48 +239,110 @@ def _draw_similarity_map(mol, weights, size=(400, 400)):
 def plot_saliency_grid(molecules_data, out_path):
     """Grid of 6 molecules as 2D structures with atom-level heatmaps.
 
+    Layout: 2 rows x 3 columns with clear group headers.
+    Top row = well-predicted (low |error|), bottom row = poorly-predicted (high |error|).
+    Green borders for good predictions, red borders for poor predictions.
+    Error magnitude shown prominently.
+
     molecules_data: list of dicts with keys:
         mol, atom_weights, name, actual, predicted, error, solvent
     """
     from io import BytesIO
     from PIL import Image
 
-    n = len(molecules_data)
-    ncols = 3
-    nrows = (n + ncols - 1) // ncols
+    # Sort by absolute error and split into two groups
+    sorted_data = sorted(molecules_data, key=lambda d: abs(d['error']))
+    n = len(sorted_data)
+    mid = n // 2
+    good_group = sorted_data[:mid]     # low error
+    poor_group = sorted_data[mid:]     # high error
+    # Sort poor group by increasing error for visual progression
+    poor_group = sorted(poor_group, key=lambda d: abs(d['error']))
 
-    fig, axes = plt.subplots(nrows, ncols, figsize=(15, 5 * nrows))
-    if nrows == 1:
-        axes = [axes]
-    axes = np.array(axes).reshape(nrows, ncols)
+    ncols = max(len(good_group), len(poor_group))
+    nrows = 2
 
-    for idx, data in enumerate(molecules_data):
-        row, col = divmod(idx, ncols)
-        ax = axes[row, col]
+    fig = plt.figure(figsize=(5.5 * ncols, 6.5 * nrows + 1.2))
+    gs = GridSpec(nrows + 2, ncols, figure=fig,
+                  height_ratios=[0.08, 1, 0.08, 1],
+                  hspace=0.15, wspace=0.15)
 
+    # Group headers
+    ax_header_good = fig.add_subplot(gs[0, :])
+    ax_header_good.set_xlim(0, 1)
+    ax_header_good.set_ylim(0, 1)
+    ax_header_good.text(0.5, 0.5,
+                        r'$\bf{Well\ Predicted}$' + f'  (|error| < {abs(good_group[-1]["error"]):.0f} nm)',
+                        ha='center', va='center', fontsize=15,
+                        color='#1a7a2e',
+                        bbox=dict(boxstyle='round,pad=0.4', facecolor='#d4edda',
+                                  edgecolor='#1a7a2e', linewidth=1.5))
+    ax_header_good.axis('off')
+
+    ax_header_poor = fig.add_subplot(gs[2, :])
+    ax_header_poor.set_xlim(0, 1)
+    ax_header_poor.set_ylim(0, 1)
+    ax_header_poor.text(0.5, 0.5,
+                        r'$\bf{Poorly\ Predicted}$' + f'  (|error| > {abs(poor_group[0]["error"]):.0f} nm)',
+                        ha='center', va='center', fontsize=15,
+                        color='#a71d2a',
+                        bbox=dict(boxstyle='round,pad=0.4', facecolor='#f8d7da',
+                                  edgecolor='#a71d2a', linewidth=1.5))
+    ax_header_poor.axis('off')
+
+    def _render_molecule(ax, data, border_color):
         mol = data['mol']
         weights = [float(data['atom_weights'][i]) for i in range(mol.GetNumAtoms())]
 
         # Render with RDKit
-        png_data = _draw_similarity_map(mol, weights, size=(400, 400))
+        png_data = _draw_similarity_map(mol, weights, size=(500, 500))
         img = Image.open(BytesIO(png_data))
         ax.imshow(img)
         ax.axis('off')
 
-        sign = "+" if data['error'] >= 0 else ""
-        ax.set_title(
-            f"{data['name']} ({data['solvent']})\n"
-            f"Actual: {data['actual']:.0f} nm | Pred: {data['predicted']:.1f} nm "
-            f"(err: {sign}{data['error']:.1f})",
-            fontsize=10, pad=8
-        )
+        abs_err = abs(data['error'])
+        sign = "+" if data['error'] >= 0 else "\u2212"
 
-    # Remove empty subplots
-    for idx in range(n, nrows * ncols):
-        row, col = divmod(idx, ncols)
-        axes[row, col].axis('off')
+        # Title: molecule name + solvent
+        ax.set_title(f"{data['name']} ({data['solvent']})",
+                      fontsize=13, fontweight='bold', pad=10)
 
-    plt.tight_layout()
+        # Subtitle: actual, predicted, error — error in color
+        err_color = '#1a7a2e' if abs_err < 20 else '#d4880f' if abs_err < 40 else '#a71d2a'
+        ax.text(0.5, -0.02,
+                f"Exp: {data['actual']:.0f} nm  |  Pred: {data['predicted']:.0f} nm",
+                ha='center', va='top', transform=ax.transAxes, fontsize=11)
+        ax.text(0.5, -0.07,
+                f"Error: {sign}{abs_err:.0f} nm",
+                ha='center', va='top', transform=ax.transAxes, fontsize=12,
+                fontweight='bold', color=err_color)
+
+        # Colored border
+        for spine in ax.spines.values():
+            spine.set_visible(True)
+            spine.set_edgecolor(border_color)
+            spine.set_linewidth(3)
+
+    # Plot good predictions (top row)
+    for col, data in enumerate(good_group):
+        ax = fig.add_subplot(gs[1, col])
+        _render_molecule(ax, data, border_color='#28a745')
+
+    # Hide unused good slots
+    for col in range(len(good_group), ncols):
+        ax = fig.add_subplot(gs[1, col])
+        ax.axis('off')
+
+    # Plot poor predictions (bottom row)
+    for col, data in enumerate(poor_group):
+        ax = fig.add_subplot(gs[3, col])
+        _render_molecule(ax, data, border_color='#dc3545')
+
+    # Hide unused poor slots
+    for col in range(len(poor_group), ncols):
+        ax = fig.add_subplot(gs[3, col])
+        ax.axis('off')
+
     for ext in ('pdf', 'png'):
         plt.savefig(out_path.replace('.pdf', f'.{ext}'), dpi=300, bbox_inches='tight')
     plt.close(fig)
