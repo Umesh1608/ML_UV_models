@@ -955,34 +955,34 @@ Although ethanol and methanol are well-represented solvents in the training set 
 
 \begin{table}[t]
 \centering
-\caption{Experimental validation: predicted vs.\ measured $\lambda_{\max}$ for 16 UV-absorbing compounds in two solvents. Predictions are ensemble averages across 5-fold models. $^*$Present in training data with a different solvent.}
+\caption{Experimental validation: predicted vs.\ measured $\lambda_{\max}$ for 16 UV-absorbing compounds in two solvents. CB = ChemBERTa. Predictions are ensemble averages across 5-fold models. $^*$Present in training data with a different solvent.}
 \label{tab:experimental}
 \small
-\begin{tabular}{lccccccc}
+\begin{tabular}{lcccccccccc}
 \toprule
-& \multicolumn{3}{c}{\textbf{Ethanol}} & \multicolumn{3}{c}{\textbf{Methanol}} \\
-\cmidrule(lr){2-4} \cmidrule(lr){5-7}
-\textbf{Molecule} & \textbf{Exp.} & \textbf{BiGRU} & \textbf{RF} & \textbf{Exp.} & \textbf{BiGRU} & \textbf{RF} \\
+& \multicolumn{4}{c}{\textbf{Ethanol}} & & \multicolumn{4}{c}{\textbf{Methanol}} \\
+\cmidrule(lr){2-5} \cmidrule(lr){7-10}
+\textbf{Molecule} & \textbf{Exp.} & \textbf{CB} & \textbf{BiGRU} & \textbf{RF} & & \textbf{Exp.} & \textbf{CB} & \textbf{BiGRU} & \textbf{RF} \\
 \midrule
-Amiloxate       & 309 & 318 & 359 & 298 & 316 & 359 \\
-Avobenzone      & 358 & 329 & 337 & 358 & 327 & 333 \\
-Caffeic Acid    & 325 & 338 & 347 & 325 & 335 & 345 \\
-Cinnamic Acid   & 275 & 353 & 348 & 276 & 351 & 345 \\
-Coumaric Acid   & 310 & 348 & 346 & 309 & 343 & 344 \\
-Dioxybenzone    & 283 & 315 & 327 & 283 & 315 & 320 \\
-Ferulic Acid$^*$  & 324 & 313 & 346 & 324 & 310 & 344 \\
-Homosalate      & 308 & 335 & 332 & 308 & 336 & 327 \\
-Octinoxate  & 309 & 326 & 334 & 308 & 323 & 332 \\
-Octisalate      & 308 & 339 & 353 & 308 & 333 & 349 \\
-Octocrylene     & 301 & 344 & 390 & 302 & 344 & 389 \\
-Oxybenzone      & 287 & 301 & 328 & 287 & 299 & 321 \\
-PABA            & 291 & 322 & 308 & 290 & 319 & 306 \\
-Padimate O      & 310 & 334 & 340 & 310 & 330 & 337 \\
-Sinapic Acid    & 324 & 318 & 347 & 324 & 314 & 346 \\
-Sulisobenzone   & 287 & 346 & 355 & 286 & 346 & 352 \\
+Amiloxate       & 309 & 349 & 318 & 359 & & 298 & 347 & 316 & 359 \\
+Avobenzone      & 358 & 323 & 329 & 337 & & 358 & 318 & 327 & 333 \\
+Caffeic Acid    & 325 & 342 & 338 & 347 & & 325 & 335 & 335 & 345 \\
+Cinnamic Acid   & 275 & 348 & 353 & 348 & & 276 & 341 & 351 & 345 \\
+Coumaric Acid   & 310 & 340 & 348 & 346 & & 309 & 333 & 343 & 344 \\
+Dioxybenzone    & 283 & 314 & 315 & 327 & & 283 & 308 & 315 & 320 \\
+Ferulic Acid$^*$  & 324 & 326 & 313 & 346 & & 324 & 321 & 310 & 344 \\
+Homosalate      & 308 & 295 & 335 & 332 & & 308 & 293 & 336 & 327 \\
+Octinoxate      & 309 & 325 & 326 & 334 & & 308 & 323 & 323 & 332 \\
+Octisalate      & 308 & 291 & 339 & 353 & & 308 & 291 & 333 & 349 \\
+Octocrylene     & 301 & 357 & 344 & 390 & & 302 & 350 & 344 & 389 \\
+Oxybenzone      & 287 & 325 & 301 & 328 & & 287 & 317 & 299 & 321 \\
+PABA            & 291 & 295 & 322 & 308 & & 290 & 294 & 319 & 306 \\
+Padimate O      & 310 & 320 & 334 & 340 & & 310 & 316 & 330 & 337 \\
+Sinapic Acid    & 324 & 343 & 318 & 347 & & 324 & 332 & 314 & 346 \\
+Sulisobenzone   & 287 & 330 & 346 & 355 & & 286 & 326 & 346 & 352 \\
 \midrule
-\textbf{MAE (nm)} & & \textbf{28.9} & 39.3 & & \textbf{28.4} & 37.7 \\
-\textbf{RMSE (nm)} & & \textbf{34.4} & 44.4 & & \textbf{33.4} & 43.0 \\
+\textbf{MAE (nm)} & & \textbf{27.8} & 28.9 & 39.3 & & \textbf{24.9} & 28.4 & 37.7 \\
+\textbf{RMSE (nm)} & & \textbf{33.5} & 34.4 & 44.4 & & \textbf{30.8} & 33.4 & 43.0 \\
 \bottomrule
 \end{tabular}
 \end{table}
