@@ -76,27 +76,31 @@ Single train/val/test splits matching each paper's published protocol. Val used 
 
 **A3 full-cv**: 🔄 RUNNING — folds 0-3 complete, fold 4 training (epoch ~100, val_loss=19.62)
 - Folds 0-3 RMSE: 35.42, 35.51, 32.02, 35.91 → mean 34.72 ± 1.57 (~5% better than default 36.45)
-- Fold 4 still improving, estimated 1-2h remaining
+- Fold 4 still improving
 
 **After fold 4 completes (in order):**
 1. **Collect 5-fold aggregate** — read metrics, compute mean±std, save `bigru_tuned_cv_aggregate.json`
-2. **Re-evaluate wetlab** with tuned BiGRU — `python3 eval_wetlab.py` (already updated to load tuned models)
+2. **Re-evaluate wetlab** with tuned BiGRU — `python3 eval_wetlab.py` (already has `predict_bigru_tuned()`)
 3. **Regenerate saliency** with tuned models — `python3 analyze_bigru_saliency.py --tuned`
 4. **Update paper numbers** in BOTH `benchmark_paper.tex` AND `benchmark_paper_jcim.tex`:
    - Table 2: add/update BiGRU (tuned) row with full 5-fold results
-   - Table S5 (tuning asymmetry): replace fold-0-only with full CV numbers
+   - Table S6 (tuning asymmetry): replace fold-0-only with full CV numbers
    - TikZ diagrams: update RMSE values if needed
    - Abstract, discussion, conclusion: update BiGRU RMSE claims
    - Saliency paragraph: update if tuned models change the story
-5. **Create SI file** — `benchmark_paper_jcim_si.tex` with per-fold tables, significance tests, learning curves, chartype saliency
+5. **Update SI file** — `supporting_information.tex` with final tuned BiGRU numbers
 6. **A7: BiGRU direct classification on Mamede** (~3-5h GPU)
    - Tuned architecture (256u/3l) with task="classification" (sigmoid + BCE)
    - Train on Mamede/Reaxys ~74K binary labels (POS = λ_max ∈ [290,700] AND MEC ≥ 1000)
    - Compare vs: Mamede RF (Sens=0.90, Spec=0.88) and our RF (Sens=0.876, Spec=0.882)
    - Update Table 4, discussion, conclusion in both tex files
-7. **A5: GitHub repo finalization + Zenodo DOI + model weights**
-8. **Final proofread + compile** both tex files
-9. **Submit to JCIM**
+7. **Convert figure formats** — .pdf figures → .eps or high-res .png (ACS accepts TIF/JPG/PNG/EPS)
+8. **Create TOC graphic** — 3.25" × 1.75" summary graphic (recommended for Articles)
+9. **A5: GitHub repo finalization + Zenodo DOI + model weights**
+10. **Write cover letter** (separate document, required for ACS submission)
+11. **Prepare 5 reviewer suggestions** with academic email addresses
+12. **Final proofread + compile** both tex files
+13. **Submit to JCIM** via ACS Paragon Plus (need ORCID iDs for all authors)
 
 #### What's DONE ✅
 
@@ -128,6 +132,13 @@ Single train/val/test splits matching each paper's published protocol. Val used 
 | **JCIM paper created**: `benchmark_paper_jcim.tex` (achemso, journal=jcisd8) | f8c43e5 |
 | eval_wetlab.py updated: added predict_bigru_tuned() for tuned models | a45130d |
 | Bib entry: joung2021deep (JACS Au 2021, GCNN RMSE=26.6 source) | 935d12d |
+| JCIM abstract condensed: 8 → 4 sentences, emphasizes optimized BiGRU + broader guidance | edb5fd4 |
+| Data curation expanded: 4-step procedure in Section 3.1 (both tex files) | edb5fd4 |
+| SI file created: `supporting_information.tex` (standalone achemso suppinfo) | edb5fd4 |
+| Conflict of interest declaration added to Acknowledgements | b26c9e7 |
+| QSAR best practices cited: tropsha2006best + cherkasov2014qsar in evaluation protocol | b26c9e7 |
+| Abstract broadened: locality-of-property principle for model selection beyond UV | ea808f4 |
+| Conclusion reframed: practical guidance for molecular property prediction generally | ea808f4 |
 
 #### Phase II — Multi-Property Expansion (`benchmark_paper_v2.tex`)
 
@@ -146,8 +157,9 @@ Single train/val/test splits matching each paper's published protocol. Val used 
 #### Priority Execution Order
 ```
 Phase I: [fold 4 finishes] → collect aggregate → wetlab re-eval → saliency --tuned
-  → paper number updates (both tex) → create SI file → A7 classification (GPU)
-  → A5 repo/Zenodo → final proofread → submit JCIM
+  → paper number updates (both tex + SI) → A7 classification (GPU)
+  → convert figures → TOC graphic → A5 repo/Zenodo → cover letter
+  → reviewer suggestions → final proofread → submit JCIM
 Phase II (after submission): log_mec RF ⏸ → BiGRU (GPU) → ChemBERTa (GPU) → paper_v2
 ```
 
@@ -198,8 +210,9 @@ Files: `ml_chemistry_template.tex`, `Proposal.bib` (77K tokens — read with off
 - **`download_datasets.py`** — Download external datasets (CLI: `--dataset`)
 - **`convert_reaxys_web_export.py`** — Reaxys TSV → raw CSV
 - **`postprocess_reaxys.py`** — Raw Reaxys → clean regression + classification datasets (CLI: `--solvent`)
-- **`benchmark_paper.tex`** — Benchmark paper (generic article format, Overleaf-synced)
-- **`benchmark_paper_jcim.tex`** — JCIM submission version (achemso, journal=jcisd8)
+- **`benchmark_paper.tex`** — Benchmark paper (generic article format, Overleaf-synced, includes inline appendix)
+- **`benchmark_paper_jcim.tex`** — JCIM submission version (achemso, journal=jcisd8, main text only)
+- **`supporting_information.tex`** — JCIM Supporting Information (standalone achemso suppinfo: per-fold tables, significance, learning curves, tuning asymmetry, chartype saliency)
 - **`notes_on_paper.tex`** — Revision notes, reviewer Q&A, submission checklist, fallback git hashes
 - **`ml_chemistry_template.tex`** — Original DL-focused paper (preserved, Overleaf-synced)
 - **`tune_rf.py`** — RF hyperparameter grid search (432 configs)
