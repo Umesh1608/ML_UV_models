@@ -140,7 +140,7 @@ These complementary strengths (RF for interpolation within known chemical space,
         {\textbf{XGBoost}\\[-1pt]{\scriptsize 500 rounds, depth 6, $\eta = 0.1$}};
 
     \node[box, fill=blue!12, draw=blue!40!black] (bigru) at (0, -0.7)
-        {\textbf{BiGRU}\\[-1pt]{\scriptsize 2$\times$128 BiGRU, 470K params}};
+        {\textbf{BiGRU}\\[-1pt]{\scriptsize 3$\times$256 BiGRU, 2.1M params}};
 
     \node[box, fill=blue!12, draw=blue!40!black] (cb) at (0, -2.15)
         {\textbf{ChemBERTa}\\[-1pt]{\scriptsize 6-layer Transformer, 44.1M params}};
@@ -699,7 +699,7 @@ Kang et al.~\cite{kang2020prediction} and Beard et al.~\cite{beard2022uvadvisor}
 
     % --- Result boxes at bottom ---
     \node[draw, rounded corners=2pt, fill=green!5, font=\scriptsize, align=center] (rfres) at (-4, -0.2) {RMSE = \textbf{31.34} nm\\(best cross-val)};
-    \node[draw, rounded corners=2pt, fill=green!5, font=\scriptsize, align=center] (bigrures) at (0, -0.2) {RMSE = \textbf{36.45} nm\\(0.47M params)};
+    \node[draw, rounded corners=2pt, fill=green!5, font=\scriptsize, align=center] (bigrures) at (0, -0.2) {RMSE = \textbf{36.45} nm\\(2.1M params)};
     \node[draw, rounded corners=2pt, fill=red!5, font=\scriptsize, align=center] (bertres) at (4, -0.2) {RMSE = \textbf{50.39} nm\\(44.1M params)};
 
     % --- Bottom citation ---
