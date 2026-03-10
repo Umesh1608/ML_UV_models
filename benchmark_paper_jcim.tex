@@ -43,10 +43,10 @@
 
 % ===== Abstract =====
 \begin{abstract}
-We benchmark Random Forest (RF), XGBoost, Bidirectional GRU (BiGRU), and ChemBERTa for predicting UV absorption wavelengths ($\lambda_{\max}$) on 18,755 solute--solvent pairs with stratified 5-fold cross-validation and three external datasets totaling over 70,000 molecules; RF with concatenated solute--solvent Morgan fingerprints achieves the best cross-validated RMSE ($31.34 \pm 1.82$~nm, $R^2 = 0.914$) and surpasses published deep learning baselines on two external benchmarks.
+We benchmark Random Forest (RF), XGBoost, a Bayesian-optimized Bidirectional GRU (BiGRU), and ChemBERTa for predicting UV absorption wavelengths ($\lambda_{\max}$) on 18,755 solute--solvent pairs with stratified 5-fold cross-validation and three external datasets totaling over 70,000 molecules; RF with concatenated solute--solvent Morgan fingerprints achieves the best cross-validated RMSE ($31.34 \pm 1.82$~nm, $R^2 = 0.914$) and surpasses published deep learning baselines on two external benchmarks, while Bayesian hyperparameter optimization of BiGRU (3-layer, 256-unit architecture) reduces its RMSE by 8.6\% over the default configuration.
 However, experimental validation on 16 novel UV-absorbing compounds reverses the ranking: both deep learning models outperform RF on out-of-distribution molecules (ChemBERTa MAE = 26.3, BiGRU = 28.6 vs.\ 38.5~nm), revealing that learned representations generalize beyond fixed substructural features.
 A solvent concatenation strategy yields consistent 7--8\% RMSE reductions across model families, and interpretability analysis shows that RF feature importance and BiGRU gradient saliency independently highlight the same chromophore motifs, confirming that both architectures learn meaningful photochemistry.
-These complementary strengths---RF for interpolation within known chemical space, deep learning for extrapolation to novel scaffolds---provide practical guidance for model selection in UV property prediction.
+These results demonstrate that models encoding local structural information (fingerprints, RNNs) outperform global-attention architectures on properties determined by local molecular features, while pretrained Transformers excel at out-of-distribution generalization---providing practical guidance for model selection in molecular property prediction beyond UV absorption.
 \end{abstract}
 
 % ===== Introduction =====
@@ -1039,8 +1039,9 @@ Our key findings are:
     RF-based photosafety classification (accuracy = 0.879) closely reproduces the published Mamede benchmark (accuracy = 0.89), validating both the methodology and dataset reconstruction.
 \end{enumerate}
 
-These findings suggest that model selection for UV absorption prediction should be guided by the relationship between target compounds and available training data: RF is preferred for screening within well-characterized chemical libraries, while sequence-based deep learning (BiGRU, ChemBERTa) is better suited for exploration of novel molecular architectures.
-While demonstrated here for UV absorption, the benchmarking framework and complementary-strengths finding are likely to generalize to other molecular optical properties (e.g., emission wavelength, molar extinction coefficient) and solvent-dependent endpoints, where the same trade-off between local substructural features and learned representations applies.
+More broadly, these findings offer practical guidance for molecular property prediction beyond UV absorption: when a target property is determined by local molecular features (conjugation, substituent effects, functional groups), models that encode local structural information---fingerprints with tree ensembles and RNNs processing SMILES subsequences---are expected to outperform global-attention architectures on in-distribution benchmarks, while pretrained Transformers retain advantages for out-of-distribution generalization to novel scaffolds.
+Model selection should therefore be guided by (1)~the locality of the target property and (2)~the relationship between target compounds and available training data: local-feature models for interpolation within known chemical space, learned representations for extrapolation to novel architectures.
+This framework should generalize to related molecular properties including emission wavelength, molar extinction coefficient, and other endpoints where the balance between local and global structural determinants varies.
 
 \subsection*{Limitations}
 Our models use only 1D molecular representations; while our cross-dataset results show that 1D approaches are competitive with published graph and 3D methods on most benchmarks, the large performance gap on nablaColors (Table~\ref{tab:cross_dataset}) suggests that 3D conformational information becomes important for structurally diverse chromophores where electronic properties depend on molecular geometry~\cite{lupopasini2023excited}.
