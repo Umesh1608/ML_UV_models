@@ -487,7 +487,7 @@ Our BiGRU model operates on character-level tokenized SMILES using a 57-token vo
 An embedding layer maps each token to a 50-dimensional dense vector, followed by two stacked BiGRU layers (128 units per direction), a dense layer (128 units, ReLU), dropout (0.2), and a linear output.
 The model has approximately 470K trainable parameters and is trained with RMSprop (lr = 0.001), MAE loss, batch size 32, for up to 250 epochs with early stopping on validation MAE (patience 25).
 Mixed-precision (float16) training is used on an NVIDIA RTX 4090 GPU.
-This default architecture is adapted from Liu et al.~\cite{liuPredictionMolecularToxicity2023}, who applied BiGRU to SMILES-based molecular toxicity prediction on the Tox21 dataset.
+This architecture is inspired by Liu et al.~\cite{liuPredictionMolecularToxicity2023}, who applied BiGRU to SMILES-based molecular toxicity prediction on the Tox21 dataset.
 
 To address the asymmetric tuning concern, we additionally perform Bayesian hyperparameter optimization (HPO) using Optuna~\cite{akiba2019optuna} with the Tree-structured Parzen Estimator (TPE) sampler.
 The search space covers the number of BiGRU units per direction $\in \{64, 128, 256\}$, number of stacked BiGRU layers $\in \{1, 2, 3\}$, embedding dimension $\in \{32, 50, 100\}$, dropout rate $\in [0.1, 0.4]$, learning rate $\in [10^{-4}, 3 \times 10^{-3}]$, and batch size $\in \{32, 64, 128\}$.
@@ -528,7 +528,7 @@ Figure~\ref{fig:bigru_architectures} compares the default and optimized BiGRU ar
 \end{tikzpicture}
 
 \textbf{(a)} Default BiGRU\\[2pt]
-{\small 2 layers, 128 units, $\sim$470K params\\Liu et al.\ (2023) architecture}
+{\small 2 layers, 128 units, $\sim$470K params\\Inspired by Liu et al.\ (2023)}
 \end{minipage}
 \hfill
 \begin{minipage}[t]{0.45\textwidth}
@@ -560,7 +560,7 @@ Figure~\ref{fig:bigru_architectures} compares the default and optimized BiGRU ar
 {\small 3 layers, 256 units, $\sim$2.1M params\\Optuna HPO (25 trials, 8.6\% $\downarrow$ RMSE)}
 \end{minipage}
 
-\caption{BiGRU architecture comparison. (a)~Default architecture following Liu et al.~\cite{liuPredictionMolecularToxicity2023}: 2 stacked BiGRU layers with 128 units per direction. (b)~Optimized architecture from Bayesian HPO: 3 stacked BiGRU layers with 256 units per direction, lower dropout, yielding 4.5$\times$ more parameters and 8.6\% lower validation RMSE. Both share the same embedding dimension ($d=50$) and training procedure (RMSprop, MAE loss, early stopping).}
+\caption{BiGRU architecture comparison. (a)~Default architecture inspired by Liu et al.~\cite{liuPredictionMolecularToxicity2023}: 2 stacked BiGRU layers with 128 units per direction. (b)~Optimized architecture from Bayesian HPO: 3 stacked BiGRU layers with 256 units per direction, lower dropout, yielding 4.5$\times$ more parameters and 8.6\% lower validation RMSE. Both share the same embedding dimension ($d=50$) and training procedure (RMSprop, MAE loss, early stopping).}
 \label{fig:bigru_architectures}
 \end{figure}
 
