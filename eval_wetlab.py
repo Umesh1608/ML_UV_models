@@ -86,6 +86,50 @@ def predict_bigru(df):
     return ensemble_pred
 
 
+def predict_bigru_tuned(df):
+    """Predict λ_max using tuned BiGRU (3L/256u) ensemble (average across folds)."""
+    import tensorflow as tf
+
+    # Same config as v2 (same charset + embed_len)
+    config_path = os.path.join(RESULTS_DIR, "bigru_solvent_v2_config.json")
+    with open(config_path) as f:
+        config = json.load(f)
+
+    char_to_int = config["char_to_int"]
+    embed_len = config["embed_len"]
+
+    from paper1_new_cl.models import vectorize_smiles
+
+    combined = (df["smiles"] + "!" + df["solvent_smiles"]).values
+    all_chars = set("".join(combined))
+    missing = all_chars - set(char_to_int.keys())
+    if missing:
+        print(f"  WARNING: Characters not in charset: {missing}")
+        return None
+
+    X = vectorize_smiles(combined, char_to_int, embed_len)
+
+    all_preds = []
+    for fold in range(N_FOLDS):
+        model_path = os.path.join(RESULTS_DIR, f"bigru_tuned_fold{fold}_model.keras")
+        if not os.path.exists(model_path):
+            print(f"  WARNING: Missing tuned fold {fold} model: {model_path}")
+            continue
+        model = tf.keras.models.load_model(model_path)
+        preds = model.predict(X, verbose=0).flatten()
+        all_preds.append(preds)
+        del model
+        tf.keras.backend.clear_session()
+
+    if not all_preds:
+        print("  ERROR: No tuned BiGRU fold models found!")
+        return None
+
+    ensemble_pred = np.mean(all_preds, axis=0)
+    print(f"  BiGRU (tuned): ensembled {len(all_preds)} fold models")
+    return ensemble_pred
+
+
 def predict_rf(df):
     """Predict λ_max using RF v2 ensemble (average across folds)."""
     import joblib
@@ -233,6 +277,10 @@ def main():
     bigru_pred = predict_bigru(df)
 
     print(f"\n{'─' * 70}")
+    print("  Loading BiGRU (tuned 3L/256u) models...")
+    bigru_tuned_pred = predict_bigru_tuned(df)
+
+    print(f"\n{'─' * 70}")
     print("  Loading RF v2 models...")
     rf_pred = predict_rf(df)
 
@@ -246,6 +294,10 @@ def main():
     if bigru_pred is not None:
         results["BiGRU_pred"] = np.round(bigru_pred, 1)
         results["BiGRU_error"] = np.round(bigru_pred - y_true, 1)
+
+    if bigru_tuned_pred is not None:
+        results["BiGRU_tuned_pred"] = np.round(bigru_tuned_pred, 1)
+        results["BiGRU_tuned_error"] = np.round(bigru_tuned_pred - y_true, 1)
 
     if rf_pred is not None:
         results["RF_pred"] = np.round(rf_pred, 1)
@@ -265,7 +317,9 @@ def main():
     print("  AGGREGATE METRICS")
     print(f"{'─' * 70}")
 
-    for name, pred in [("BiGRU+Solvent v2", bigru_pred), ("RF v2", rf_pred),
+    for name, pred in [("BiGRU+Solvent v2", bigru_pred),
+                        ("BiGRU (tuned)", bigru_tuned_pred),
+                        ("RF v2", rf_pred),
                         ("ChemBERTa", chemberta_pred)]:
         if pred is None:
             continue
@@ -309,6 +363,10 @@ def main():
                 bigru_diff = abs(bigru_pred[etoh_idx] - bigru_pred[meoh_idx])
                 row["BiGRU |Δ|"] = round(bigru_diff, 1)
 
+            if bigru_tuned_pred is not None:
+                bt_diff = abs(bigru_tuned_pred[etoh_idx] - bigru_tuned_pred[meoh_idx])
+                row["BiGRU_t |Δ|"] = round(bt_diff, 1)
+
             if rf_pred is not None:
                 rf_diff = abs(rf_pred[etoh_idx] - rf_pred[meoh_idx])
                 row["RF |Δ|"] = round(rf_diff, 1)
@@ -333,8 +391,8 @@ def main():
         "n_predictions": len(df),
         "solvents": ["EtOH", "MeOH"],
     }
-    for name, pred in [("bigru", bigru_pred), ("rf", rf_pred),
-                        ("chemberta", chemberta_pred)]:
+    for name, pred in [("bigru", bigru_pred), ("bigru_tuned", bigru_tuned_pred),
+                        ("rf", rf_pred), ("chemberta", chemberta_pred)]:
         if pred is None:
             continue
         rmse, mae, _, _ = compute_metrics(y_true, pred)
