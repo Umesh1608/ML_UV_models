@@ -933,7 +933,7 @@ Our RF                      & 1,996 & 0.876 & 0.882 & 0.879 & 0.942 \\
 \end{table}
 
 Our RF classifier closely reproduces the published Mamede results (accuracy 0.879 vs.\ 0.89), validating both our Reaxys dataset reconstruction and the effectiveness of Morgan fingerprints for photosafety screening.
-The regression-based thresholding approach using BiGRU predictions proved ineffective (accuracy = 0.588), primarily due to low sensitivity. The regression model's prediction errors span both sides of the classification boundary, producing many false negatives.
+The regression-based thresholding approach using BiGRU predictions proved ineffective (accuracy = 0.588, sensitivity = 0.22), as the regression model's prediction errors span both sides of the classification boundary, producing many false negatives.
 This finding suggests that direct classification is preferable to regression-then-threshold approaches for photosafety screening.
 
 
@@ -1075,7 +1075,8 @@ A natural extension is to apply the same benchmarking framework to related molec
 % ===== Data and Code Availability =====
 \section*{Data and Code Availability}
 The primary Joung+Beard dataset is available from the original publications~\cite{joung2020experimental, beard2019comparative} (DOI: 10.6084/m9.figshare.12045567).
-External validation datasets: Deep4Chem (Figshare, DOI: 10.6084/m9.figshare.12045567)~\cite{joung2020experimental}, Jung et al.\ (GitHub)~\cite{jung2024machine}.
+External validation datasets: Deep4Chem (Figshare, DOI: 10.6084/m9.figshare.12045567)~\cite{joung2020experimental}, Jung et al.\ (GitHub)~\cite{jung2024machine}, nablaColors (Zenodo)~\cite{potapov2026nablacolors}.
+The Mamede classification dataset was reconstructed from Reaxys~\cite{mamede2021machine}.
 All code for model training, evaluation, and analysis will be released on GitHub under the MIT license upon publication, including trained model weights and preprocessing scripts.
 
 
