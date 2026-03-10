@@ -299,6 +299,7 @@ Metrics are reported as mean $\pm$ standard deviation across five folds: root-me
 Statistical significance of pairwise model differences is assessed using paired $t$-tests across the five fold RMSE values ($\alpha = 0.05$).
 
 For external datasets, we use the exact split protocols published by the original authors to enable direct comparison with reported results.
+Our evaluation methodology follows best practices for QSAR/QSPR studies~\cite{tropsha2006best, cherkasov2014qsar}: models are validated using both internal cross-validation and external test sets, multiple statistical metrics are reported, and applicability domain is assessed through out-of-distribution experimental validation (Section~\ref{sec:experimental}).
 All models are implemented using scikit-learn~\cite{pedregosa2011scikit} (RF), XGBoost~\cite{chen2016xgboost}, TensorFlow~\cite{abadi2016tensorflow} (BiGRU), and PyTorch with HuggingFace Transformers (ChemBERTa).
 
 
@@ -1073,7 +1074,7 @@ All code for model training, evaluation, and analysis will be released on GitHub
 % ===== Acknowledgement =====
 \begin{acknowledgement}
 The authors thank the University of Iowa and the Midwest Bioprocessing Center for computational resources.
-Portions of this manuscript were prepared with the assistance of Claude (Anthropic, Claude Code). The authors reviewed and edited all AI-generated content and take full responsibility for the accuracy of the final text.
+The authors declare no competing financial interest.
 \end{acknowledgement}
 
 % ===== Supporting Information =====
