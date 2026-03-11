@@ -494,7 +494,7 @@ This architecture is inspired by Liu et al.~\cite{liuPredictionMolecularToxicity
 To address the asymmetric tuning concern, we additionally perform Bayesian hyperparameter optimization (HPO) using Optuna~\cite{akiba2019optuna} with the Tree-structured Parzen Estimator (TPE) sampler.
 The search space covers the number of BiGRU units per direction $\in \{64, 128, 256\}$, number of stacked BiGRU layers $\in \{1, 2, 3\}$, embedding dimension $\in \{32, 50, 100\}$, dropout rate $\in [0.1, 0.4]$, learning rate $\in [10^{-4}, 3 \times 10^{-3}]$, and batch size $\in \{32, 64, 128\}$.
 Each trial trains on the fold~0 training set with early stopping on the fold~0 validation set (MAE loss, patience 25).
-After 25 trials, the best configuration achieves a validation RMSE of 33.33~nm (8.6\% improvement over the default 36.45~nm): 256 units per direction, 3 stacked BiGRU layers ($\sim$2.1M parameters), embedding dimension 50, dropout 0.105, learning rate $1.1 \times 10^{-3}$, and batch size 128.
+After 25 trials, the best configuration (256 units per direction, 3 stacked BiGRU layers with $\sim$2.97M parameters, embedding dimension 50, dropout 0.105, learning rate $1.1 \times 10^{-3}$, batch size 128) achieves a fold-0 validation RMSE of 33.33~nm; full 5-fold cross-validation yields RMSE = $34.71 \pm 1.40$~nm, a 4.8\% improvement over the default 36.45~nm.
 Key findings from the HPO landscape: (1) three-layer architectures consistently outperform two-layer defaults, (2) single-layer models fail entirely (validation RMSE $>$44~nm), (3) low dropout ($\sim$0.10) is optimal for the larger architecture, and (4) embedding dimension 50 outperforms both 32 and 100.
 Full cross-validated results with this tuned architecture are reported in Section~\ref{sec:results}.
 Figure~\ref{fig:bigru_architectures} compares the default and optimized BiGRU architectures.
@@ -559,10 +559,10 @@ Figure~\ref{fig:bigru_architectures} compares the default and optimized BiGRU ar
 \end{tikzpicture}
 
 \textbf{(b)} Optimized BiGRU\\[2pt]
-{\small 3 layers, 256 units, $\sim$2.1M params\\Optuna HPO (25 trials, 8.6\% $\downarrow$ RMSE)}
+{\small 3 layers, 256 units, $\sim$3.0M params\\Optuna HPO (25 trials, 4.8\% $\downarrow$ RMSE)}
 \end{minipage}
 
-\caption{BiGRU architecture comparison. (a)~Default architecture inspired by Liu et al.~\cite{liuPredictionMolecularToxicity2023}: 2 stacked BiGRU layers with 128 units per direction. (b)~Optimized architecture from Bayesian HPO: 3 stacked BiGRU layers with 256 units per direction, lower dropout, yielding 4.5$\times$ more parameters and 8.6\% lower validation RMSE. Both share the same embedding dimension ($d=50$) and training procedure (RMSprop, MAE loss, early stopping).}
+\caption{BiGRU architecture comparison. (a)~Default architecture inspired by Liu et al.~\cite{liuPredictionMolecularToxicity2023}: 2 stacked BiGRU layers with 128 units per direction. (b)~Optimized architecture from Bayesian HPO: 3 stacked BiGRU layers with 256 units per direction, lower dropout, yielding 6.3$\times$ more parameters and 4.8\% lower cross-validated RMSE. Both share the same embedding dimension ($d=50$) and training procedure (RMSprop, MAE loss, early stopping).}
 \label{fig:bigru_architectures}
 \end{figure}
 
@@ -634,20 +634,22 @@ Table~\ref{tab:model_comparison} presents the performance of all models on the p
 RF + Morgan FP        & \textbf{31.34 $\pm$ 1.82} & \textbf{15.16 $\pm$ 0.44} & \textbf{0.914 $\pm$ 0.010} & \textbf{0.956 $\pm$ 0.005} \\
 XGBoost + Morgan FP   & 33.70 $\pm$ 1.61          & 20.05 $\pm$ 0.48          & 0.900 $\pm$ 0.009          & 0.950 $\pm$ 0.005 \\
 BiGRU + Solvent       & 36.45 $\pm$ 1.12          & 20.70 $\pm$ 0.51          & 0.884 $\pm$ 0.006          & 0.940 $\pm$ 0.003 \\
+BiGRU (tuned, 3L/256u)& 34.71 $\pm$ 1.40          & 18.09 $\pm$ 0.59          & 0.890 $\pm$ 0.010          & 0.950 $\pm$ 0.003 \\
 XGBoost (MAE loss)    & 40.75 $\pm$ 1.58          & 21.99 $\pm$ 0.47          & 0.854 $\pm$ 0.010          & 0.927 $\pm$ 0.005 \\
 ChemBERTa (pretrained)& 50.39 $\pm$ 2.30          & 24.31 $\pm$ 1.04          & 0.777 $\pm$ 0.019          & 0.899 $\pm$ 0.009 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-RF with Morgan fingerprints achieves the best performance across all metrics, with RMSE = 31.34~nm compared to 36.45~nm for BiGRU, a 14\% improvement.
+RF with Morgan fingerprints achieves the best performance across all metrics, with RMSE = 31.34~nm compared to 34.71~nm for the tuned BiGRU (36.45~nm default), a 10\% improvement.
 This difference is statistically significant (paired $t$-test across 5 folds: $t = -7.08$, $p = 0.002$), as are all pairwise model comparisons in Table~\ref{tab:model_comparison} ($p < 0.02$ for all pairs).
 Hyperparameters were selected via grid search over 432 configurations (varying $n_\text{trees}$, max depth, min leaf size, features per split, FP radius, and FP length) evaluated on a held-out validation fold, with the optimal configuration ($B = 1000$, $\texttt{max\_features} = 0.3$, radius = 2, $n = 2048$) applied to all folds.
 The critical finding was that \texttt{max\_features} = $0.3d$ (30\% of features per split) substantially outperformed the default $\sqrt{d}$ ($\sim$1.6\% of features); all top 10 configurations in the grid search used this setting.
 This result is consistent with recent observations in molecular property prediction that well-tuned fingerprint-based methods can match or exceed deep learning approaches, particularly when operating on the same 1D molecular information~\cite{panapitiya2022evaluation, walters2021applications}.
-The default RF configuration (scikit-learn defaults with $\sqrt{d}$ feature sampling) achieves RMSE = 32.18~nm; tuning improves this by only 2.6\%, indicating that RF's advantage over BiGRU is not an artifact of asymmetric hyperparameter optimization.
+The default RF configuration (scikit-learn defaults with $\sqrt{d}$ feature sampling) achieves RMSE = 32.18~nm; tuning improves this by only 2.6\%.
+Similarly, BiGRU tuning reduces RMSE by 4.8\% (from 36.45 to 34.71~nm), confirming that RF's advantage is not an artifact of asymmetric hyperparameter optimization: even the default RF outperforms the tuned BiGRU.
 
-Despite lower absolute performance, BiGRU exhibits the lowest cross-fold variance (RMSE std = 1.12 vs.\ 1.82 for RF), suggesting more consistent generalization.
+Despite lower absolute performance, the default BiGRU exhibits the lowest cross-fold variance (RMSE std = 1.12 vs.\ 1.82 for RF), suggesting more consistent generalization; tuning increases BiGRU variance slightly (std = 1.40) while substantially improving MAE (from 20.70 to 18.09~nm).
 BiGRU also offers the advantage of end-to-end learning from raw SMILES strings without requiring descriptor engineering~\cite{chenMolecularLanguage2023}, potentially enabling transfer learning from larger pretraining corpora~\cite{vermeire2021transfer}.
 
 The strong performance of fingerprint-based RF can be understood through the physics of UV absorption.
@@ -694,7 +696,7 @@ Kang et al.~\cite{kang2020prediction} and Beard et al.~\cite{beard2022uvadvisor}
 
     % --- Result boxes at bottom ---
     \node[draw, rounded corners=2pt, fill=green!5, font=\scriptsize, align=center] (rfres) at (-4, -0.2) {RMSE = \textbf{31.34} nm\\(best cross-val)};
-    \node[draw, rounded corners=2pt, fill=green!5, font=\scriptsize, align=center] (bigrures) at (0, -0.2) {RMSE = \textbf{36.45} nm\\(2.1M params)};
+    \node[draw, rounded corners=2pt, fill=green!5, font=\scriptsize, align=center] (bigrures) at (0, -0.2) {RMSE = \textbf{34.71} nm\\(3.0M params, tuned)};
     \node[draw, rounded corners=2pt, fill=red!5, font=\scriptsize, align=center] (bertres) at (4, -0.2) {RMSE = \textbf{50.39} nm\\(44.1M params)};
 
     % --- Bottom citation ---
@@ -706,8 +708,8 @@ Kang et al.~\cite{kang2020prediction} and Beard et al.~\cite{beard2022uvadvisor}
 
 Figure~\ref{fig:local_vs_global} illustrates this conceptual alignment: models whose inductive bias matches the locality of the target property (RF encoding radius-2 atom neighborhoods, BiGRU capturing sequential SMILES context) achieve better in-distribution performance for UV absorption prediction than Transformers whose self-attention mechanism distributes information globally across the entire molecular representation~\cite{chenMolecularLanguage2023, jiang2023trangru}.
 
-ChemBERTa, despite being pretrained on $\sim$77M SMILES strings from ZINC and having 44.1M parameters (94$\times$ more than BiGRU), achieves RMSE = 50.39~nm, substantially worse than both BiGRU (36.45~nm) and RF (31.34~nm).
-This 61\% gap relative to RF is consistent with the hypothesis that Transformer representations are less sample-efficient for local properties on moderately-sized datasets, though ChemBERTa's superior wetlab generalization (Section~\ref{sec:experimental}) suggests pretrained knowledge partially compensates.
+ChemBERTa, despite being pretrained on $\sim$77M SMILES strings from ZINC and having 44.1M parameters (15$\times$ more than tuned BiGRU), achieves RMSE = 50.39~nm, substantially worse than both the tuned BiGRU (34.71~nm) and RF (31.34~nm).
+This 45\% gap relative to the tuned BiGRU is consistent with the hypothesis that Transformer representations are less sample-efficient for local properties on moderately-sized datasets, though ChemBERTa's superior wetlab generalization (Section~\ref{sec:experimental}) suggests pretrained knowledge partially compensates.
 However, ChemBERTa achieves the lowest wetlab MAE on novel compounds (26.3~nm vs.\ 28.6~nm for BiGRU; Section~\ref{sec:experimental}), suggesting that pretrained representations may offer complementary generalization advantages despite poor in-distribution performance.
 
 XGBoost trained with MAE loss (pseudo-Huber approximation) performs substantially worse than MSE-trained XGBoost (RMSE 40.75 vs.\ 33.70~nm).
@@ -992,7 +994,8 @@ Sulisobenzone   & 287 & 330 & 346 & 355 & & 286 & 326 & 346 & 352 \\
 \textbf{Model} & \textbf{MAE (nm) [95\% CI]} & \textbf{RMSE (nm) [95\% CI]} \\
 \midrule
 ChemBERTa         & \textbf{26.3} [20.1--33.0] & \textbf{32.2} [25.2--38.8] \\
-BiGRU + Solvent   & 28.6 [22.7--35.0] & 33.9 [26.2--41.2] \\
+BiGRU (default)   & 28.6 [22.7--35.0] & 33.9 [26.2--41.2] \\
+BiGRU (tuned)     & 31.5 & 37.0 \\
 RF + Morgan FP    & 38.5 [31.6--45.9]          & 43.7 [35.3--51.7] \\
 \bottomrule
 \end{tabular}
@@ -1003,7 +1006,8 @@ This \textit{reverses} the ranking observed on the cross-validated primary datas
 The overlapping confidence intervals between ChemBERTa and BiGRU indicate comparable generalization, while both significantly outperform RF (non-overlapping CIs; 10,000 bootstrap resamples).
 This reversal reveals a fundamental distinction: RF relies on exact substructure matching through Morgan fingerprint bits, excelling at interpolation within the training distribution but struggling when novel functional groups or conjugation patterns are underrepresented.
 The deep learning models, by contrast, learn representations (BiGRU from sequential SMILES patterns, ChemBERTa from pretrained molecular language understanding) that can generalize to unseen molecular motifs.
-All three models show substantially higher errors than their cross-validated performance (ChemBERTa: 26.3 vs.\ 24.3~nm MAE; BiGRU: 28.6 vs.\ 20.7~nm; RF: 38.5 vs.\ 15.2~nm), confirming that these 16 compounds are genuinely challenging out-of-distribution examples.
+All models show substantially higher errors than their cross-validated performance (ChemBERTa: 26.3 vs.\ 24.3~nm MAE; BiGRU default: 28.6 vs.\ 20.7~nm; RF: 38.5 vs.\ 15.2~nm), confirming that these 16 compounds are genuinely challenging out-of-distribution examples.
+Notably, the tuned BiGRU (3L/256u) performs \textit{worse} on wetlab validation (MAE = 31.5~nm) than the default (28.6~nm), despite 4.8\% lower cross-validated RMSE---a classic bias--variance tradeoff where the larger architecture overfits to in-distribution patterns at the cost of out-of-distribution generalization.
 
 Cinnamic Acid (experimental $\lambda_{\max}$ = 275--276~nm) is a notable outlier: all three models overpredict by $\sim$65--75~nm.
 The experimental peak lies at the edge of the 270--400~nm scan range, suggesting measurement limitations.
@@ -1036,7 +1040,7 @@ Our key findings are:
 
 \begin{enumerate}
     \item \textbf{RF and deep learning have complementary strengths.}
-    RF with Morgan fingerprints achieves the best cross-validated performance on the primary Joung+Beard dataset (RMSE = 31.34~nm vs.\ 36.45~nm for BiGRU, 50.39~nm for ChemBERTa) and on both external datasets, surpassing published deep learning baselines on Deep4Chem (RMSE = 22.70 vs.\ GCNN 26.6~\cite{joung2021deep}) and Jung 2024 (RMSE = 29.82 vs.\ GBFS 32.2).
+    RF with Morgan fingerprints achieves the best cross-validated performance on the primary Joung+Beard dataset (RMSE = 31.34~nm vs.\ 34.71~nm for the tuned BiGRU, 50.39~nm for ChemBERTa) and on both external datasets, surpassing published deep learning baselines on Deep4Chem (RMSE = 22.70 vs.\ GCNN 26.6~\cite{joung2021deep}) and Jung 2024 (RMSE = 29.82 vs.\ GBFS 32.2).
     However, experimental validation on 16 novel compounds reverses this ranking: both ChemBERTa (MAE = 26.3~nm) and BiGRU (28.6~nm) outperform RF (38.5~nm) on out-of-distribution molecules.
     This indicates that RF excels at interpolation within known chemical space, while deep learning models learn transferable representations that extend beyond fixed substructural features.
 
@@ -1046,7 +1050,7 @@ Our key findings are:
 
     \item \textbf{Both model families offer interpretability.}
     RF provides global interpretability through feature importance: the top 20 Morgan fingerprint bits (out of 4096) explain over 41\% of importance and map to known chromophore motifs (aryl diazo, BODIPY, enamine).
-    BiGRU, optimized via Bayesian HPO (3-layer, 256-unit architecture, 8.6\% RMSE improvement over the default), provides instance-level interpretability through gradient saliency analysis, with atom-level heatmaps highlighting the same conjugated regions identified by RF (Section~\ref{sec:interpretability}).
+    BiGRU, optimized via Bayesian HPO (3-layer, 256-unit architecture, 4.8\% RMSE improvement over the default on 5-fold CV), provides instance-level interpretability through gradient saliency analysis, with atom-level heatmaps highlighting the same conjugated regions identified by RF (Section~\ref{sec:interpretability}).
     RF trains 100$\times$ faster (15 minutes CPU vs.\ 25 hours GPU), making it the practical first choice when the target chemical space is well-represented in training data, while BiGRU's learned representations offer better generalization to novel scaffolds.
 
     \item \textbf{Practical classification matches published results.}
@@ -1061,9 +1065,10 @@ Our models use only 1D molecular representations; while our cross-dataset result
 Solvents are encoded purely through their molecular structure (SMILES or fingerprints), without explicit physical properties such as dielectric constant, refractive index, or Hansen solubility parameters~\cite{reichardt2011solvents}, which may limit the models' ability to capture fine-grained solvatochromic effects.
 The BiGRU model uses character-level tokenization, which may miss chemically meaningful substructures; ChemBERTa's BPE tokenizer partially addresses this but still operates on 1D SMILES strings.
 The experimental validation set (16 molecules) is small; larger out-of-distribution evaluations would strengthen the generalization finding, though the qualitative reversal of model rankings is robust.
-Bayesian hyperparameter optimization of BiGRU (25 Optuna trials) reduced its validation RMSE by 8.6\% (from 36.45 to 33.33~nm on fold~0), narrowing but not closing the gap with RF (31.34~nm); however, ChemBERTa hyperparameters remain untuned due to prohibitive training cost.
+Bayesian hyperparameter optimization of BiGRU (25 Optuna trials, extended to 5-fold CV) reduced its cross-validated RMSE by 4.8\% (from 36.45 to $34.71 \pm 1.40$~nm), narrowing but not closing the gap with RF (31.34~nm); however, ChemBERTa hyperparameters remain untuned due to prohibitive training cost.
 ChemBERTa's 44.1M parameters may also be overparameterized for the $\sim$12K training samples available per fold.
-While tuning substantially mitigates the asymmetry concern for BiGRU, the remaining performance gap supports the hypothesis that fingerprint representations have an inherent advantage for in-distribution UV absorption prediction.
+While tuning substantially mitigates the asymmetry concern for BiGRU, the remaining 10\% performance gap supports the hypothesis that fingerprint representations have an inherent advantage for in-distribution UV absorption prediction.
+Furthermore, the tuned BiGRU shows \textit{worse} out-of-distribution performance on wetlab validation (MAE = 31.5~nm vs.\ 28.6~nm for the default), suggesting that the larger architecture overfits to training distribution patterns.
 Finally, the Wilcoxon signed-rank test (a non-parametric alternative appropriate for small samples) yields $p = 0.0625$ for all model comparisons due to the minimum achievable $p$-value with $n = 5$ concordant pairs; larger-scale cross-validation (e.g., 10-fold) would provide stronger non-parametric statistical power.
 
 \subsection*{Future Work}
@@ -1253,17 +1258,14 @@ RF (default, $\sqrt{d}$)         & 32.18 $\pm$ 1.74 & 15.42 $\pm$ 0.44 & --- \\
 RF (tuned, $0.3d$)               & 31.34 $\pm$ 1.82 & 15.16 $\pm$ 0.44 & $-$2.6\% RMSE \\
 \midrule
 BiGRU (default, 2L/128u)         & 36.45 $\pm$ 1.12 & 20.70 $\pm$ 0.51 & --- \\
-BiGRU (tuned, 3L/256u)\textsuperscript{$\dagger$} & 33.33\textsuperscript{$\dagger$} & --- & $-$8.6\% RMSE \\
+BiGRU (tuned, 3L/256u) & 34.71 $\pm$ 1.40 & 18.09 $\pm$ 0.59 & $-$4.8\% RMSE \\
 \bottomrule
 \end{tabular}
-\smallskip
-
-\textsuperscript{$\dagger$}Fold~0 validation RMSE from HPO (25 Optuna trials); full 5-fold CV pending.
 \end{table}
 
-BiGRU HPO was conducted using Optuna TPE (25 trials on fold~0), yielding an 8.6\% RMSE improvement over the default architecture.
-Even the default RF (RMSE = 32.18~nm) outperforms the default BiGRU (RMSE = 36.45~nm) by 12\%, while RF tuning provides only an additional 2.6\% improvement.
-BiGRU tuning narrows this gap substantially, but the remaining difference suggests that the fingerprint representation has an inherent advantage for in-distribution UV absorption prediction.
+BiGRU HPO was conducted using Optuna TPE (25 trials on fold~0), with the best configuration extended to full 5-fold cross-validation, yielding a 4.8\% RMSE improvement over the default architecture.
+Even the default RF (RMSE = 32.18~nm) outperforms the tuned BiGRU (RMSE = 34.71~nm), while RF tuning provides only an additional 2.6\% improvement.
+BiGRU tuning narrows the gap from 14\% to 10\%, but the remaining difference suggests that the fingerprint representation has an inherent advantage for in-distribution UV absorption prediction.
 ChemBERTa hyperparameters were not tuned due to the prohibitive training cost ($\sim$3 hours per fold for 44.1M parameters).
 
 

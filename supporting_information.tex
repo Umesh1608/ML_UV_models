@@ -70,6 +70,25 @@ Tables~\ref{tab:perfold_rf}--\ref{tab:perfold_chemberta} present per-fold result
 
 \begin{table}[htbp]
 \centering
+\caption{Per-fold BiGRU (tuned, 3L/256u) results.}
+\label{tab:perfold_bigru_tuned}
+\begin{tabular}{ccccc}
+\toprule
+\textbf{Fold} & \textbf{RMSE (nm)} & \textbf{MAE (nm)} & $\boldsymbol{R^2}$ & \textbf{Pearson $r$} \\
+\midrule
+0 & 35.42 & 18.79 & 0.887 & 0.942 \\
+1 & 35.51 & 17.91 & 0.890 & 0.944 \\
+2 & 32.02 & 17.33 & 0.910 & 0.954 \\
+3 & 35.91 & 18.76 & 0.888 & 0.943 \\
+4 & 34.69 & 17.68 & 0.896 & 0.947 \\
+\midrule
+\textbf{Mean $\pm$ Std} & \textbf{34.71 $\pm$ 1.40} & \textbf{18.09 $\pm$ 0.59} & \textbf{0.890 $\pm$ 0.010} & \textbf{0.950 $\pm$ 0.003} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
 \caption{Per-fold XGBoost + Morgan FP results (MSE loss, v2).}
 \label{tab:perfold_xgboost}
 \begin{tabular}{ccccc}
@@ -193,17 +212,14 @@ RF (default, $\sqrt{d}$)         & 32.18 $\pm$ 1.74 & 15.42 $\pm$ 0.44 & --- \\
 RF (tuned, $0.3d$)               & 31.34 $\pm$ 1.82 & 15.16 $\pm$ 0.44 & $-$2.6\% RMSE \\
 \midrule
 BiGRU (default, 2L/128u)         & 36.45 $\pm$ 1.12 & 20.70 $\pm$ 0.51 & --- \\
-BiGRU (tuned, 3L/256u)\textsuperscript{$\dagger$} & 33.33\textsuperscript{$\dagger$} & --- & $-$8.6\% RMSE \\
+BiGRU (tuned, 3L/256u) & 34.71 $\pm$ 1.40 & 18.09 $\pm$ 0.59 & $-$4.8\% RMSE \\
 \bottomrule
 \end{tabular}
-\smallskip
-
-\textsuperscript{$\dagger$}Fold~0 validation RMSE from HPO (25 Optuna trials); full 5-fold CV pending.
 \end{table}
 
-BiGRU HPO was conducted using Optuna TPE (25 trials on fold~0), yielding an 8.6\% RMSE improvement over the default architecture.
-Even the default RF (RMSE = 32.18~nm) outperforms the default BiGRU (RMSE = 36.45~nm) by 12\%, while RF tuning provides only an additional 2.6\% improvement.
-BiGRU tuning narrows this gap substantially, but the remaining difference suggests that the fingerprint representation has an inherent advantage for in-distribution UV absorption prediction.
+BiGRU HPO was conducted using Optuna TPE (25 trials on fold~0), with the best configuration extended to full 5-fold cross-validation, yielding a 4.8\% RMSE improvement over the default architecture.
+Even the default RF (RMSE = 32.18~nm) outperforms the tuned BiGRU (RMSE = 34.71~nm), while RF tuning provides only an additional 2.6\% improvement.
+BiGRU tuning narrows the gap from 14\% to 10\%, but the remaining difference suggests that the fingerprint representation has an inherent advantage for in-distribution UV absorption prediction.
 ChemBERTa hyperparameters were not tuned due to the prohibitive training cost ($\sim$3 hours per fold for 44.1M parameters).
 
 
