@@ -894,7 +894,7 @@ We note that gradient saliency identifies correlations rather than causal mechan
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=\textwidth]{results/bigru_saliency_atoms.png}
-    \caption{BiGRU gradient saliency mapped to 2D molecular structures for six wetlab validation molecules. Color intensity indicates atom-level importance (red = high saliency, white = low). Top row (green borders): well-predicted molecules with focused saliency on chromophore regions. Bottom row (red borders): poorly predicted molecules with higher absolute errors. Error values are shown below each structure.}
+    \caption{BiGRU gradient saliency mapped to 2D molecular structures for six wetlab validation molecules. Atom color intensity reflects gradient-based importance (red = high saliency). Across all six molecules, the model consistently highlights heteroatoms (O, N), carbonyl groups, and conjugated $\pi$-systems---the same chromophore motifs identified by RF feature importance (Section~\ref{sec:rf_interpret}). Top row: well-predicted molecules ($|\text{error}| < 22$~nm); bottom row: poorly predicted molecules ($|\text{error}| > 28$~nm). Saliency patterns are qualitatively similar regardless of prediction accuracy, indicating that the model attends to chemically relevant features even when its magnitude estimates are inaccurate.}
     \label{fig:bigru_saliency}
 \end{figure}
 
