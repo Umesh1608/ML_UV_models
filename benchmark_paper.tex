@@ -890,7 +890,7 @@ A single fingerprint bit corresponding to aryl diazo/hydrazine substructures acc
 
 \textbf{Practical advantages of classical ML.}
 Beyond interpretability, RF offers substantial practical advantages for molecular property prediction tasks.
-RF training completes in approximately 15 minutes on a single CPU, compared to 25 hours of GPU time for BiGRU (a 100$\times$ speedup) while achieving 14\% lower RMSE (Figure~\ref{fig:rf_practical}b).
+RF training completes in approximately 15 minutes on a single CPU, compared to 25 hours of GPU time for BiGRU (a 100$\times$ speedup) while achieving 10\% lower RMSE (Figure~\ref{fig:rf_practical}b).
 RF requires no GPU hardware, no hyperparameter tuning of learning rates or batch sizes, and no early stopping strategy.
 These results highlight that, depending on the dataset and molecular application domain, it is prudent to evaluate classical ML models where appropriate to gain insights into relative performance before directly deploying deep learning architectures.
 While deep learning retains clear advantages in scenarios requiring transfer learning, end-to-end learning from raw data, or scalability to very large datasets, the simplicity, speed, and interpretability of fingerprint-based models make them a valuable complement, and in some cases a preferred alternative, in the molecular property prediction toolkit.

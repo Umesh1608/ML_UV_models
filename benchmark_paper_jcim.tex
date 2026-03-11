@@ -592,7 +592,7 @@ To assess generalizability beyond the primary Joung+Beard dataset, we evaluate o
 For each external dataset, models are trained from scratch on the dataset's training split and evaluated on its test split, matching the exact protocol used by the original authors.
 
 \subsection{Deep4Chem (Joung 2020)}
-Approximately 20,000 UV absorption records with a reported GCNN baseline (RMSE = 26.6~nm)~\cite{joung2021deep}.
+The Deep4Chem database contains 30,094 chromophore--solvent combinations~\cite{joung2021deep}; after deduplication and preprocessing, 17,683 records remain for benchmarking (reported GCNN baseline: RMSE = 26.6~nm).
 We replicate the 80/10/10 random train/validation/test split.
 
 \subsection{Jung et al.\ (2024)}
@@ -784,8 +784,8 @@ BiGRU (RMSE = 36.31~nm) and ChemBERTa (38.27~nm) fall between the GBFS and DR-CN
 Our RF model uses a simpler architecture than both published methods (which involve feature selection pipelines and multi-task learning, respectively), yet achieves superior performance.
 
 \textbf{nablaColors (scaffold split).}
-On the nablaColors dataset~\cite{potapov2026nablacolors}, which uses a scaffold-based split designed to test generalization across structural classes, both 1D models perform comparably (RF RMSE = 56.38, BiGRU = 56.57~nm) but lag far behind the published UniMol+ 3D GNN baseline (MAE = 15.97~nm).
-This large gap ($\sim$2.5$\times$ higher RMSE) arises because the scaffold split pushes models to predict chromophores with no structurally similar training examples, and 3D conformational information (captured by UniMol+ but not by SMILES or fingerprints) becomes critical for diverse chromophore geometries.
+On the nablaColors dataset~\cite{potapov2026nablacolors}, which uses a scaffold-based split designed to test generalization across structural classes, both 1D models perform comparably (RF RMSE = 56.38~nm, BiGRU = 56.57~nm) but lag far behind the published UniMol+ 3D GNN baseline (MAE = 15.97~nm).
+This large gap ($\sim$2.5$\times$ higher RMSE than the published UniMol+ RMSE of 21.09~nm) arises because the scaffold split pushes models to predict chromophores with no structurally similar training examples, and 3D conformational information (captured by UniMol+ but not by SMILES or fingerprints) becomes critical for diverse chromophore geometries.
 This result highlights the one scenario where 1D representations are clearly insufficient.
 
 Across Deep4Chem and Jung 2024, RF consistently outperforms BiGRU and ChemBERTa, reinforcing the finding from our primary dataset that fingerprint-based models excel at in-distribution prediction.
@@ -879,7 +879,7 @@ A single fingerprint bit corresponding to aryl diazo/hydrazine substructures acc
 
 \textbf{Practical advantages of classical ML.}
 Beyond interpretability, RF offers substantial practical advantages for molecular property prediction tasks.
-RF training completes in approximately 15 minutes on a single CPU, compared to 25 hours of GPU time for BiGRU (a 100$\times$ speedup) while achieving 14\% lower RMSE (Figure~\ref{fig:rf_practical}b).
+RF training completes in approximately 15 minutes on a single CPU, compared to 25 hours of GPU time for BiGRU (a 100$\times$ speedup) while achieving 10\% lower RMSE (Figure~\ref{fig:rf_practical}b).
 RF requires no GPU hardware, no hyperparameter tuning of learning rates or batch sizes, and no early stopping strategy.
 These results highlight that, depending on the dataset and molecular application domain, it is prudent to evaluate classical ML models where appropriate to gain insights into relative performance before directly deploying deep learning architectures.
 While deep learning retains clear advantages in scenarios requiring transfer learning, end-to-end learning from raw data, or scalability to very large datasets, the simplicity, speed, and interpretability of fingerprint-based models make them a valuable complement, and in some cases a preferred alternative, in the molecular property prediction toolkit.
@@ -892,7 +892,7 @@ We computed Input$\times$Gradient saliency for each SMILES character position, t
 The saliency maps reveal that BiGRU learns chemically meaningful patterns consistent with the RF feature importance analysis: high-saliency atoms concentrate on heteroatoms (O, N, S) and atoms adjacent to double bonds, the functional groups that determine $\pi$-conjugation and UV absorption wavelength, while aliphatic chains receive low saliency.
 For molecules where BiGRU predicts accurately (e.g., Sinapic Acid, err = $-5.6$~nm), saliency is focused on the hydroxyl and methoxy groups of the chromophore; for poorly predicted molecules (e.g., Cinnamic Acid, err = $+78.2$~nm), the model over-attributes importance to the carboxylic acid rather than the conjugated vinyl bridge.
 This convergence between RF's substructure-level Gini importance and BiGRU's atom-level gradient saliency provides independent confirmation that both models learn the same underlying photochemistry through fundamentally different architectures, a form of \emph{triangulation} that strengthens confidence in the learned structure--property relationships.
-We note that gradient saliency identifies correlations rather than causal mechanisms, and that attention weights in Transformer-based models are even less reliable for interpretability~\cite{jain2019attention} (see Supporting Information, Figure~S1, for character-type importance analysis).
+We note that gradient saliency identifies correlations rather than causal mechanisms, and that attention weights in Transformer-based models are even less reliable for interpretability~\cite{jain2019attention} (see Supporting Information, Figure~S3, for character-type importance analysis).
 
 \begin{figure}[htbp]
     \centering
@@ -1023,13 +1023,13 @@ Figure~\ref{fig:wetlab_per_molecule} shows per-molecule predictions alongside ex
 \section{Conclusion}
 \label{sec:conclusion}
 
-We have presented a systematic benchmark of ML approaches for UV absorption wavelength prediction, comparing Random Forest, XGBoost, BiGRU, and ChemBERTa across four datasets totaling over 90,000 molecules.
+We have presented a systematic benchmark of ML approaches for UV absorption wavelength prediction, comparing Random Forest, XGBoost, BiGRU, and ChemBERTa across four datasets totaling nearly 90,000 molecules.
 
 Our key findings are:
 
 \begin{enumerate}
     \item \textbf{RF and deep learning have complementary strengths.}
-    RF with Morgan fingerprints achieves the best cross-validated performance on the primary Joung+Beard dataset (RMSE = 31.34~nm vs.\ 34.71~nm for the tuned BiGRU, 50.39~nm for ChemBERTa) and on both external datasets, surpassing published deep learning baselines on Deep4Chem (RMSE = 22.70 vs.\ GCNN 26.6~\cite{joung2021deep}) and Jung 2024 (RMSE = 29.82 vs.\ GBFS 32.2).
+    RF with Morgan fingerprints achieves the best cross-validated performance on the primary Joung+Beard dataset (RMSE = 31.34~nm vs.\ 34.71~nm for the tuned BiGRU, 50.39~nm for ChemBERTa) and on both external datasets, surpassing published deep learning baselines on Deep4Chem (RMSE = 22.70 vs.\ GCNN 26.6~nm~\cite{joung2021deep}) and Jung 2024 (RMSE = 29.82 vs.\ GBFS 32.2~nm).
     However, experimental validation on 16 novel compounds reverses this ranking: both ChemBERTa (MAE = 26.3~nm) and BiGRU (28.6~nm) outperform RF (38.5~nm) on out-of-distribution molecules.
     This indicates that RF excels at interpolation within known chemical space, while deep learning models learn transferable representations that extend beyond fixed substructural features.
 
@@ -1072,8 +1072,8 @@ A natural extension is to apply the same benchmarking framework to related molec
 
 % ===== Data and Code Availability =====
 \section*{Data and Code Availability}
-The primary Joung+Beard dataset is available from the original publications~\cite{joung2020experimental, beard2019comparative} (DOI: 10.6084/m9.figshare.12045567).
-External validation datasets: Deep4Chem (Figshare, DOI: 10.6084/m9.figshare.12045567)~\cite{joung2020experimental}, Jung et al.\ (GitHub)~\cite{jung2024machine}, nablaColors (Zenodo)~\cite{potapov2026nablacolors}.
+The primary Joung+Beard dataset and the Deep4Chem database are available from the same Figshare repository~\cite{joung2020experimental, beard2019comparative} (DOI: 10.6084/m9.figshare.12045567).
+Additional external datasets: Jung et al.\ (GitHub)~\cite{jung2024machine}, nablaColors (Zenodo)~\cite{potapov2026nablacolors}.
 The Mamede classification dataset was reconstructed from Reaxys~\cite{mamede2021machine}.
 All code for model training, evaluation, and analysis will be released on GitHub under the MIT license upon publication, including trained model weights and preprocessing scripts.
 
