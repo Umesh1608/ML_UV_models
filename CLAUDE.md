@@ -57,7 +57,7 @@ Single train/val/test splits matching each paper's published protocol. Val used 
 | Deep4Chem | random 80/10/10 | GCNN RMSE 26.6 (Joung 2020) | RF 22.70, BiGRU 27.07, CB 35.90 | — | — | ✅ All 3 models done |
 | Jung 2024 | random 72/18/10 | GBFS RMSE 32.2 (Jung 2024) | RF 29.82, BiGRU 36.31, CB 38.27 | — | — | ✅ All 3 models done |
 | Jung 2024 | scaffold 80/10/10 | GBFS RMSE 32.2 (Jung 2024) | 67.56 | 46.77 | 0.5993 | ✅ Done (scaffold is much harder for 1D models) |
-| nablaColors | precomputed scaffold | UniMol+ MAE 15.97 (3D GNN, 27.7M params) | 56.38 | 39.48 | 0.6958 | ✅ Done (3D models have huge advantage) |
+| nablaColors | precomputed scaffold | UniProp RMSE 27.2, MAE 15.97 (3D GNN) | 56.38 | 39.48 | 0.6958 | ✅ Done (3D models have huge advantage) |
 | nablaColors SELFIES | precomputed scaffold | — | 56.57 | 40.42 | 0.6938 | ✅ Done |
 
 #### Phase 2c — Classification Validation (verified from result files)
@@ -68,77 +68,23 @@ Single train/val/test splits matching each paper's published protocol. Val used 
 
 ---
 
-### What Still Needs To Be Done — Publication Roadmap
+### Phase I: Chemprop GNN Baseline ✅ COMPLETE
 
-**Target**: **J. Chem. Inf. Model. (JCIM)** — ACS, achemso format
+**Result**: Chemprop D-MPNN RMSE=31.69±3.18 nm — statistically tied with RF (31.34, p=0.77), 636K params.
+**Script**: `run_chemprop.py` (CLI: `--fold {0-4}`, `--summary`, `--dataset deep4chem`)
+**Paper updates done**: abstract, intro, methods subsection, Table 2, discussion, TikZ figure, conclusion, SI per-fold table, cover letter (both tex files + SI).
+**Remaining**: Optional Chemprop cross-dataset on Deep4Chem, commit+push, Overleaf sync, submit to JCIM.
 
-#### Phase I Remaining Tasks — Execution Order
+**Previous deliverables** (all complete): cover letter (`cover_letter.tex`), TOC graphic (`results/toc_graphic.tiff`), reviewer suggestions (`reviewer_suggestions.txt`), all figures in PNG format, BiGRU classification done, citation verification done.
 
-**A3 full-cv**: 🔄 RUNNING — folds 0-3 complete, fold 4 training (epoch ~100, val_loss=19.62)
-- Folds 0-3 RMSE: 35.42, 35.51, 32.02, 35.91 → mean 34.72 ± 1.57 (~5% better than default 36.45)
-- Fold 4 still improving
+#### Verified External Facts (from PDF verification — DO NOT change without re-checking source)
 
-**After fold 4 completes (in order):**
-1. **Collect 5-fold aggregate** — read metrics, compute mean±std, save `bigru_tuned_cv_aggregate.json`
-2. **Re-evaluate wetlab** with tuned BiGRU — `python3 eval_wetlab.py` (already has `predict_bigru_tuned()`)
-3. **Regenerate saliency** with tuned models — `python3 analyze_bigru_saliency.py --tuned`
-4. **Update paper numbers** in BOTH `benchmark_paper.tex` AND `benchmark_paper_jcim.tex`:
-   - Table 2: add/update BiGRU (tuned) row with full 5-fold results
-   - Table S6 (tuning asymmetry): replace fold-0-only with full CV numbers
-   - TikZ diagrams: update RMSE values if needed
-   - Abstract, discussion, conclusion: update BiGRU RMSE claims
-   - Saliency paragraph: update if tuned models change the story
-5. **Update SI file** — `supporting_information.tex` with final tuned BiGRU numbers
-6. **A7: BiGRU direct classification on Mamede** (~3-5h GPU)
-   - Tuned architecture (256u/3l) with task="classification" (sigmoid + BCE)
-   - Train on Mamede/Reaxys ~74K binary labels (POS = λ_max ∈ [290,700] AND MEC ≥ 1000)
-   - Compare vs: Mamede RF (Sens=0.90, Spec=0.88) and our RF (Sens=0.876, Spec=0.882)
-   - Update Table 4, discussion, conclusion in both tex files
-7. **Convert figure formats** — .pdf figures → .eps or high-res .png (ACS accepts TIF/JPG/PNG/EPS)
-8. **Create TOC graphic** — 3.25" × 1.75" summary graphic (recommended for Articles)
-9. **A5: GitHub repo finalization + Zenodo DOI + model weights**
-10. **Write cover letter** (separate document, required for ACS submission)
-11. **Prepare 5 reviewer suggestions** with academic email addresses
-12. **Final proofread + compile** both tex files
-13. **Submit to JCIM** via ACS Paragon Plus (need ORCID iDs for all authors)
-
-#### What's DONE ✅
-
-| Task | Commit |
-|------|--------|
-| A0.1 Factual errors (ChemBERTa params, multirow, TikZ) | 215736e |
-| A0.2 Citations (Chen et al. journal, Joung GCNN, scope caveats) | 215736e |
-| A0.3 Soften 6 overclaimed statements + confounders paragraph | 215736e |
-| A2 Supplementary (XGBoost+ChemBERTa per-fold, significance) | aa8800d |
-| A4 4-model parity plot (shared axes) | 3057f34 |
-| A6 Full proofread (12+ issues fixed) | aa8800d |
-| B3 Wetlab per-molecule figure (horizontal bars) | 0f8043d |
-| B4 ChemBERTa learning curves (supplementary) | 3f7b8cf |
-| Figure 7 fix (vertical layout) | 189c44e |
-| Paper title updated to "When Do Simple Models Win?" | latest |
-| A8 BiGRU saliency interpretability (gradient → atom heatmaps) | done |
-| A3 HPO stopped at 25/30 trials (sufficient), best config saved | done |
-| Architecture diagrams: 3-panel RF/BiGRU/ChemBERTa overview (fig:model_overview) | done |
-| Architecture diagrams: 2-panel default vs optimized BiGRU (fig:bigru_architectures) | done |
-| HPO methodology paragraph in Section 3.3 (Optuna search description) | done |
-| Supplementary tuning asymmetry table: added tuned BiGRU row (33.33, -8.6%) | done |
-| Appendix float placement: all `[h]`/`[htbp]` → `[H]`, `\clearpage` before bib | done |
-| 3D sensitivity claim reframed (1D models competitive except nablaColors) | done |
-| GitHub repo files: README.md, requirements.txt, .gitignore updated | done |
-| Bib entry: akiba2019optuna (Optuna KDD 2019) | done |
-| GCNN citation fix: joung2020experimental → joung2021deep (all locations) | 935d12d |
-| SMILES2Vec citation moved to saliency intro (removed from triangulation) | 6320547 |
-| Saliency figure redesigned: green/red grouped, prominent error labels | 7d5a8c2 |
-| **JCIM paper created**: `benchmark_paper_jcim.tex` (achemso, journal=jcisd8) | f8c43e5 |
-| eval_wetlab.py updated: added predict_bigru_tuned() for tuned models | a45130d |
-| Bib entry: joung2021deep (JACS Au 2021, GCNN RMSE=26.6 source) | 935d12d |
-| JCIM abstract condensed: 8 → 4 sentences, emphasizes optimized BiGRU + broader guidance | edb5fd4 |
-| Data curation expanded: 4-step procedure in Section 3.1 (both tex files) | edb5fd4 |
-| SI file created: `supporting_information.tex` (standalone achemso suppinfo) | edb5fd4 |
-| Conflict of interest declaration added to Acknowledgements | b26c9e7 |
-| QSAR best practices cited: tropsha2006best + cherkasov2014qsar in evaluation protocol | b26c9e7 |
-| Abstract broadened: locality-of-property principle for model selection beyond UV | ea808f4 |
-| Conclusion reframed: practical guidance for molecular property prediction generally | ea808f4 |
+- **nablaColors** (Potapov 2026): 26,369 pairs, best model = **UniProp** (NOT UniMol+), RMSE=27.2, MAE=15.97, R²=0.929
+- **ChemBERTa**: `seyonec/ChemBERTa-zinc-base-v1` pretrained on **ZINC** (NOT 77M PubChem)
+- **Liu et al. 2023**: MTBG = **BiGRU + GraphSAGE hybrid**, we use only BiGRU component
+- **Mamede 2021**: Scientific Reports (NOT Chem Res Toxicol), author Florbela (NOT Filipe)
+- **UV-adVISor 2021**: Urbina, Batra, Ekins (NOT Beard et al.), volume 93
+- **Lupo Pasini 2023**: Mehta, Yoo, Irle (NOT Li, Blaiszik), page 546
 
 #### Phase II — Multi-Property Expansion (`benchmark_paper_v2.tex`)
 
@@ -156,10 +102,7 @@ Single train/val/test splits matching each paper's published protocol. Val used 
 
 #### Priority Execution Order
 ```
-Phase I: [fold 4 finishes] → collect aggregate → wetlab re-eval → saliency --tuned
-  → paper number updates (both tex + SI) → A7 classification (GPU)
-  → convert figures → TOC graphic → A5 repo/Zenodo → cover letter
-  → reviewer suggestions → final proofread → submit JCIM
+Phase I: Chemprop 5-fold CV → paper updates → submit JCIM (ACS Paragon Plus, need ORCIDs)
 Phase II (after submission): log_mec RF ⏸ → BiGRU (GPU) → ChemBERTa (GPU) → paper_v2
 ```
 

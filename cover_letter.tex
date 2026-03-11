@@ -19,17 +19,17 @@ American Chemical Society}
 
 We are pleased to submit our manuscript entitled ``When Do Simple Models Win? Benchmarking Machine Learning for UV Absorption Prediction'' for consideration as an Article in the \textit{Journal of Chemical Information and Modeling}.
 
-This work provides a systematic, controlled benchmark of four machine learning approaches---Random Forest, XGBoost, BiGRU, and ChemBERTa---for predicting UV absorption wavelengths ($\lambda_{\max}$), using identical data splits, preprocessing, and evaluation protocols across all models.
+This work provides a systematic, controlled benchmark of five machine learning approaches---Random Forest, XGBoost, Chemprop (D-MPNN), BiGRU, and ChemBERTa---spanning fingerprint, graph, recurrent, and Transformer architectures for predicting UV absorption wavelengths ($\lambda_{\max}$), using identical data splits, preprocessing, and evaluation protocols across all models.
 Our key findings are:
 
 \begin{enumerate}
-    \item \textbf{Complementary strengths of simple and deep models.} Random Forest with Morgan fingerprints achieves the best cross-validated performance (RMSE = 31.34 nm, $R^2$ = 0.914) and surpasses published deep learning baselines on two external benchmarks. However, experimental validation on 16 novel UV-absorbing compounds reverses this ranking: both deep learning models outperform RF on out-of-distribution molecules (ChemBERTa MAE = 26.3 vs.\ RF 38.5~nm).
+    \item \textbf{Complementary strengths of simple and deep models.} Random Forest with Morgan fingerprints and the Chemprop graph neural network achieve statistically indistinguishable cross-validated performance (RMSE = 31.34 and 31.69~nm, $p = 0.77$), both outperforming sequence-based models. However, experimental validation on 16 novel UV-absorbing compounds reverses this ranking: both deep learning models outperform RF on out-of-distribution molecules (ChemBERTa MAE = 26.3 vs.\ RF 38.5~nm).
 
     \item \textbf{Practical solvent encoding.} A simple SMILES/fingerprint concatenation strategy for encoding solute--solvent pairs yields consistent 7--8\% RMSE reductions across all model families, without requiring domain-specific descriptor engineering.
 
     \item \textbf{Interpretability across architectures.} We demonstrate that RF feature importance and BiGRU gradient saliency independently highlight the same chromophore motifs, confirming that both architectures learn meaningful photochemistry through different mechanisms.
 
-    \item \textbf{Locality-of-property hypothesis.} We propose that models encoding local structural information (fingerprints, RNNs) outperform global-attention architectures on properties determined by local molecular features, providing a framework for model selection that generalizes beyond UV absorption.
+    \item \textbf{Locality-of-property hypothesis.} We propose that models encoding local structural information (fingerprints, graph message passing, RNNs) outperform global-attention architectures on properties determined by local molecular features, providing a framework for model selection that generalizes beyond UV absorption.
 \end{enumerate}
 
 We believe this work is well suited for JCIM because it addresses a critical gap in molecular ML: the lack of controlled, multi-architecture comparisons with both in-distribution benchmarks and out-of-distribution experimental validation.

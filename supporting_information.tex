@@ -28,7 +28,7 @@
 \section{Per-Fold Cross-Validation Results}
 \label{sec:perfold}
 
-Tables~\ref{tab:perfold_rf}--\ref{tab:perfold_chemberta} present per-fold results for all four model families on the primary Joung+Beard dataset (stratified 5-fold CV, 64/16/20 split).
+Tables~\ref{tab:perfold_rf}--\ref{tab:perfold_chemberta} present per-fold results for all five model families on the primary Joung+Beard dataset (stratified 5-fold CV, 64/16/20 split).
 
 \begin{table}[htbp]
 \centering
@@ -102,6 +102,25 @@ Tables~\ref{tab:perfold_rf}--\ref{tab:perfold_chemberta} present per-fold result
 4 & 34.58 & 20.23 & 0.897 & 0.948 \\
 \midrule
 \textbf{Mean $\pm$ Std} & \textbf{33.70 $\pm$ 1.61} & \textbf{20.05 $\pm$ 0.48} & \textbf{0.900 $\pm$ 0.009} & \textbf{0.950 $\pm$ 0.005} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{Per-fold Chemprop D-MPNN results (v2, multicomponent: solute + solvent).}
+\label{tab:perfold_chemprop}
+\begin{tabular}{ccccc}
+\toprule
+\textbf{Fold} & \textbf{RMSE (nm)} & \textbf{MAE (nm)} & $\boldsymbol{R^2}$ & \textbf{Pearson $r$} \\
+\midrule
+0 & 30.79 & 15.24 & 0.914 & 0.956 \\
+1 & 35.40 & 19.96 & 0.891 & 0.944 \\
+2 & 26.06 & 15.52 & 0.940 & 0.970 \\
+3 & 32.70 & 16.03 & 0.907 & 0.953 \\
+4 & 33.51 & 17.44 & 0.903 & 0.951 \\
+\midrule
+\textbf{Mean $\pm$ Std} & \textbf{31.69 $\pm$ 3.18} & \textbf{16.84 $\pm$ 1.74} & \textbf{0.911 $\pm$ 0.016} & \textbf{0.955 $\pm$ 0.009} \\
 \bottomrule
 \end{tabular}
 \end{table}
