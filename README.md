@@ -61,7 +61,11 @@ python eval_wetlab.py
 ### Classification (Mamede photosafety)
 
 ```bash
+# RF classifier (trained on ~74K Reaxys compounds)
 python eval_classification.py
+
+# BiGRU direct classification (tuned 3L/256u architecture)
+python train_bigru_classification.py
 ```
 
 ### Interpretability analysis
@@ -100,7 +104,7 @@ benchmark_paper.tex     Manuscript (LaTeX)
 
 ## Citation
 
-Paper under review at J. Cheminformatics.
+Paper under review at J. Chem. Inf. Model. (JCIM).
 
 ## License
 

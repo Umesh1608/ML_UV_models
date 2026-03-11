@@ -1,0 +1,41 @@
+Suggested Reviewers for JCIM Submission
+========================================
+"When Do Simple Models Win? Benchmarking Machine Learning for UV Absorption Prediction"
+
+1. Pat Walters
+   Relay Therapeutics
+   Email: pat@relaytx.com
+   Expertise: Cheminformatics benchmarking, molecular property prediction, practical ML
+   Relevance: Widely known for critical benchmarking of ML models in drug discovery;
+   author of "Practical Cheminformatics" blog; strong focus on when simple models suffice.
+
+2. Kevin Yang
+   Microsoft Research
+   Email: kevinyang@microsoft.com
+   Expertise: Molecular property prediction, graph neural networks, MoleculeNet
+   Relevance: Co-developer of Chemprop and D-MPNN; extensive work on molecular
+   representation benchmarking; familiar with RF vs. GNN comparisons.
+
+3. Esben Bjerrum
+   AstraZeneca
+   Email: esben.bjerrum@astrazeneca.com
+   Expertise: SMILES-based deep learning, molecular generation, QSAR
+   Relevance: Pioneer of SMILES-based RNN models for molecular properties;
+   extensive publications on character-level SMILES models (relevant to BiGRU).
+
+4. Rocio Mercado
+   Chalmers University of Technology
+   Email: rocio.mercado@chalmers.se
+   Expertise: Molecular generation, graph-based models, benchmarking
+   Relevance: Work on molecular representation comparisons and
+   practical evaluation of deep generative models in chemistry.
+
+5. Andrew White
+   University of Rochester / FutureHouse
+   Email: andrew.white@rochester.edu
+   Expertise: ML for chemistry, molecular property prediction, language models
+   Relevance: Active in ML for chemistry community; author of "Deep Learning for
+   Molecules and Materials"; perspective on Transformer vs. classical approaches.
+
+Note: Confirm email addresses and affiliations at time of submission.
+No institutional conflicts with University of Iowa or Midwest Bioprocessing Center.

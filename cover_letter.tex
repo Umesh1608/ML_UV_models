@@ -1,0 +1,45 @@
+\documentclass[11pt]{letter}
+\usepackage[margin=1in]{geometry}
+\usepackage{hyperref}
+
+\signature{Umesh Arampath\\
+Department of Mathematics, University of Iowa\\
+\& Midwest Bioprocessing Center, Illinois\\
+\href{mailto:uarampath@mwbioprocessing.com}{uarampath@mwbioprocessing.com}}
+
+\address{Umesh Arampath\\Department of Mathematics\\University of Iowa\\Iowa City, IA 52242}
+
+\begin{document}
+
+\begin{letter}{Editorial Office\\
+Journal of Chemical Information and Modeling\\
+American Chemical Society}
+
+\opening{Dear Editors,}
+
+We are pleased to submit our manuscript entitled ``When Do Simple Models Win? Benchmarking Machine Learning for UV Absorption Prediction'' for consideration as an Article in the \textit{Journal of Chemical Information and Modeling}.
+
+This work provides a systematic, controlled benchmark of four machine learning approaches---Random Forest, XGBoost, BiGRU, and ChemBERTa---for predicting UV absorption wavelengths ($\lambda_{\max}$), using identical data splits, preprocessing, and evaluation protocols across all models.
+Our key findings are:
+
+\begin{enumerate}
+    \item \textbf{Complementary strengths of simple and deep models.} Random Forest with Morgan fingerprints achieves the best cross-validated performance (RMSE = 31.34 nm, $R^2$ = 0.914) and surpasses published deep learning baselines on two external benchmarks. However, experimental validation on 16 novel UV-absorbing compounds reverses this ranking: both deep learning models outperform RF on out-of-distribution molecules (ChemBERTa MAE = 26.3 vs.\ RF 38.5~nm).
+
+    \item \textbf{Practical solvent encoding.} A simple SMILES/fingerprint concatenation strategy for encoding solute--solvent pairs yields consistent 7--8\% RMSE reductions across all model families, without requiring domain-specific descriptor engineering.
+
+    \item \textbf{Interpretability across architectures.} We demonstrate that RF feature importance and BiGRU gradient saliency independently highlight the same chromophore motifs, confirming that both architectures learn meaningful photochemistry through different mechanisms.
+
+    \item \textbf{Locality-of-property hypothesis.} We propose that models encoding local structural information (fingerprints, RNNs) outperform global-attention architectures on properties determined by local molecular features, providing a framework for model selection that generalizes beyond UV absorption.
+\end{enumerate}
+
+We believe this work is well suited for JCIM because it addresses a critical gap in molecular ML: the lack of controlled, multi-architecture comparisons with both in-distribution benchmarks and out-of-distribution experimental validation.
+The practical guidance for model selection---choose fingerprint models for interpolation within known chemical space, deep learning for extrapolation to novel scaffolds---is directly relevant to JCIM readers working on molecular property prediction, virtual screening, and pharmaceutical development.
+
+All code, trained models, and datasets will be made publicly available upon publication.
+The manuscript has not been published previously and is not under consideration elsewhere.
+All authors have approved the manuscript.
+
+\closing{Sincerely,}
+
+\end{letter}
+\end{document}
