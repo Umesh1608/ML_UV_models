@@ -12,5 +12,7 @@
   "rf_rmse": 43.69,
   "rf_mae": 38.46,
   "chemberta_rmse": 32.15,
-  "chemberta_mae": 26.28
+  "chemberta_mae": 26.28,
+  "chemprop_rmse": 35.69,
+  "chemprop_mae": 26.18
 }

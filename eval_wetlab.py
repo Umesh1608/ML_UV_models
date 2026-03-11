@@ -220,6 +220,59 @@ def predict_chemberta(df):
     return ensemble_pred
 
 
+def predict_chemprop(df):
+    """Predict λ_max using Chemprop D-MPNN ensemble (average across folds)."""
+    import torch
+    import lightning.pytorch as pl
+    from chemprop import data, featurizers, nn
+    from chemprop.models import multi
+
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+
+    # Build datapoints for wetlab molecules
+    solutes_smi = df["smiles"].values
+    solvents_smi = df["solvent_smiles"].values
+
+    solute_dps = [data.MoleculeDatapoint.from_smi(s) for s in solutes_smi]
+    solvent_dps = [data.MoleculeDatapoint.from_smi(s) for s in solvents_smi]
+
+    feat = featurizers.SimpleMoleculeMolGraphFeaturizer()
+    solute_dset = data.MoleculeDataset(solute_dps, feat)
+    solvent_dset = data.MoleculeDataset(solvent_dps, feat)
+    mc_dset = data.MulticomponentDataset([solute_dset, solvent_dset])
+
+    loader = data.build_dataloader(mc_dset, batch_size=64, shuffle=False, num_workers=0)
+
+    all_preds = []
+    for fold in range(N_FOLDS):
+        ckpt_path = os.path.join(RESULTS_DIR, f"chemprop_v2_fold{fold}_best.ckpt")
+        if not os.path.exists(ckpt_path):
+            print(f"  WARNING: Missing fold {fold} checkpoint: {ckpt_path}")
+            continue
+
+        model = multi.MulticomponentMPNN.load_from_checkpoint(ckpt_path)
+        model.eval()
+
+        trainer = pl.Trainer(
+            accelerator=device, devices=1,
+            logger=False, enable_progress_bar=False,
+        )
+        preds_batches = trainer.predict(model, loader)
+        preds = np.concatenate([p.numpy().flatten() for p in preds_batches])
+        all_preds.append(preds)
+        del model
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+
+    if not all_preds:
+        print("  ERROR: No Chemprop fold models found!")
+        return None
+
+    ensemble_pred = np.mean(all_preds, axis=0)
+    print(f"  Chemprop: ensembled {len(all_preds)} fold models")
+    return ensemble_pred
+
+
 def check_training_overlap(df):
     """Check which wetlab molecules appear in the training dataset."""
     train_path = os.path.join(SCRIPT_DIR, "previous_code", "UV_canonical_full_dataset.csv")
@@ -288,6 +341,10 @@ def main():
     print("  Loading ChemBERTa models...")
     chemberta_pred = predict_chemberta(df)
 
+    print(f"\n{'─' * 70}")
+    print("  Loading Chemprop D-MPNN models...")
+    chemprop_pred = predict_chemprop(df)
+
     # Build results table
     results = df[["molecule", "solvent_name", "lambda_max_exp"]].copy()
 
@@ -307,6 +364,10 @@ def main():
         results["ChemBERTa_pred"] = np.round(chemberta_pred, 1)
         results["ChemBERTa_error"] = np.round(chemberta_pred - y_true, 1)
 
+    if chemprop_pred is not None:
+        results["Chemprop_pred"] = np.round(chemprop_pred, 1)
+        results["Chemprop_error"] = np.round(chemprop_pred - y_true, 1)
+
     print(f"\n{'=' * 70}")
     print("  RESULTS")
     print(f"{'=' * 70}")
@@ -320,7 +381,8 @@ def main():
     for name, pred in [("BiGRU+Solvent v2", bigru_pred),
                         ("BiGRU (tuned)", bigru_tuned_pred),
                         ("RF v2", rf_pred),
-                        ("ChemBERTa", chemberta_pred)]:
+                        ("ChemBERTa", chemberta_pred),
+                        ("Chemprop D-MPNN", chemprop_pred)]:
         if pred is None:
             continue
         rmse, mae, errors, abs_errors = compute_metrics(y_true, pred)
@@ -375,6 +437,10 @@ def main():
                 cb_diff = abs(chemberta_pred[etoh_idx] - chemberta_pred[meoh_idx])
                 row["ChemBERTa |Δ|"] = round(cb_diff, 1)
 
+            if chemprop_pred is not None:
+                cp_diff = abs(chemprop_pred[etoh_idx] - chemprop_pred[meoh_idx])
+                row["Chemprop |Δ|"] = round(cp_diff, 1)
+
             sens_rows.append(row)
 
     sens_df = pd.DataFrame(sens_rows)
@@ -392,7 +458,8 @@ def main():
         "solvents": ["EtOH", "MeOH"],
     }
     for name, pred in [("bigru", bigru_pred), ("bigru_tuned", bigru_tuned_pred),
-                        ("rf", rf_pred), ("chemberta", chemberta_pred)]:
+                        ("rf", rf_pred), ("chemberta", chemberta_pred),
+                        ("chemprop", chemprop_pred)]:
         if pred is None:
             continue
         rmse, mae, _, _ = compute_metrics(y_true, pred)
