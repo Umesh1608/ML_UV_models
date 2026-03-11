@@ -780,7 +780,7 @@ Table~\ref{tab:cross_dataset} presents results on three external datasets, with 
 
 \begin{table}[t]
 \centering
-\caption{Cross-dataset benchmarking using published split protocols. $\dagger$Published results from original papers. Best 1D model result in bold for each dataset. nablaColors uses a precomputed scaffold split~\cite{potapov2026nablacolors}.}
+\caption{Cross-dataset benchmarking using published split protocols. $\dagger$Published results from original papers. Best result among our models in bold for each dataset. nablaColors uses a precomputed scaffold split~\cite{potapov2026nablacolors}.}
 \label{tab:cross_dataset}
 \begin{tabular}{llccc}
 \toprule
@@ -788,7 +788,8 @@ Table~\ref{tab:cross_dataset} presents results on three external datasets, with 
 \midrule
 \multirow{5}{*}{Deep4Chem (80/10/10)}
   & GCNN$^\dagger$            & 26.6   & ---    & ---   \\
-  & Our RF                    & \textbf{22.70}  & \textbf{11.32}  & \textbf{0.954} \\
+  & Our Chemprop              & \textbf{19.13}  & \textbf{10.66}  & \textbf{0.967} \\
+  & Our RF                    & 22.70  & 11.32  & 0.954 \\
   & Our ChemBERTa             & 35.90  & 17.43  & 0.884 \\
   & Our BiGRU                 & 27.07  & 17.22  & 0.934 \\
 \midrule
@@ -809,9 +810,9 @@ Table~\ref{tab:cross_dataset} presents results on three external datasets, with 
 \end{table}
 
 \textbf{Deep4Chem.}
-Our RF model achieves RMSE = 22.70~nm, \textit{surpassing} the published GCNN baseline of 26.6~nm~\cite{joung2021deep} by 15\%.
-BiGRU also performs competitively (RMSE = 27.07~nm), within 2\% of the GCNN result, while ChemBERTa (35.90~nm) trails behind both.
-This result demonstrates that Morgan fingerprints, which encode local chemical environments through circular substructure enumeration, capture sufficient structural information for UV absorption prediction in this chemical space.
+Our Chemprop D-MPNN achieves RMSE = 19.13~nm, surpassing both our RF (22.70~nm) and the published GCNN baseline of 26.6~nm~\cite{joung2021deep} by 28\%.
+RF also outperforms the GCNN by 15\%, and BiGRU performs competitively (RMSE = 27.07~nm), while ChemBERTa (35.90~nm) trails behind.
+That a 2D GNN trained from scratch outperforms all other models on this dataset suggests that learned graph representations can capture structural patterns beyond what fixed fingerprints encode, particularly when the training set is large enough to learn effective bond-level features.
 
 \textbf{Jung et al.\ (2024).}
 RF again achieves the best result among all methods (RMSE = 29.82~nm), outperforming the published GBFS (32.2~nm) and multifidelity (31.3~nm) approaches.
@@ -1087,7 +1088,7 @@ These findings suggest that model selection for UV absorption prediction should 
 While demonstrated here for UV absorption, the benchmarking framework and complementary-strengths finding are likely to generalize to other molecular optical properties (e.g., emission wavelength, molar extinction coefficient) and solvent-dependent endpoints, where the same trade-off between local substructural features and learned representations applies.
 
 \subsection*{Limitations}
-Our models use only 1D molecular representations; while our cross-dataset results show that 1D approaches are competitive with published graph and 3D methods on most benchmarks, the large performance gap on nablaColors (Table~\ref{tab:cross_dataset}) suggests that 3D conformational information becomes important for structurally diverse chromophores where electronic properties depend on molecular geometry~\cite{lupopasini2023excited}.
+Most of our models use 1D or 2D molecular representations (fingerprints, SMILES, molecular graphs); while our cross-dataset results show these approaches are competitive with published 3D methods on most benchmarks, the large performance gap on nablaColors (Table~\ref{tab:cross_dataset}) suggests that 3D conformational information becomes important for structurally diverse chromophores where electronic properties depend on molecular geometry~\cite{lupopasini2023excited}.
 Solvents are encoded purely through their molecular structure (SMILES or fingerprints), without explicit physical properties such as dielectric constant, refractive index, or Hansen solubility parameters~\cite{reichardt2011solvents}, which may limit the models' ability to capture fine-grained solvatochromic effects.
 The BiGRU model uses character-level tokenization, which may miss chemically meaningful substructures; ChemBERTa's BPE tokenizer partially addresses this but still operates on 1D SMILES strings.
 The experimental validation set (16 molecules) is small; larger out-of-distribution evaluations would strengthen the generalization finding, though the qualitative reversal of model rankings is robust.

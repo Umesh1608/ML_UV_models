@@ -625,9 +625,9 @@ def run_cross_dataset(dataset_key):
     pl.seed_everything(SEED, workers=True)
 
     # Create datapoints
-    solute_train, solvent_train = make_chemprop_data(solutes, solvents_arr, y, train_idx)
-    solute_val, solvent_val = make_chemprop_data(solutes, solvents_arr, y, val_idx)
-    solute_test, solvent_test = make_chemprop_data(solutes, solvents_arr, y, test_idx)
+    solute_train, solvent_train, _ = make_chemprop_data(solutes, solvents_arr, y, train_idx)
+    solute_val, solvent_val, _ = make_chemprop_data(solutes, solvents_arr, y, val_idx)
+    solute_test, solvent_test, test_orig_idx = make_chemprop_data(solutes, solvents_arr, y, test_idx)
 
     # Build loaders
     train_loader, val_loader, test_loader, scaler = build_loaders(
