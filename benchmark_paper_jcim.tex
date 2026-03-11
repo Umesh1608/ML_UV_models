@@ -557,7 +557,7 @@ Figure~\ref{fig:bigru_architectures} compares the default and optimized BiGRU ar
 \subsection{Pretrained Transformer (ChemBERTa)}
 \label{sec:chemberta}
 
-To assess whether pretraining on large molecular corpora bridges the gap between sequence models and fingerprint-based approaches, we include ChemBERTa~\cite{chithrananda2020chemberta}, a RoBERTa~\cite{liu2019roberta} model pretrained on approximately 77M SMILES strings from the ZINC database~\cite{irwin2005zinc}.
+To assess whether pretraining on large molecular corpora bridges the gap between sequence models and fingerprint-based approaches, we include ChemBERTa~\cite{chithrananda2020chemberta}, a RoBERTa~\cite{liu2019roberta} model pretrained on approximately 77M SMILES strings from PubChem.
 ChemBERTa uses a byte-pair encoding (BPE) tokenizer trained on SMILES, with 6 Transformer layers, 12 attention heads, and a hidden dimension of 768, totaling 44.1M parameters.
 
 We fine-tune ChemBERTa for regression by adding a linear prediction head (768 $\to$ 256 $\to$ 1) on top of the \texttt{[CLS]} token representation.
@@ -643,7 +643,7 @@ The strong performance of fingerprint-based RF can be understood through the phy
 Electronic transitions responsible for $\lambda_{\max}$ are localized to chromophoric regions of the molecule, with absorption wavelength determined by local structural features such as conjugation length, substituent effects, and heteroatom character~\cite{flemingMolecular2010, reichardt2011solvents}.
 Morgan fingerprints encode precisely these local substructural environments~\cite{rogers2010extended}, and our feature importance analysis confirms that the model's top features correspond to known chromophore motifs.
 This alignment between the locality of the physical property and the locality of the molecular representation explains why a relatively simple fingerprint-based model achieves state-of-the-art performance.
-Kang et al.~\cite{kang2020prediction} and Beard et al.~\cite{beard2022uvadvisor} similarly found that fingerprint- and RNN-based models excel at electronic transition prediction, further supporting the hypothesis that UV absorption is a local-feature-dependent property.
+Kang et al.~\cite{kang2020prediction} and Urbina et al.~\cite{beard2022uvadvisor} similarly found that fingerprint- and RNN-based models excel at electronic transition prediction, further supporting the hypothesis that UV absorption is a local-feature-dependent property.
 
 \begin{figure}[htbp]
     \centering
