@@ -229,7 +229,7 @@ Mamede et al.~\cite{mamede2021machine} used RF with Morgan fingerprints for ICH~
 The SMILES representation~\cite{weininger1988smiles} maps molecular graphs to character strings, enabling natural language processing techniques for molecular property prediction.
 Recurrent neural networks~\cite{elman1990finding}, including Long Short-Term Memory (LSTM)~\cite{hochreiter1997long} and Gated Recurrent Unit (GRU)~\cite{cho2014learning} architectures, process SMILES as sequential data, learning molecular features without explicit descriptor engineering.
 Bidirectional variants (BiGRU, BiLSTM)~\cite{schuster1997bidirectional} capture context from both directions, improving representation quality for molecular strings.
-Liu et al.\ applied BiGRU to molecular toxicity prediction~\cite{liuPredictionMolecularToxicity2023}, demonstrating the effectiveness of sequence models for chemical property tasks.
+Liu et al.\ combined BiGRU with GraphSAGE for molecular toxicity prediction on Tox21~\cite{liuPredictionMolecularToxicity2023}; we adopt only their BiGRU component for SMILES-based regression.
 More recently, Transformer architectures~\cite{vaswani2017attention} have been applied to SMILES-based property prediction with attention mechanisms that provide interpretable molecular representations~\cite{hondaSMILESTransformerPretrained2019}.
 Chen et al.~\cite{chenMolecularLanguage2023} systematically compared RNNs and Transformers for molecular language modeling, finding that in molecular generation tasks, RNNs better capture local structural features while Transformers excel at global molecular properties and longer sequences.
 Although their comparison focused primarily on molecular generation, their conclusion that the optimal architecture depends on the data characteristics may extend to property prediction tasks like UV absorption, where $\lambda_{\max}$ is fundamentally determined by local chromophore features: conjugation length, aromatic character, and heteroatom substituents, as formalized in the classical Woodward--Fieser rules.
@@ -374,7 +374,7 @@ Figure~\ref{fig:model_overview} provides a high-level comparison of the three mo
 \begin{tikzpicture}[node distance=1.35cm, scale=0.82, transform shape, baseline=(current bounding box.north)]
 \node (smi)  [archbox, fill=gray!15]                      {SMILES Input};
 \node (tok)  [archbox, fill=violet!10, below of=smi]      {BPE Tokenization};
-\node (pre)  [archbox, fill=violet!18, below of=tok]      {Pretrained (77M SMILES)};
+\node (pre)  [archbox, fill=violet!18, below of=tok]      {Pretrained (ZINC)};
 \node (trn1) [archbox, fill=violet!28, below of=pre]      {Transformer Layer 1};
 \node (trn2) [archbox, fill=violet!28, below of=trn1]     {$\vdots$ (6 layers total)};
 \node (trn6) [archbox, fill=violet!28, below of=trn2]     {Transformer Layer 6};
@@ -396,7 +396,7 @@ Figure~\ref{fig:model_overview} provides a high-level comparison of the three mo
 {\small 44.1M params, $\sim$3 hr/fold}
 \end{minipage}
 
-\caption{Architecture comparison of the three model families. (a)~Random Forest operates on precomputed 2048-bit Morgan fingerprints; an ensemble of 1000 trees votes on $\lambda_{\max}$, requiring no GPU. (b)~BiGRU (optimized via Bayesian HPO) processes character-level SMILES through 3 stacked bidirectional GRU layers with 256 units per direction. (c)~ChemBERTa fine-tunes a 6-layer Transformer (12 attention heads, 768 hidden dim) pretrained on 77M SMILES; the \texttt{[CLS]} representation is passed to a regression head. All models receive solvent information via SMILES concatenation.}
+\caption{Architecture comparison of the three model families. (a)~Random Forest operates on precomputed 2048-bit Morgan fingerprints; an ensemble of 1000 trees votes on $\lambda_{\max}$, requiring no GPU. (b)~BiGRU (optimized via Bayesian HPO) processes character-level SMILES through 3 stacked bidirectional GRU layers with 256 units per direction. (c)~ChemBERTa fine-tunes a 6-layer Transformer (12 attention heads, 768 hidden dim) pretrained on SMILES from the ZINC database; the \texttt{[CLS]} representation is passed to a regression head. All models receive solvent information via SMILES concatenation.}
 \label{fig:model_overview}
 \end{figure}
 
@@ -476,7 +476,7 @@ Our BiGRU model operates on character-level tokenized SMILES using a 57-token vo
 An embedding layer maps each token to a 50-dimensional dense vector, followed by two stacked BiGRU layers (128 units per direction), a dense layer (128 units, ReLU), dropout (0.2), and a linear output.
 The model has approximately 470K trainable parameters and is trained with RMSprop (lr = 0.001), MAE loss, batch size 32, for up to 250 epochs with early stopping on validation MAE (patience 25).
 Mixed-precision (float16) training is used on an NVIDIA RTX 4090 GPU.
-This architecture is inspired by Liu et al.~\cite{liuPredictionMolecularToxicity2023}, who applied BiGRU to SMILES-based molecular toxicity prediction on the Tox21 dataset.
+This architecture is inspired by the BiGRU component of Liu et al.~\cite{liuPredictionMolecularToxicity2023}, who combined BiGRU with GraphSAGE for SMILES-based molecular toxicity prediction on the Tox21 dataset; we use only the BiGRU branch for regression.
 
 To address the asymmetric tuning concern, we additionally perform Bayesian hyperparameter optimization (HPO) using Optuna~\cite{akiba2019optuna} with the Tree-structured Parzen Estimator (TPE) sampler.
 The search space covers the number of BiGRU units per direction $\in \{64, 128, 256\}$, number of stacked BiGRU layers $\in \{1, 2, 3\}$, embedding dimension $\in \{32, 50, 100\}$, dropout rate $\in [0.1, 0.4]$, learning rate $\in [10^{-4}, 3 \times 10^{-3}]$, and batch size $\in \{32, 64, 128\}$.
@@ -557,7 +557,7 @@ Figure~\ref{fig:bigru_architectures} compares the default and optimized BiGRU ar
 \subsection{Pretrained Transformer (ChemBERTa)}
 \label{sec:chemberta}
 
-To assess whether pretraining on large molecular corpora bridges the gap between sequence models and fingerprint-based approaches, we include ChemBERTa~\cite{chithrananda2020chemberta}, a RoBERTa~\cite{liu2019roberta} model pretrained on approximately 77M SMILES strings from PubChem.
+To assess whether pretraining on large molecular corpora bridges the gap between sequence models and fingerprint-based approaches, we include ChemBERTa~\cite{chithrananda2020chemberta}, a RoBERTa~\cite{liu2019roberta} model pretrained on SMILES from the ZINC database~\cite{irwin2005zinc}.
 ChemBERTa uses a byte-pair encoding (BPE) tokenizer trained on SMILES, with 6 Transformer layers, 12 attention heads, and a hidden dimension of 768, totaling 44.1M parameters.
 
 We fine-tune ChemBERTa for regression by adding a linear prediction head (768 $\to$ 256 $\to$ 1) on top of the \texttt{[CLS]} token representation.
@@ -597,7 +597,7 @@ Approximately 26,000 records with multiple published baselines~\cite{jung2024mac
 We use the 72/18/10 random split matching the published protocol.
 
 \subsection{nablaColors (Potapov 2026)}
-Approximately 24,500 TD-DFT computed absorption wavelengths with 3D molecular geometries~\cite{potapov2026nablacolors}, featuring a published UniMol+ 3D GNN baseline (MAE = 15.97~nm).
+26,369 TD-DFT computed absorption wavelengths with 3D molecular geometries~\cite{potapov2026nablacolors}, featuring a published UniProp 3D GNN baseline (a solvent-aware variant of UniMol+; MAE = 15.97~nm, RMSE = 27.2~nm).
 We use the precomputed scaffold-based split, which tests generalization across structurally distinct molecular classes.
 
 % ===== Results and Discussion =====
@@ -695,7 +695,7 @@ Kang et al.~\cite{kang2020prediction} and Urbina et al.~\cite{beard2022uvadvisor
 
 Figure~\ref{fig:local_vs_global} illustrates this conceptual alignment: models whose inductive bias matches the locality of the target property (RF encoding radius-2 atom neighborhoods, BiGRU capturing sequential SMILES context) achieve better in-distribution performance for UV absorption prediction than Transformers whose self-attention mechanism distributes information globally across the entire molecular representation~\cite{chenMolecularLanguage2023, jiang2023trangru}.
 
-ChemBERTa, despite being pretrained on $\sim$77M SMILES strings from ZINC and having 44.1M parameters (15$\times$ more than tuned BiGRU), achieves RMSE = 50.39~nm, substantially worse than both the tuned BiGRU (34.71~nm) and RF (31.34~nm).
+ChemBERTa, despite being pretrained on SMILES from the ZINC database and having 44.1M parameters (15$\times$ more than tuned BiGRU), achieves RMSE = 50.39~nm, substantially worse than both the tuned BiGRU (34.71~nm) and RF (31.34~nm).
 This 45\% gap relative to the tuned BiGRU is consistent with the hypothesis that Transformer representations are less sample-efficient for local properties on moderately-sized datasets, though ChemBERTa's superior wetlab generalization suggests pretrained knowledge partially compensates.
 However, ChemBERTa achieves the lowest wetlab MAE on novel compounds (26.3~nm vs.\ 28.6~nm for BiGRU; see Experimental Validation), suggesting that pretrained representations may offer complementary generalization advantages despite poor in-distribution performance.
 
@@ -763,7 +763,7 @@ Table~\ref{tab:cross_dataset} presents results on three external datasets, with 
   & Our BiGRU                 & 36.31  & 21.54  & 0.887 \\
 \midrule
 \multirow{3}{*}{\shortstack[l]{nablaColors\\(scaffold)}}
-  & UniMol+$^\dagger$ (3D GNN)& 21.09  & 15.97  & ---   \\
+  & UniProp$^\dagger$ (3D GNN)& 27.2  & 15.97  & 0.929   \\
   & Our RF                    & 56.38  & 39.48  & 0.696 \\
   & Our BiGRU                 & 56.57  & 40.42  & 0.694 \\
 \bottomrule
@@ -781,8 +781,8 @@ BiGRU (RMSE = 36.31~nm) and ChemBERTa (38.27~nm) fall between the GBFS and DR-CN
 Our RF model uses a simpler architecture than both published methods (which involve feature selection pipelines and multi-task learning, respectively), yet achieves superior performance.
 
 \textbf{nablaColors (scaffold split).}
-On the nablaColors dataset~\cite{potapov2026nablacolors}, which uses a scaffold-based split designed to test generalization across structural classes, both 1D models perform comparably (RF RMSE = 56.38~nm, BiGRU = 56.57~nm) but lag far behind the published UniMol+ 3D GNN baseline (MAE = 15.97~nm).
-This large gap ($\sim$2.5$\times$ higher RMSE than the published UniMol+ RMSE of 21.09~nm) arises because the scaffold split pushes models to predict chromophores with no structurally similar training examples, and 3D conformational information (captured by UniMol+ but not by SMILES or fingerprints) becomes critical for diverse chromophore geometries.
+On the nablaColors dataset~\cite{potapov2026nablacolors}, which uses a scaffold-based split designed to test generalization across structural classes, both 1D models perform comparably (RF RMSE = 56.38~nm, BiGRU = 56.57~nm) but lag far behind the published UniProp 3D GNN baseline (RMSE = 27.2~nm, MAE = 15.97~nm).
+This $\sim$2.1$\times$ RMSE gap arises because the scaffold split pushes models to predict chromophores with no structurally similar training examples, and 3D conformational information (captured by UniProp but not by SMILES or fingerprints) becomes critical for diverse chromophore geometries.
 This result highlights the one scenario where 1D representations are clearly insufficient.
 
 Across Deep4Chem and Jung 2024, RF consistently outperforms BiGRU and ChemBERTa, reinforcing the finding from our primary dataset that fingerprint-based models excel at in-distribution prediction.
