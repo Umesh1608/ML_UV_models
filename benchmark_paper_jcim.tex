@@ -341,7 +341,7 @@ Figure~\ref{fig:model_overview} provides a high-level comparison of the three mo
 \end{tikzpicture}
 
 \textbf{(a)} Random Forest\\[2pt]
-{\small No GPU, trains in $\sim$3 min}
+{\small No GPU, $\sim$15 min total}
 \end{minipage}
 \hfill
 % ---- (b) BiGRU (optimized) ----
@@ -837,12 +837,12 @@ We averaged Gini importances across all five fold models and decoded the top fea
 \begin{figure}[htbp]
     \centering
     \begin{subfigure}[t]{0.48\textwidth}
-        \includegraphics[width=\textwidth]{results/rf_feature_importance.pdf}
+        \includegraphics[width=\textwidth]{results/rf_feature_importance.png}
         \caption{Top 15 Morgan fingerprint bits ranked by Gini importance, with mean $\Delta\lambda_{\max}$ annotations (bathochromic shifts in red, hypsochromic in blue).}
     \end{subfigure}
     \hfill
     \begin{subfigure}[t]{0.48\textwidth}
-        \includegraphics[width=\textwidth]{results/rf_solute_vs_solvent.pdf}
+        \includegraphics[width=\textwidth]{results/rf_solute_vs_solvent.png}
         \caption{Relative importance of solute vs.\ solvent fingerprint bits. Solute structure accounts for 96.1\% of total feature importance.}
     \end{subfigure}
     \caption{RF feature importance analysis. The model learns chemically meaningful patterns: the top features correspond to known chromophore motifs that produce large bathochromic shifts.}
@@ -851,14 +851,14 @@ We averaged Gini importances across all five fold models and decoded the top fea
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.65\textwidth]{results/rf_cumulative_importance.pdf}
+    \includegraphics[width=0.65\textwidth]{results/rf_cumulative_importance.png}
     \caption{Cumulative feature importance. The top 41 features (out of 4096) account for 50\% of total importance, and 327 features reach 80\%, indicating a sparse, interpretable model.}
     \label{fig:rf_cumulative}
 \end{figure}
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.65\textwidth]{results/rf_training_comparison.pdf}
+    \includegraphics[width=0.65\textwidth]{results/rf_training_comparison.png}
     \caption{Training time vs.\ performance comparison. (a)~RF achieves the best RMSE in 15~minutes of total training compared to BiGRU's 25~hours (100$\times$ faster). (b)~Computational cost on log scale highlights the practical advantage of fingerprint-based models.}
     \label{fig:rf_practical}
 \end{figure}
@@ -896,7 +896,7 @@ We note that gradient saliency identifies correlations rather than causal mechan
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=\textwidth]{results/bigru_saliency_atoms.pdf}
+    \includegraphics[width=\textwidth]{results/bigru_saliency_atoms.png}
     \caption{BiGRU gradient saliency mapped to 2D molecular structures for six wetlab validation molecules. Color intensity indicates atom-level importance (red = high saliency, white = low). Top row (green borders): well-predicted molecules with focused saliency on chromophore regions. Bottom row (red borders): poorly predicted molecules with higher absolute errors. Error values are shown below each structure.}
     \label{fig:bigru_saliency}
 \end{figure}
@@ -910,11 +910,11 @@ To evaluate practical utility, we apply our models to ICH~S10~\cite{ICH2013S10} 
 Compounds with $\lambda_{\max} \in [290, 700]$~nm and molar extinction coefficient (MEC) $\geq 1000$ are classified as photoreactive (POS).
 We reconstructed the Mamede/Reaxys dataset by querying Reaxys using the CAS registry numbers listed in the original study, recovering 93.6\% of the original 74,784 compounds.
 The 6.4\% gap arises from deprecated CAS entries, compounds removed from current Reaxys builds, and structures that could not be resolved to valid SMILES representations.
-We trained a separate RF classifier on this reconstructed data.
+We trained a separate RF classifier on this reconstructed data, and additionally trained the tuned BiGRU architecture (3-layer, 256-unit) as a direct binary classifier with sigmoid output and BCE loss on the same dataset and test split.
 
 \begin{table}[htbp]
 \centering
-\caption{Photosafety classification performance. Mamede et al.\ used POS = $\lambda_{\max} \in [290,700]$ nm AND MEC $\geq$ 1000. Our RF classifier was trained on the reconstructed Reaxys dataset.}
+\caption{Photosafety classification performance. Mamede et al.\ used POS = $\lambda_{\max} \in [290,700]$ nm AND MEC $\geq$ 1000. All models were trained and evaluated on the reconstructed Reaxys dataset with the same held-out test set.}
 \label{tab:classification}
 \begin{tabular}{lccccc}
 \toprule
@@ -922,13 +922,14 @@ We trained a separate RF classifier on this reconstructed data.
 \midrule
 Mamede RF (2021)$^\dagger$  & 998   & 0.90  & 0.88  & 0.89  & ---   \\
 Our RF                      & 1,996 & 0.876 & 0.882 & 0.879 & 0.942 \\
+BiGRU direct cls            & 1,996 & 0.794 & 0.811 & 0.803 & 0.886 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 Our RF classifier closely reproduces the published Mamede results (accuracy 0.879 vs.\ 0.89), validating both our Reaxys dataset reconstruction and the effectiveness of Morgan fingerprints for photosafety screening.
-The regression-based thresholding approach using BiGRU predictions proved ineffective (accuracy = 0.588, sensitivity = 0.22), as the regression model's prediction errors span both sides of the classification boundary, producing many false negatives.
-This finding suggests that direct classification is preferable to regression-then-threshold approaches for photosafety screening.
+When the tuned BiGRU is trained as a direct binary classifier on the same data, it achieves accuracy 0.803---substantially below RF (0.879).
+This gap reinforces the advantage of explicit substructure encoding (Morgan fingerprints) over character-level SMILES representations for classification tasks where specific functional-group presence determines the label.
 
 
 % --- Experimental Validation ---
@@ -1042,8 +1043,8 @@ Our key findings are:
     BiGRU, optimized via Bayesian HPO (3-layer, 256-unit architecture, 4.8\% RMSE improvement over the default on 5-fold CV), provides instance-level interpretability through gradient saliency analysis, with atom-level heatmaps highlighting the same conjugated regions identified by RF (Section~\ref{sec:interpretability}).
     RF trains 100$\times$ faster (15 minutes CPU vs.\ 25 hours GPU), making it the practical first choice when the target chemical space is well-represented in training data, while BiGRU's learned representations offer better generalization to novel scaffolds.
 
-    \item \textbf{Practical classification matches published results.}
-    RF-based photosafety classification (accuracy = 0.879) closely reproduces the published Mamede benchmark (accuracy = 0.89), validating both the methodology and dataset reconstruction.
+    \item \textbf{Practical classification favors fingerprint models.}
+    RF-based photosafety classification (accuracy = 0.879) closely reproduces the published Mamede benchmark (accuracy = 0.89), while BiGRU direct classification reaches only 0.803, confirming that Morgan fingerprints' explicit substructure encoding is superior for binary photosafety screening.
 \end{enumerate}
 
 More broadly, these findings offer practical guidance for molecular property prediction beyond UV absorption: when a target property is determined by local molecular features (conjugation, substituent effects, functional groups), models that encode local structural information---fingerprints with tree ensembles and RNNs processing SMILES subsequences---are expected to outperform global-attention architectures on in-distribution benchmarks, while pretrained Transformers retain advantages for out-of-distribution generalization to novel scaffolds.
@@ -1088,7 +1089,7 @@ The authors declare no competing financial interest.
 \begin{suppinfo}
 The Supporting Information is available free of charge at [DOI].
 
-Per-fold cross-validation results for all four model families (Tables~S1--S4), statistical significance tests (Table~S5), RF hyperparameter sensitivity analysis, BiGRU and ChemBERTa learning curves (Figures~S1--S2), hyperparameter tuning asymmetry analysis (Table~S6), and BiGRU character-type saliency analysis (Figure~S3) (PDF).
+Per-fold cross-validation results for all four model families (Tables~S1--S5), statistical significance tests (Table~S6), RF hyperparameter sensitivity analysis, BiGRU and ChemBERTa learning curves (Figures~S1--S2), hyperparameter tuning asymmetry analysis (Table~S7), and BiGRU character-type saliency analysis (Figure~S3) (PDF).
 \end{suppinfo}
 
 % ===== Bibliography =====

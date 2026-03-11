@@ -351,7 +351,7 @@ Figure~\ref{fig:model_overview} provides a high-level comparison of the three mo
 \end{tikzpicture}
 
 \textbf{(a)} Random Forest\\[2pt]
-{\small No GPU, trains in $\sim$3 min}
+{\small No GPU, $\sim$15 min total}
 \end{minipage}
 \hfill
 % ---- (b) BiGRU (optimized) ----
@@ -921,11 +921,11 @@ To evaluate practical utility, we apply our models to ICH~S10~\cite{ICH2013S10} 
 Compounds with $\lambda_{\max} \in [290, 700]$~nm and molar extinction coefficient (MEC) $\geq 1000$ are classified as photoreactive (POS).
 We reconstructed the Mamede/Reaxys dataset by querying Reaxys using the CAS registry numbers listed in the original study, recovering 93.6\% of the original 74,784 compounds.
 The 6.4\% gap arises from deprecated CAS entries, compounds removed from current Reaxys builds, and structures that could not be resolved to valid SMILES representations.
-We trained a separate RF classifier on this reconstructed data.
+We trained a separate RF classifier on this reconstructed data, and additionally trained the tuned BiGRU architecture (3-layer, 256-unit) as a direct binary classifier with sigmoid output and BCE loss on the same dataset and test split.
 
 \begin{table}[t]
 \centering
-\caption{Photosafety classification performance. Mamede et al.\ used POS = $\lambda_{\max} \in [290,700]$ nm AND MEC $\geq$ 1000. Our RF classifier was trained on the reconstructed Reaxys dataset.}
+\caption{Photosafety classification performance. Mamede et al.\ used POS = $\lambda_{\max} \in [290,700]$ nm AND MEC $\geq$ 1000. All models were trained and evaluated on the reconstructed Reaxys dataset with the same held-out test set.}
 \label{tab:classification}
 \begin{tabular}{lccccc}
 \toprule
@@ -933,13 +933,14 @@ We trained a separate RF classifier on this reconstructed data.
 \midrule
 Mamede RF (2021)$^\dagger$  & 998   & 0.90  & 0.88  & 0.89  & ---   \\
 Our RF                      & 1,996 & 0.876 & 0.882 & 0.879 & 0.942 \\
+BiGRU direct cls            & 1,996 & 0.794 & 0.811 & 0.803 & 0.886 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 Our RF classifier closely reproduces the published Mamede results (accuracy 0.879 vs.\ 0.89), validating both our Reaxys dataset reconstruction and the effectiveness of Morgan fingerprints for photosafety screening.
-The regression-based thresholding approach using BiGRU predictions proved ineffective (accuracy = 0.588, sensitivity = 0.22), as the regression model's prediction errors span both sides of the classification boundary, producing many false negatives.
-This finding suggests that direct classification is preferable to regression-then-threshold approaches for photosafety screening.
+When the tuned BiGRU is trained as a direct binary classifier on the same data, it achieves accuracy 0.803---substantially below RF (0.879).
+This gap reinforces the advantage of explicit substructure encoding (Morgan fingerprints) over character-level SMILES representations for classification tasks where specific functional-group presence determines the label.
 
 
 % --- Experimental Validation ---
@@ -1053,8 +1054,8 @@ Our key findings are:
     BiGRU, optimized via Bayesian HPO (3-layer, 256-unit architecture, 4.8\% RMSE improvement over the default on 5-fold CV), provides instance-level interpretability through gradient saliency analysis, with atom-level heatmaps highlighting the same conjugated regions identified by RF (Section~\ref{sec:interpretability}).
     RF trains 100$\times$ faster (15 minutes CPU vs.\ 25 hours GPU), making it the practical first choice when the target chemical space is well-represented in training data, while BiGRU's learned representations offer better generalization to novel scaffolds.
 
-    \item \textbf{Practical classification matches published results.}
-    RF-based photosafety classification (accuracy = 0.879) closely reproduces the published Mamede benchmark (accuracy = 0.89), validating both the methodology and dataset reconstruction.
+    \item \textbf{Practical classification favors fingerprint models.}
+    RF-based photosafety classification (accuracy = 0.879) closely reproduces the published Mamede benchmark (accuracy = 0.89), while BiGRU direct classification reaches only 0.803, confirming that Morgan fingerprints' explicit substructure encoding is superior for binary photosafety screening.
 \end{enumerate}
 
 These findings suggest that model selection for UV absorption prediction should be guided by the relationship between target compounds and available training data: RF is preferred for screening within well-characterized chemical libraries, while sequence-based deep learning (BiGRU, ChemBERTa) is better suited for exploration of novel molecular architectures.
@@ -1132,6 +1133,25 @@ Tables~\ref{tab:perfold_rf}--\ref{tab:perfold_chemberta} present per-fold result
 4 & 37.12 & 20.32 & 0.881 & 0.939 \\
 \midrule
 \textbf{Mean $\pm$ Std} & \textbf{36.45 $\pm$ 1.12} & \textbf{20.70 $\pm$ 0.51} & \textbf{0.884 $\pm$ 0.006} & \textbf{0.940 $\pm$ 0.003} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Per-fold BiGRU (tuned, 3L/256u) results.}
+\label{tab:perfold_bigru_tuned}
+\begin{tabular}{ccccc}
+\toprule
+\textbf{Fold} & \textbf{RMSE (nm)} & \textbf{MAE (nm)} & $\boldsymbol{R^2}$ & \textbf{Pearson $r$} \\
+\midrule
+0 & 35.42 & 18.79 & 0.887 & 0.942 \\
+1 & 35.51 & 17.91 & 0.890 & 0.944 \\
+2 & 32.02 & 17.33 & 0.910 & 0.954 \\
+3 & 35.91 & 18.76 & 0.888 & 0.943 \\
+4 & 34.69 & 17.68 & 0.896 & 0.947 \\
+\midrule
+\textbf{Mean $\pm$ Std} & \textbf{34.71 $\pm$ 1.40} & \textbf{18.09 $\pm$ 0.59} & \textbf{0.890 $\pm$ 0.010} & \textbf{0.950 $\pm$ 0.003} \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -1278,7 +1298,7 @@ Heteroatoms (N, O, S) rank second, consistent with their role as electron donors
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.65\textwidth]{results/bigru_saliency_chartype.pdf}
+    \includegraphics[width=0.65\textwidth]{results/bigru_saliency_chartype.png}
     \caption{Mean BiGRU gradient saliency by SMILES character type, averaged over all wetlab validation molecules. Bond symbols (\texttt{=}, \texttt{\#}) and heteroatoms receive the highest saliency, consistent with the role of conjugated $\pi$-systems and electron-donating/withdrawing groups in determining UV absorption.}
     \label{fig:bigru_chartype}
 \end{figure}

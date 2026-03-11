@@ -194,8 +194,13 @@ def train_dl_model(model_type, X_train, X_test, y_train, y_test,
                    batch_size=80, patience=25,
                    X_val=None, y_val=None, task="regression",
                    n_units=128, n_layers=2, embed_dim=50, dropout=0.2,
-                   lr=0.001):
-    """Train a DL model with early stopping. Returns (y_pred, metrics, model).
+                   lr=0.001, gpu_cooldown=0):
+    """Train a DL model with early stopping and crash-resilient checkpointing.
+
+    Supports stop/resume: saves periodic checkpoints (_latest.keras + _state.json)
+    so training can resume from the last checkpoint after a crash or interruption.
+
+    Returns (y_pred, metrics, model).
 
     Args:
         results_dir: Directory for checkpoint/history files.
@@ -212,6 +217,7 @@ def train_dl_model(model_type, X_train, X_test, y_train, y_test,
         embed_dim: Embedding dimension (default 50).
         dropout: Dropout rate before output (default 0.2).
         lr: Learning rate (default 0.001).
+        gpu_cooldown: Seconds to sleep between epochs to prevent thermal shutdown (default 0).
     """
     import tensorflow as tf
 
@@ -235,34 +241,106 @@ def train_dl_model(model_type, X_train, X_test, y_train, y_test,
     # Use separate val set for early stopping if provided, otherwise use test set
     val_data = (X_val, y_val) if X_val is not None else (X_test, y_test)
 
+    # ── Resume from checkpoint if available ──────────────────────────────
+    best_path = os.path.join(results_dir, f"{name}_best.keras")
+    latest_path = os.path.join(results_dir, f"{name}_latest.keras")
+    state_path = os.path.join(results_dir, f"{name}_state.json")
+    initial_epoch = 0
+    best_val_loss = float("inf")
+    prev_history = {}
+
+    if os.path.exists(state_path):
+        with open(state_path) as f:
+            state = json.load(f)
+        initial_epoch = state.get("epoch", 0)
+        best_val_loss = state.get("best_val_loss", float("inf"))
+        prev_history = state.get("history", {})
+        # Load model weights from latest checkpoint
+        ckpt = latest_path if os.path.exists(latest_path) else best_path
+        if os.path.exists(ckpt):
+            model.load_weights(ckpt)
+            print(f"  >> Resuming from epoch {initial_epoch} "
+                  f"(best_val_loss={best_val_loss:.4f}, checkpoint={os.path.basename(ckpt)})")
+        else:
+            print(f"  >> State file found but no checkpoint — starting fresh")
+            initial_epoch = 0
+            prev_history = {}
+
+    # ── Callbacks ────────────────────────────────────────────────────────
     early_stop = tf.keras.callbacks.EarlyStopping(
         monitor="val_loss", min_delta=1e-5, patience=patience,
-        verbose=0, mode="auto", restore_best_weights=True
+        verbose=0, mode="auto", restore_best_weights=True,
+        baseline=best_val_loss if initial_epoch > 0 else None,
     )
-    checkpoint = tf.keras.callbacks.ModelCheckpoint(
-        os.path.join(results_dir, f"{name}_best.keras"),
-        monitor="val_loss", save_best_only=True, verbose=0
+    checkpoint_best = tf.keras.callbacks.ModelCheckpoint(
+        best_path, monitor="val_loss", save_best_only=True, verbose=0
     )
     TqdmProgressCallback = get_tqdm_callback()
     progress = TqdmProgressCallback(epochs, model_name=name, report_interval=10)
+    if initial_epoch > 0:
+        progress.epoch_times = []  # reset timing for resumed run
+
+    # Periodic checkpoint callback — saves every 5 epochs for crash resilience
+    class PeriodicCheckpoint(tf.keras.callbacks.Callback):
+        def __init__(self, save_path, state_path, prev_history, save_every=5):
+            super().__init__()
+            self.save_path = save_path
+            self.state_path = state_path
+            self.save_every = save_every
+            self.cur_best_val_loss = best_val_loss
+            self.all_history = {k: list(v) for k, v in prev_history.items()}
+
+        def on_epoch_end(self, epoch, logs=None):
+            logs = logs or {}
+            # Accumulate history
+            for k, v in logs.items():
+                self.all_history.setdefault(k, []).append(float(v))
+            # Track best
+            vl = logs.get("val_loss")
+            if vl is not None and vl < self.cur_best_val_loss:
+                self.cur_best_val_loss = vl
+            # Save periodically
+            if (epoch + 1) % self.save_every == 0:
+                self.model.save(self.save_path)
+                with open(self.state_path, "w") as f:
+                    json.dump({
+                        "epoch": epoch + 1,
+                        "best_val_loss": self.cur_best_val_loss,
+                        "history": self.all_history,
+                    }, f)
+
+    periodic_ckpt = PeriodicCheckpoint(latest_path, state_path, prev_history)
+
+    # GPU cooldown callback
+    cooldown_cb = None
+    if gpu_cooldown > 0:
+        class GpuCooldownCallback(tf.keras.callbacks.Callback):
+            def on_epoch_end(self, epoch, logs=None):
+                time.sleep(gpu_cooldown)
+        cooldown_cb = GpuCooldownCallback()
+        print(f"  >> GPU cooldown: {gpu_cooldown}s between epochs")
 
     model.build(input_shape=(None, input_length))
     params = model.count_params()
     print(f"\n  >> {name} ({model_type}, {task}) — {params:,} params")
 
+    cbs = [early_stop, checkpoint_best, periodic_ckpt, progress]
+    if cooldown_cb is not None:
+        cbs.append(cooldown_cb)
+
     t0 = time.time()
     history = model.fit(
         X_train, y_train,
         validation_data=val_data,
+        initial_epoch=initial_epoch,
         epochs=epochs, batch_size=batch_size,
-        callbacks=[early_stop, checkpoint, progress], verbose=0
+        callbacks=cbs, verbose=0
     )
     elapsed = time.time() - t0
 
     y_pred = model.predict(X_test, verbose=0).flatten()
 
     if task == "classification":
-        # Return raw probabilities; caller handles thresholding and metrics
         print(f"  >> {name} done in {elapsed:.0f}s — "
               f"val_loss={history.history['val_loss'][-1]:.4f}")
         metrics = None
@@ -271,11 +349,16 @@ def train_dl_model(model_type, X_train, X_test, y_train, y_test,
         print(f"  >> {name} done in {elapsed:.0f}s — RMSE={metrics['RMSE']} "
               f"MAE={metrics['MAE']} R²={metrics['R2']} r={metrics['Pearson_r']}")
 
-    # Save training history
+    # Save full training history (merged prev + current)
+    merged_history = periodic_ckpt.all_history
     hist_path = os.path.join(results_dir, f"{name}_history.json")
-    hist_data = {k: [float(v) for v in vals] for k, vals in history.history.items()}
     with open(hist_path, "w") as f:
-        json.dump(hist_data, f)
+        json.dump(merged_history, f)
+
+    # Cleanup resume files (training completed successfully)
+    for p in [latest_path, state_path]:
+        if os.path.exists(p):
+            os.remove(p)
 
     return y_pred, metrics, model
 

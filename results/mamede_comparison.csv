@@ -1,4 +1,5 @@
 Model,N_test,Sensitivity,Specificity,Accuracy,MCC,F1,ROC-AUC
 Mamede RF (2021),~998,0.9,0.88,0.89,,,
 RF + Morgan FP 1024-bit (ours),1996,0.8761,0.8821,0.8793,0.7579,0.8728,0.9424
+BiGRU direct cls (tuned 3L/256u),1996,0.7945,0.8108,0.8031,0.6052,0.7924,0.8864
 BiGRU regression → threshold,1400,0.2203,0.9639,0.5879,0.2745,0.351,0.6479

@@ -7,6 +7,8 @@
   ],
   "bigru_rmse": 33.9,
   "bigru_mae": 28.64,
+  "bigru_tuned_rmse": 37.01,
+  "bigru_tuned_mae": 31.52,
   "rf_rmse": 43.69,
   "rf_mae": 38.46,
   "chemberta_rmse": 32.15,
