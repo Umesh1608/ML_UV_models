@@ -140,7 +140,7 @@ These complementary strengths (RF for interpolation within known chemical space,
         {\textbf{XGBoost}\\[-1pt]{\scriptsize 500 rounds, depth 6, $\eta = 0.1$}};
 
     \node[box, fill=blue!12, draw=blue!40!black] (bigru) at (0, -0.7)
-        {\textbf{BiGRU}\\[-1pt]{\scriptsize 3$\times$256 BiGRU, 2.1M params}};
+        {\textbf{BiGRU}\\[-1pt]{\scriptsize 3$\times$256 BiGRU, 3.0M params}};
 
     \node[box, fill=blue!12, draw=blue!40!black] (cb) at (0, -2.15)
         {\textbf{ChemBERTa}\\[-1pt]{\scriptsize 6-layer Transformer, 44.1M params}};
@@ -634,7 +634,7 @@ Table~\ref{tab:model_comparison} presents the performance of all models on the p
 RF + Morgan FP        & \textbf{31.34 $\pm$ 1.82} & \textbf{15.16 $\pm$ 0.44} & \textbf{0.914 $\pm$ 0.010} & \textbf{0.956 $\pm$ 0.005} \\
 XGBoost + Morgan FP   & 33.70 $\pm$ 1.61          & 20.05 $\pm$ 0.48          & 0.900 $\pm$ 0.009          & 0.950 $\pm$ 0.005 \\
 BiGRU + Solvent       & 36.45 $\pm$ 1.12          & 20.70 $\pm$ 0.51          & 0.884 $\pm$ 0.006          & 0.940 $\pm$ 0.003 \\
-BiGRU (tuned, 3L/256u)& 34.71 $\pm$ 1.40          & 18.09 $\pm$ 0.59          & 0.890 $\pm$ 0.010          & 0.950 $\pm$ 0.003 \\
+BiGRU (tuned, 3L/256u)& 34.71 $\pm$ 1.40          & 18.09 $\pm$ 0.59          & 0.894 $\pm$ 0.009          & 0.946 $\pm$ 0.005 \\
 XGBoost (MAE loss)    & 40.75 $\pm$ 1.58          & 21.99 $\pm$ 0.47          & 0.854 $\pm$ 0.010          & 0.927 $\pm$ 0.005 \\
 ChemBERTa (pretrained)& 50.39 $\pm$ 2.30          & 24.31 $\pm$ 1.04          & 0.777 $\pm$ 0.019          & 0.899 $\pm$ 0.009 \\
 \bottomrule
@@ -735,7 +735,7 @@ RF + Solvent          & \textbf{31.34 $\pm$ 1.82} & \textbf{15.16 $\pm$ 0.44} & 
 RF Solute only        & 34.13 $\pm$ 1.44          & 16.45 $\pm$ 0.33          & 0.898 $\pm$ 0.008          & 0.948 $\pm$ 0.004 \\
 \midrule
 BiGRU + Solvent       & 36.45 $\pm$ 1.12          & 20.70 $\pm$ 0.51          & 0.884 $\pm$ 0.006          & 0.940 $\pm$ 0.003 \\
-BiGRU Solute only     & 39.03 $\pm$ 1.37          & 22.52 $\pm$ 0.32          & 0.866 $\pm$ 0.009          & 0.931 $\pm$ 0.005 \\
+BiGRU Solute only     & 39.03 $\pm$ 1.37          & 22.53 $\pm$ 0.32          & 0.866 $\pm$ 0.009          & 0.931 $\pm$ 0.005 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -1035,13 +1035,13 @@ Figure~\ref{fig:wetlab_per_molecule} shows per-molecule predictions alongside ex
 \section{Conclusion}
 \label{sec:conclusion}
 
-We have presented a systematic benchmark of ML approaches for UV absorption wavelength prediction, comparing Random Forest, XGBoost, BiGRU, and ChemBERTa across four datasets totaling over 90,000 molecules.
+We have presented a systematic benchmark of ML approaches for UV absorption wavelength prediction, comparing Random Forest, XGBoost, BiGRU, and ChemBERTa across four datasets totaling nearly 90,000 molecules.
 
 Our key findings are:
 
 \begin{enumerate}
     \item \textbf{RF and deep learning have complementary strengths.}
-    RF with Morgan fingerprints achieves the best cross-validated performance on the primary Joung+Beard dataset (RMSE = 31.34~nm vs.\ 34.71~nm for the tuned BiGRU, 50.39~nm for ChemBERTa) and on both external datasets, surpassing published deep learning baselines on Deep4Chem (RMSE = 22.70 vs.\ GCNN 26.6~\cite{joung2021deep}) and Jung 2024 (RMSE = 29.82 vs.\ GBFS 32.2).
+    RF with Morgan fingerprints achieves the best cross-validated performance on the primary Joung+Beard dataset (RMSE = 31.34~nm vs.\ 34.71~nm for the tuned BiGRU, 50.39~nm for ChemBERTa) and on two of three external datasets, surpassing published deep learning baselines on Deep4Chem (RMSE = 22.70 vs.\ GCNN 26.6~\cite{joung2021deep}) and Jung 2024 (RMSE = 29.82 vs.\ GBFS 32.2).
     However, experimental validation on 16 novel compounds reverses this ranking: both ChemBERTa (MAE = 26.3~nm) and BiGRU (28.6~nm) outperform RF (38.5~nm) on out-of-distribution molecules.
     This indicates that RF excels at interpolation within known chemical space, while deep learning models learn transferable representations that extend beyond fixed substructural features.
 
@@ -1151,7 +1151,7 @@ Tables~\ref{tab:perfold_rf}--\ref{tab:perfold_chemberta} present per-fold result
 3 & 35.91 & 18.76 & 0.888 & 0.943 \\
 4 & 34.69 & 17.68 & 0.896 & 0.947 \\
 \midrule
-\textbf{Mean $\pm$ Std} & \textbf{34.71 $\pm$ 1.40} & \textbf{18.09 $\pm$ 0.59} & \textbf{0.890 $\pm$ 0.010} & \textbf{0.950 $\pm$ 0.003} \\
+\textbf{Mean $\pm$ Std} & \textbf{34.71 $\pm$ 1.40} & \textbf{18.09 $\pm$ 0.59} & \textbf{0.894 $\pm$ 0.009} & \textbf{0.946 $\pm$ 0.005} \\
 \bottomrule
 \end{tabular}
 \end{table}
