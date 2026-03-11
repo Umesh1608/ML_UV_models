@@ -81,7 +81,10 @@ Our key contributions are:
     \item Practical validation through ICH~S10 photosafety classification and experimental UV measurements on 16 novel compounds.
 \end{itemize}
 
-Figure~\ref{fig:benchmark_framework} provides an overview of our dual-pathway benchmarking framework, illustrating how both molecular representations (fingerprints and token sequences) feed into the four model families evaluated in this study.
+The choice of molecular representation fundamentally determines which ML methods can be applied.
+SMILES (Simplified Molecular Input Line Entry System)~\cite{weininger1988smiles} encodes molecular graphs as character strings, enabling NLP-inspired sequence models (RNNs, Transformers), while Morgan circular fingerprints~\cite{rogers2010extended} encode local chemical environments as fixed-length binary vectors amenable to classical tree-based ensembles~\cite{landrum2016rdkit, wuMoleculeNet2018}.
+Our benchmark compares both representation families: fingerprint-based models (RF, XGBoost) against sequence-based models (BiGRU, ChemBERTa) on the same prediction task.
+Figure~\ref{fig:benchmark_framework} provides an overview of this dual-pathway framework.
 
 \begin{figure}[!ht]
     \centering
@@ -208,10 +211,6 @@ Figure~\ref{fig:benchmark_framework} provides an overview of our dual-pathway be
     \caption{Benchmark framework for UV absorption prediction. (a)~Morgan fingerprints are computed independently per molecule and horizontally stacked (4096-bit), while token sequences are formed by string concatenation before tokenization. (b)~Four models predict $\lambda_{\max}$ from the same molecular input.}
     \label{fig:benchmark_framework}
 \end{figure}
-
-The choice of molecular representation fundamentally determines which ML methods can be applied.
-SMILES (Simplified Molecular Input Line Entry System)~\cite{weininger1988smiles} encodes molecular graphs as character strings, enabling NLP-inspired sequence models (RNNs, Transformers), while Morgan circular fingerprints~\cite{rogers2010extended} encode local chemical environments as fixed-length binary vectors amenable to classical tree-based ensembles~\cite{landrum2016rdkit, wuMoleculeNet2018}.
-Our benchmark compares both representation families: fingerprint-based models (RF, XGBoost) against sequence-based models (BiGRU, ChemBERTa) on the same prediction task.
 
 \FloatBarrier
 % ===== Related Work =====
