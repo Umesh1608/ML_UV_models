@@ -65,7 +65,7 @@ Recent work has highlighted that well-tuned classical models can match or exceed
 The UV absorption prediction task presents several distinctive challenges that make it an ideal benchmarking target:
 \begin{enumerate}
     \item \textbf{Solvent dependence:} $\lambda_{\max}$ varies with solvent environment (solvatochromism), requiring models to encode both solute structure and solvent identity.
-    \item \textbf{Representation diversity:} Although absorption depends on electronic structure influenced by molecular geometry, our results show that 1D representations (fingerprints, SMILES) capture the dominant structure--property relationships for UV absorption, with 3D methods offering advantages primarily for structurally diverse datasets (Section~\ref{sec:cross_dataset}).
+    \item \textbf{Representation diversity:} Although absorption depends on electronic structure influenced by molecular geometry, our results show that 1D representations (fingerprints, SMILES) capture the dominant structure--property relationships for UV absorption, with 3D methods offering advantages primarily for structurally diverse datasets (see Cross-Dataset Benchmarking).
     \item \textbf{Diverse benchmarks:} Multiple published datasets with varying sizes, chemical spaces, and evaluation protocols enable comprehensive assessment.
     \item \textbf{Practical relevance:} ICH~S10 guidelines require photosafety screening of pharmaceutical compounds, where $\lambda_{\max}$ prediction serves as a first-pass filter.
 \end{enumerate}
@@ -301,7 +301,7 @@ Metrics are reported as mean $\pm$ standard deviation across five folds: root-me
 Statistical significance of pairwise model differences is assessed using paired $t$-tests across the five fold RMSE values ($\alpha = 0.05$).
 
 For external datasets, we use the exact split protocols published by the original authors to enable direct comparison with reported results.
-Our evaluation methodology follows best practices for QSAR/QSPR studies~\cite{tropsha2006best, cherkasov2014qsar}: models are validated using both internal cross-validation and external test sets, multiple statistical metrics are reported, and applicability domain is assessed through out-of-distribution experimental validation (Section~\ref{sec:experimental}).
+Our evaluation methodology follows best practices for QSAR/QSPR studies~\cite{tropsha2006best, cherkasov2014qsar}: models are validated using both internal cross-validation and external test sets, multiple statistical metrics are reported, and applicability domain is assessed through out-of-distribution experimental validation (see Experimental Validation).
 All models are implemented using scikit-learn~\cite{pedregosa2011scikit} (RF), XGBoost~\cite{chen2016xgboost}, TensorFlow~\cite{abadi2016tensorflow} (BiGRU), and PyTorch with HuggingFace Transformers (ChemBERTa).
 Figure~\ref{fig:model_overview} provides a high-level comparison of the three model families, illustrating the fundamental differences in molecular representation and model complexity.
 
@@ -396,7 +396,7 @@ Figure~\ref{fig:model_overview} provides a high-level comparison of the three mo
 {\small 44.1M params, $\sim$3 hr/fold}
 \end{minipage}
 
-\caption{Architecture comparison of the three model families. (a)~Random Forest operates on precomputed 2048-bit Morgan fingerprints; an ensemble of 1000 trees votes on $\lambda_{\max}$, requiring no GPU. (b)~BiGRU (optimized via Bayesian HPO) processes character-level SMILES through 3 stacked bidirectional GRU layers with 256 units per direction (Section~\ref{sec:bigru}). (c)~ChemBERTa fine-tunes a 6-layer Transformer (12 attention heads, 768 hidden dim) pretrained on 77M SMILES; the \texttt{[CLS]} representation is passed to a regression head. All models receive solvent information via SMILES concatenation (Section~\ref{sec:solvent}).}
+\caption{Architecture comparison of the three model families. (a)~Random Forest operates on precomputed 2048-bit Morgan fingerprints; an ensemble of 1000 trees votes on $\lambda_{\max}$, requiring no GPU. (b)~BiGRU (optimized via Bayesian HPO) processes character-level SMILES through 3 stacked bidirectional GRU layers with 256 units per direction. (c)~ChemBERTa fine-tunes a 6-layer Transformer (12 attention heads, 768 hidden dim) pretrained on 77M SMILES; the \texttt{[CLS]} representation is passed to a regression head. All models receive solvent information via SMILES concatenation.}
 \label{fig:model_overview}
 \end{figure}
 
@@ -483,7 +483,7 @@ The search space covers the number of BiGRU units per direction $\in \{64, 128, 
 Each trial trains on the fold~0 training set with early stopping on the fold~0 validation set (MAE loss, patience 25).
 After 25 trials, the best configuration (256 units per direction, 3 stacked BiGRU layers with $\sim$2.97M parameters, embedding dimension 50, dropout 0.105, learning rate $1.1 \times 10^{-3}$, batch size 128) achieves a fold-0 validation RMSE of 33.33~nm; full 5-fold cross-validation yields RMSE = $34.71 \pm 1.40$~nm, a 4.8\% improvement over the default 36.45~nm.
 Key findings from the HPO landscape: (1) three-layer architectures consistently outperform two-layer defaults, (2) single-layer models fail entirely (validation RMSE $>$44~nm), (3) low dropout ($\sim$0.10) is optimal for the larger architecture, and (4) embedding dimension 50 outperforms both 32 and 100.
-Full cross-validated results with this tuned architecture are reported in Section~\ref{sec:results}.
+Full cross-validated results with this tuned architecture are reported in the Results section.
 Figure~\ref{fig:bigru_architectures} compares the default and optimized BiGRU architectures.
 
 \tikzstyle{layerbox} = [rectangle, rounded corners=3pt, minimum width=4.2cm, minimum height=0.8cm, text centered, draw=black, font=\small]
@@ -641,7 +641,7 @@ BiGRU also offers the advantage of end-to-end learning from raw SMILES strings w
 
 The strong performance of fingerprint-based RF can be understood through the physics of UV absorption.
 Electronic transitions responsible for $\lambda_{\max}$ are localized to chromophoric regions of the molecule, with absorption wavelength determined by local structural features such as conjugation length, substituent effects, and heteroatom character~\cite{flemingMolecular2010, reichardt2011solvents}.
-Morgan fingerprints encode precisely these local substructural environments~\cite{rogers2010extended}, and our feature importance analysis (Section~\ref{sec:interpretability}) confirms that the model's top features correspond to known chromophore motifs.
+Morgan fingerprints encode precisely these local substructural environments~\cite{rogers2010extended}, and our feature importance analysis confirms that the model's top features correspond to known chromophore motifs.
 This alignment between the locality of the physical property and the locality of the molecular representation explains why a relatively simple fingerprint-based model achieves state-of-the-art performance.
 Kang et al.~\cite{kang2020prediction} and Beard et al.~\cite{beard2022uvadvisor} similarly found that fingerprint- and RNN-based models excel at electronic transition prediction, further supporting the hypothesis that UV absorption is a local-feature-dependent property.
 
@@ -696,8 +696,8 @@ Kang et al.~\cite{kang2020prediction} and Beard et al.~\cite{beard2022uvadvisor}
 Figure~\ref{fig:local_vs_global} illustrates this conceptual alignment: models whose inductive bias matches the locality of the target property (RF encoding radius-2 atom neighborhoods, BiGRU capturing sequential SMILES context) achieve better in-distribution performance for UV absorption prediction than Transformers whose self-attention mechanism distributes information globally across the entire molecular representation~\cite{chenMolecularLanguage2023, jiang2023trangru}.
 
 ChemBERTa, despite being pretrained on $\sim$77M SMILES strings from ZINC and having 44.1M parameters (15$\times$ more than tuned BiGRU), achieves RMSE = 50.39~nm, substantially worse than both the tuned BiGRU (34.71~nm) and RF (31.34~nm).
-This 45\% gap relative to the tuned BiGRU is consistent with the hypothesis that Transformer representations are less sample-efficient for local properties on moderately-sized datasets, though ChemBERTa's superior wetlab generalization (Section~\ref{sec:experimental}) suggests pretrained knowledge partially compensates.
-However, ChemBERTa achieves the lowest wetlab MAE on novel compounds (26.3~nm vs.\ 28.6~nm for BiGRU; Section~\ref{sec:experimental}), suggesting that pretrained representations may offer complementary generalization advantages despite poor in-distribution performance.
+This 45\% gap relative to the tuned BiGRU is consistent with the hypothesis that Transformer representations are less sample-efficient for local properties on moderately-sized datasets, though ChemBERTa's superior wetlab generalization suggests pretrained knowledge partially compensates.
+However, ChemBERTa achieves the lowest wetlab MAE on novel compounds (26.3~nm vs.\ 28.6~nm for BiGRU; see Experimental Validation), suggesting that pretrained representations may offer complementary generalization advantages despite poor in-distribution performance.
 
 XGBoost trained with MAE loss (pseudo-Huber approximation) performs substantially worse than MSE-trained XGBoost (RMSE 40.75 vs.\ 33.70~nm).
 This degradation occurs because MAE loss produces non-smooth gradients at zero error, which interacts poorly with XGBoost's second-order Taylor expansion of the loss function~\cite{chen2016xgboost}; the near-zero Hessian values destabilize leaf weight estimation.
@@ -868,7 +868,7 @@ Other high-ranking features include BODIPY cores ($\Delta\lambda_{\max} = +162$~
 \textbf{Solute dominates, solvent contributes modestly.}
 Partitioning feature importance between solute and solvent fingerprint bits reveals that solute structure accounts for 96.1\% of total importance, with solvent contributing 3.9\% (Figure~\ref{fig:rf_interpretability}b).
 This aligns with chemical intuition: chromophore structure is the primary determinant of $\lambda_{\max}$, while solvatochromic shifts are secondary effects.
-The 24.6:1 solute-to-solvent importance ratio is consistent with the modest 8\% RMSE improvement observed in the solvent ablation (Section~\ref{sec:solvent_ablation}).
+The 24.6:1 solute-to-solvent importance ratio is consistent with the modest 8\% RMSE improvement observed in the solvent ablation.
 
 \textbf{Model sparsity.}
 Despite operating on 4096-dimensional fingerprint input, the RF model concentrates its decisions on a small subset of features: the top 5 features explain 26.9\% of total importance, the top 20 explain 41.6\%, and the top 100 explain 62.6\% (Figure~\ref{fig:rf_cumulative}).
@@ -894,7 +894,7 @@ We note that gradient saliency identifies correlations rather than causal mechan
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=\textwidth]{results/bigru_saliency_atoms.png}
-    \caption{BiGRU gradient saliency mapped to 2D molecular structures for six wetlab validation molecules. Atom color intensity reflects gradient-based importance (red = high saliency). Top row: well-predicted molecules ($|\text{error}| < 22$~nm); bottom row: poorly predicted molecules ($|\text{error}| > 28$~nm). In both groups, heteroatoms (O, N) and atoms adjacent to double bonds receive the highest saliency, consistent with the character-type analysis (Figure~S3) where bond symbols (\texttt{=}, \texttt{\#}) and heteroatoms rank $2.5\text{--}3.5\times$ above aliphatic carbons. This overlap with the chromophore motifs identified by RF feature importance (Section~\ref{sec:interpretability}) confirms that the BiGRU learns chemically meaningful attention patterns. Large prediction errors (e.g., Octocrylene +61~nm, Cinnamic Acid +81~nm) therefore arise not from misidentified features but from limitations in encoding extended conjugation length and specific solvent effects from 1D SMILES.}
+    \caption{BiGRU gradient saliency mapped to 2D molecular structures for six wetlab validation molecules. Atom color intensity reflects gradient-based importance (red = high saliency). Top row: well-predicted molecules ($|\text{error}| < 22$~nm); bottom row: poorly predicted molecules ($|\text{error}| > 28$~nm). In both groups, heteroatoms (O, N) and atoms adjacent to double bonds receive the highest saliency, consistent with the character-type analysis (Figure~S3) where bond symbols (\texttt{=}, \texttt{\#}) and heteroatoms rank $2.5\text{--}3.5\times$ above aliphatic carbons. This overlap with the chromophore motifs identified by RF feature importance confirms that the BiGRU learns chemically meaningful attention patterns. Large prediction errors (e.g., Octocrylene +61~nm, Cinnamic Acid +81~nm) therefore arise not from misidentified features but from limitations in encoding extended conjugation length and specific solvent effects from 1D SMILES.}
     \label{fig:bigru_saliency}
 \end{figure}
 
@@ -1037,7 +1037,7 @@ Our key findings are:
 
     \item \textbf{Both model families offer interpretability.}
     RF provides global interpretability through feature importance: the top 20 Morgan fingerprint bits (out of 4096) explain over 41\% of importance and map to known chromophore motifs (aryl diazo, BODIPY, enamine).
-    BiGRU, optimized via Bayesian HPO (3-layer, 256-unit architecture, 4.8\% RMSE improvement over the default on 5-fold CV), provides instance-level interpretability through gradient saliency analysis, with atom-level heatmaps highlighting the same conjugated regions identified by RF (Section~\ref{sec:interpretability}).
+    BiGRU, optimized via Bayesian HPO (3-layer, 256-unit architecture, 4.8\% RMSE improvement over the default on 5-fold CV), provides instance-level interpretability through gradient saliency analysis, with atom-level heatmaps highlighting the same conjugated regions identified by RF.
     RF trains 100$\times$ faster (15 minutes CPU vs.\ 25 hours GPU), making it the practical first choice when the target chemical space is well-represented in training data, while BiGRU's learned representations offer better generalization to novel scaffolds.
 
     \item \textbf{Practical classification favors fingerprint models.}
