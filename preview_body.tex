@@ -921,42 +921,49 @@ This gap reinforces the advantage of explicit substructure encoding (Morgan fing
 \subsection{Experimental Validation}
 \label{sec:experimental}
 
-To further validate our models, we measured UV absorption spectra for 16 commercially available compounds in both ethanol (EtOH) and methanol (MeOH), yielding 32 experimental $\lambda_{\max}$ values.
+To further validate our models, we measured UV absorption spectra for 16 commercially available compounds (Figure~\ref{fig:wetlab_molecules}) in both ethanol (EtOH) and methanol (MeOH), yielding 32 experimental $\lambda_{\max}$ values.
 Of these 16 molecules, 15 are entirely absent from the training dataset, providing a genuine out-of-distribution test.
 One molecule (Ferulic Acid) appears in the training data with a different solvent (water).
 Although ethanol and methanol are well-represented solvents in the training set (1,034 and 1,322 records, respectively), the solute--solvent combinations tested here are novel.
 
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\columnwidth]{results/wetlab_molecules.png}
+\caption{Molecular structures of the 16 UV-absorbing compounds used for experimental validation. These commercially available sunscreen actives and phenolic acids span a range of chromophore classes (cinnamates, salicylates, benzophenones, aminobenzoates) with experimental $\lambda_{\max}$ values from 275 to 358~nm.}
+\label{fig:wetlab_molecules}
+\end{figure}
+
 \begin{table*}[!ht]
 \centering
-\caption{Experimental validation: predicted vs.\ measured $\lambda_{\max}$ for 16 UV-absorbing compounds in two solvents. CB = ChemBERTa. Predictions are ensemble averages across 5-fold models. $^*$Present in training data with a different solvent.}
+\caption{Experimental validation: predicted vs.\ measured $\lambda_{\max}$ for 16 UV-absorbing compounds in two solvents. GNN = D-MPNN, CB = ChemBERTa. Predictions are ensemble averages across 5-fold models. $^*$Present in training data with a different solvent.}
 \label{tab:experimental}
 \footnotesize
-\setlength{\tabcolsep}{4pt}
-\begin{tabular}{@{}lcccccccccc@{}}
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}lccccccccccc@{}}
 \toprule
-& \multicolumn{4}{c}{\textbf{Ethanol}} & & \multicolumn{4}{c}{\textbf{Methanol}} \\
-\cmidrule(lr){2-5} \cmidrule(lr){7-10}
-\textbf{Molecule} & \textbf{Exp.} & \textbf{CB} & \textbf{BiGRU} & \textbf{RF} & & \textbf{Exp.} & \textbf{CB} & \textbf{BiGRU} & \textbf{RF} \\
+& \multicolumn{5}{c}{\textbf{Ethanol}} & & \multicolumn{5}{c}{\textbf{Methanol}} \\
+\cmidrule(lr){2-6} \cmidrule(lr){8-12}
+\textbf{Molecule} & \textbf{Exp.} & \textbf{GNN} & \textbf{CB} & \textbf{BiGRU} & \textbf{RF} & & \textbf{Exp.} & \textbf{GNN} & \textbf{CB} & \textbf{BiGRU} & \textbf{RF} \\
 \midrule
-Amiloxate       & 309 & 349 & 318 & 359 & & 298 & 347 & 316 & 359 \\
-Avobenzone      & 358 & 323 & 329 & 337 & & 358 & 318 & 327 & 333 \\
-Caffeic Acid    & 325 & 342 & 338 & 347 & & 325 & 335 & 335 & 345 \\
-Cinnamic Acid   & 275 & 348 & 353 & 348 & & 276 & 341 & 351 & 345 \\
-Coumaric Acid   & 310 & 340 & 348 & 346 & & 309 & 333 & 343 & 344 \\
-Dioxybenzone    & 283 & 314 & 315 & 327 & & 283 & 308 & 315 & 320 \\
-Ferulic Acid$^*$  & 324 & 326 & 313 & 346 & & 324 & 321 & 310 & 344 \\
-Homosalate      & 308 & 295 & 335 & 332 & & 308 & 293 & 336 & 327 \\
-Octinoxate      & 309 & 325 & 326 & 334 & & 308 & 323 & 323 & 332 \\
-Octisalate      & 308 & 291 & 339 & 353 & & 308 & 291 & 333 & 349 \\
-Octocrylene     & 301 & 357 & 344 & 390 & & 302 & 350 & 344 & 389 \\
-Oxybenzone      & 287 & 325 & 301 & 328 & & 287 & 317 & 299 & 321 \\
-PABA            & 291 & 295 & 322 & 308 & & 290 & 294 & 319 & 306 \\
-Padimate O      & 310 & 320 & 334 & 340 & & 310 & 316 & 330 & 337 \\
-Sinapic Acid    & 324 & 343 & 318 & 347 & & 324 & 332 & 314 & 346 \\
-Sulisobenzone   & 287 & 330 & 346 & 355 & & 286 & 326 & 346 & 352 \\
+Amiloxate       & 309 & 309 & 349 & 318 & 359 & & 298 & 302 & 347 & 316 & 359 \\
+Avobenzone      & 358 & 354 & 323 & 329 & 337 & & 358 & 351 & 318 & 327 & 333 \\
+Caffeic Acid    & 325 & 319 & 342 & 338 & 347 & & 325 & 309 & 335 & 335 & 345 \\
+Cinnamic Acid   & 275 & 276 & 348 & 353 & 348 & & 276 & 265 & 341 & 351 & 345 \\
+Coumaric Acid   & 310 & 302 & 340 & 348 & 346 & & 309 & 294 & 333 & 343 & 344 \\
+Dioxybenzone    & 283 & 367 & 314 & 315 & 327 & & 283 & 359 & 308 & 315 & 320 \\
+Ferulic Acid$^*$  & 324 & 311 & 326 & 313 & 346 & & 324 & 302 & 321 & 310 & 344 \\
+Homosalate      & 308 & 336 & 295 & 335 & 332 & & 308 & 335 & 293 & 336 & 327 \\
+Octinoxate      & 309 & 328 & 325 & 326 & 334 & & 308 & 322 & 323 & 323 & 332 \\
+Octisalate      & 308 & 334 & 291 & 339 & 353 & & 308 & 333 & 291 & 333 & 349 \\
+Octocrylene     & 301 & 385 & 357 & 344 & 390 & & 302 & 381 & 350 & 344 & 389 \\
+Oxybenzone      & 287 & 334 & 325 & 301 & 328 & & 287 & 327 & 317 & 299 & 321 \\
+PABA            & 291 & 282 & 295 & 322 & 308 & & 290 & 279 & 294 & 319 & 306 \\
+Padimate O      & 310 & 325 & 320 & 334 & 340 & & 310 & 324 & 316 & 330 & 337 \\
+Sinapic Acid    & 324 & 312 & 343 & 318 & 347 & & 324 & 303 & 332 & 314 & 346 \\
+Sulisobenzone   & 287 & 338 & 330 & 346 & 355 & & 286 & 334 & 326 & 346 & 352 \\
 \midrule
-\textbf{MAE (nm)} & & \textbf{27.8} & 28.9 & 39.3 & & & \textbf{24.9} & 28.4 & 37.7 \\
-\textbf{RMSE (nm)} & & \textbf{33.5} & 34.4 & 44.4 & & & \textbf{30.8} & 33.4 & 43.0 \\
+\textbf{MAE (nm)} & & \textbf{25.5} & 27.8 & 28.9 & 39.3 & & & \textbf{26.9} & 24.9 & 28.4 & 37.7 \\
+\textbf{RMSE (nm)} & & 36.5 & \textbf{33.5} & 34.4 & 44.4 & & & 34.8 & \textbf{30.8} & 33.4 & 43.0 \\
 \bottomrule
 \end{tabular}
 \end{table*}
