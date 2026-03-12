@@ -211,7 +211,7 @@ Experimental determination of $\lambda_{\max}$ requires synthesizing and measuri
 
 Machine learning (ML) approaches for molecular property prediction have proliferated in recent years, spanning classical methods using engineered molecular descriptors (e.g., Morgan fingerprints~\cite{rogers2010extended} with Random Forest~\cite{breiman2001random}) to deep learning architectures that learn representations directly from molecular strings (SMILES~\cite{weininger1988smiles}) or graphs~\cite{gilmer2017neural}.
 Large curated datasets such as the Joung+Beard database~\cite{joung2020experimental, beard2019comparative} and benchmarking suites like MoleculeNet~\cite{wuMoleculeNet2018} have accelerated progress, yet systematic comparisons across multiple datasets with consistent methodology remain rare. Without such comparisons, practitioners lack guidance on which model families to deploy for a given chemistry domain.
-Recent work has highlighted that well-tuned classical models can match or exceed complex deep learning architectures for molecular property prediction~\cite{panapitiya2022evaluation, walters2021applications}, suggesting that no universal ``best model'' exists; rather, the optimal choice depends on the interplay between molecular representation, property type, and the novelty of target compounds relative to training data.
+Recent work has highlighted that well-tuned classical models can match or exceed complex deep learning architectures for molecular property prediction~\cite{panapitiya2022evaluation, walters2021applications, fooladi2025evaluating}, suggesting that no universal ``best model'' exists; rather, the optimal choice depends on the interplay between molecular representation, property type, and the novelty of target compounds relative to training data.
 
 The UV absorption prediction task presents several distinctive challenges that make it an ideal benchmarking target:
 \begin{enumerate}
@@ -274,7 +274,7 @@ Transfer learning approaches have shown promise for incorporating solvent inform
 
 \textbf{Benchmarking perspective.}
 The MoleculeNet benchmark suite~\cite{wuMoleculeNet2018} established a standardized framework for comparing molecular ML models across diverse property prediction tasks, but UV absorption is not among its benchmarks.
-Recent work has highlighted that well-tuned classical models often match or exceed complex architectures~\cite{panapitiya2022evaluation, walters2021applications}, challenging the assumption that deep learning always outperforms simpler methods.
+Recent work has highlighted that well-tuned classical models often match or exceed complex architectures~\cite{panapitiya2022evaluation, walters2021applications, fooladi2025evaluating}, challenging the assumption that deep learning always outperforms simpler methods; Fooladi et al.\ benchmarked 14 models across 10 OOD splitting strategies and found that no single architecture dominates across all distribution shifts.
 Our study extends this perspective specifically to UV absorption prediction, providing controlled comparisons across four UV absorption datasets with published baselines, complemented by photosafety classification and wetlab validation.
 
 
@@ -672,7 +672,7 @@ RF with Morgan fingerprints achieves the best mean RMSE (31.34~nm), closely foll
 The RF--Chemprop difference (1.1\%) is not statistically significant ($p = 0.77$, paired $t$-test), while the gap between RF and the tuned BiGRU (10\%) is significant ($t = -7.08$, $p = 0.002$).
 Hyperparameters were selected via grid search over 432 configurations (varying $n_\text{trees}$, max depth, min leaf size, features per split, FP radius, and FP length) evaluated on a held-out validation fold, with the optimal configuration ($B = 1000$, $\texttt{max\_features} = 0.3$, radius = 2, $n = 2048$) applied to all folds.
 The critical finding was that \texttt{max\_features} = $0.3d$ (30\% of features per split) substantially outperformed the default $\sqrt{d}$ ($\sim$1.6\% of features); all top 10 configurations in the grid search used this setting.
-This result is consistent with recent observations in molecular property prediction that well-tuned fingerprint-based methods can match or exceed deep learning approaches, particularly when operating on the same 1D molecular information~\cite{panapitiya2022evaluation, walters2021applications}.
+This result is consistent with recent observations in molecular property prediction that well-tuned fingerprint-based methods can match or exceed deep learning approaches, particularly when operating on the same 1D molecular information~\cite{panapitiya2022evaluation, walters2021applications, fooladi2025evaluating}.
 The default RF configuration (scikit-learn defaults with $\sqrt{d}$ feature sampling) achieves RMSE = 32.18~nm; tuning improves this by only 2.6\%.
 Similarly, BiGRU tuning reduces RMSE by 4.8\% (from 36.45 to 34.71~nm), confirming that RF's advantage is not an artifact of asymmetric hyperparameter optimization: even the default RF outperforms the tuned BiGRU.
 

@@ -14,15 +14,7 @@ and Insights for General Molecular Property Prediction"
    molecular representation benchmarking. Expert on fingerprint vs. learned
    representations -- directly relevant to our core comparison.
 
-2. Artem Cherkasov
-   University of British Columbia, Canada (Dept. of Urologic Sciences)
-   Email: acherkasov@prostatecentre.com
-   Expertise: QSAR/QSPR model development, ML benchmarking, drug discovery
-   Cited: cherkasov2014qsar (QSAR guidelines we follow for evaluation methodology)
-   JCIM publications: 5+ papers on CADD, QSAR, and deep learning for molecular
-   properties. Expert in ML benchmarking best practices.
-
-3. Juyong Lee
+2. Juyong Lee
    Kangwon National University, South Korea (Dept. of Chemistry)
    Email: juyong.lee@kangwon.ac.kr
    Expertise: ML for electronic transitions, RF for spectral properties
@@ -31,7 +23,7 @@ and Insights for General Molecular Property Prediction"
    Random Forests" (JCIM, 2020). Closest domain expertise to our UV absorption
    prediction work. We cite but do not replicate his results.
 
-4. Gihan Panapitiya
+3. Gihan Panapitiya
    Pacific Northwest National Laboratory, USA (Data Scientist, EMSL)
    Email: gihan.panapitiya@pnnl.gov
    Expertise: DL benchmarking for molecular properties, aqueous solubility prediction
@@ -40,7 +32,17 @@ and Insights for General Molecular Property Prediction"
    Literature" (JCIM, 2025). His benchmarking paper directly supports our finding
    that classical models can match deep learning. We cite but do not replicate his results.
 
---- Not cited but strong JCIM experts ---
+4. Johannes Kirchmair
+   University of Vienna, Austria (Dept. of Pharmaceutical Sciences)
+   Email: johannes.kirchmair@univie.ac.at
+   Expertise: ML benchmarking for molecular properties, OOD evaluation, drug discovery
+   Cited: fooladi2025evaluating (14 ML models across 10 OOD splits, JCIM 2025)
+   JCIM publications: "Evaluating Machine Learning Models for Molecular Property
+   Prediction: Performance and Robustness on Out-of-Distribution Data" (JCIM, 2025).
+   Most directly comparable recent work to ours -- benchmarks classical vs DL with
+   OOD evaluation, exactly our paper's focus.
+
+--- Not cited but strong JCIM expert ---
 
 5. Jurgen Bajorath
    University of Bonn, Germany (LIMES Institute)
@@ -49,14 +51,6 @@ and Insights for General Molecular Property Prediction"
    JCIM publications: Extensive (50+ JCIM papers); Herman Skolnik Award (2015).
    Leading authority on when ML models succeed or fail for molecular properties.
    Directly relevant to our "when do simple models win" question.
-
-6. Francesca Grisoni
-   Eindhoven University of Technology, Netherlands (Biomedical Engineering)
-   Email: f.grisoni@tue.nl
-   Expertise: SMILES-based deep learning, chemical language models, ML limitations
-   JCIM publications: "Exposing the Limitations of Molecular Machine Learning
-   with Activity Cliffs" (JCIM, 2022); ERC Starting Grant (2022).
-   Expert on benchmarking SMILES-based models and understanding their failure modes.
 
 ========================================
 Notes:
