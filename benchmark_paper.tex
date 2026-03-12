@@ -590,6 +590,7 @@ where $\tau$ is ReLU, $N(v) \setminus w$ denotes neighbors of $v$ excluding $w$,
 After $T = 3$ message-passing steps, atom-level representations are obtained by summing incoming bond messages and passed through mean pooling to produce a fixed-length molecular vector.
 
 We use Chemprop v2 in a multicomponent configuration: separate D-MPNN encoders process the solute and solvent molecular graphs independently (hidden dimension $d_h = 300$ each), and their pooled representations are concatenated before a feed-forward regression head.
+All D-MPNN hyperparameters are kept at their published defaults~\cite{yangAnalyzingLearnedMolecular2019}; no architecture or hyperparameter tuning was performed.
 This yields 636K trainable parameters.
 Target values are normalized to zero mean and unit variance during training.
 We use the Noam learning rate schedule (warmup from $10^{-4}$ to $10^{-3}$ over 2 epochs, then exponential decay to $10^{-4}$), batch size 64, and early stopping on validation loss (patience 15, maximum 100 epochs).
@@ -1058,9 +1059,9 @@ Our key findings are:
 
 \begin{enumerate}
     \item \textbf{RF and deep learning have complementary strengths.}
-    RF with Morgan fingerprints and the Chemprop D-MPNN achieve statistically indistinguishable cross-validated performance on the primary Joung+Beard dataset (RMSE = 31.34 and 31.69~nm, $p = 0.77$), both outperforming the tuned BiGRU (34.71~nm) and ChemBERTa (50.39~nm). RF also surpasses published deep learning baselines on two external datasets: Deep4Chem (RMSE = 22.70 vs.\ GCNN 26.6~\cite{joung2021deep}) and Jung 2024 (RMSE = 29.82 vs.\ GBFS 32.2).
-    However, experimental validation on 16 novel compounds reverses this ranking: both ChemBERTa (MAE = 26.3~nm) and BiGRU (28.6~nm) outperform RF (38.5~nm) on out-of-distribution molecules.
-    This indicates that RF excels at interpolation within known chemical space, while deep learning models learn transferable representations that extend beyond fixed substructural features.
+    RF with Morgan fingerprints and the Chemprop D-MPNN achieve statistically indistinguishable cross-validated performance on the primary Joung+Beard dataset (RMSE = 31.34 and 31.69~nm, $p = 0.77$), both outperforming the tuned BiGRU (34.71~nm) and ChemBERTa (50.39~nm). Chemprop surpasses published baselines on both external datasets: Deep4Chem (RMSE = 19.13 vs.\ GCNN 26.6~\cite{joung2021deep}) and Jung 2024 (RMSE = 27.36 vs.\ Multifidelity 31.3), with RF close behind (22.70 and 29.82 respectively).
+    However, experimental validation on 16 novel compounds partially reverses this ranking: all deep learning models (Chemprop MAE = 26.2~nm, ChemBERTa 26.3~nm, BiGRU 28.6~nm) outperform RF (38.5~nm) on out-of-distribution molecules.
+    This indicates that RF excels at interpolation within known chemical space, while learned representations (from graphs, sequences, or pretraining) generalize beyond fixed substructural features.
 
     \item \textbf{Solvent encoding improves all model families.}
     Encoding solute and solvent as a single concatenated representation reduces RMSE by 6--8\% across all tested architectures (RF 8\%, Chemprop 6\%, BiGRU 7\%; all $p < 0.02$).
