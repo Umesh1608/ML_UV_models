@@ -588,19 +588,21 @@ Table~\ref{tab:model_comparison} presents the performance of all models on the p
 
 \begin{table}[htbp]
 \centering
-\caption{Model comparison on the Joung+Beard dataset (18,755 samples, stratified 5-fold CV, 64/16/20 train/val/test split). Best values in bold. $\pm$ denotes standard deviation across folds.}
+\caption{Model comparison on the Joung+Beard dataset (18,755 samples, stratified 5-fold CV, 64/16/20 split). Best values in bold. $\pm$ = std across folds.}
 \label{tab:model_comparison}
-\begin{tabular}{lcccc}
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}lcccc@{}}
 \toprule
-\textbf{Model} & \textbf{RMSE (nm)} & \textbf{MAE (nm)} & $\boldsymbol{R^2}$ & \textbf{Pearson $r$} \\
+\textbf{Model} & \textbf{RMSE} & \textbf{MAE} & $\boldsymbol{R^2}$ & $\boldsymbol{r}$ \\
 \midrule
-RF + Morgan FP        & \textbf{31.34 $\pm$ 1.82} & \textbf{15.16 $\pm$ 0.44} & \textbf{0.914 $\pm$ 0.010} & \textbf{0.956 $\pm$ 0.005} \\
-Chemprop (D-MPNN)     & 31.69 $\pm$ 3.18          & 16.84 $\pm$ 1.74          & 0.911 $\pm$ 0.016          & 0.955 $\pm$ 0.009 \\
-XGBoost + Morgan FP   & 33.70 $\pm$ 1.61          & 20.05 $\pm$ 0.48          & 0.900 $\pm$ 0.009          & 0.950 $\pm$ 0.005 \\
-BiGRU + Solvent       & 36.45 $\pm$ 1.12          & 20.70 $\pm$ 0.51          & 0.884 $\pm$ 0.006          & 0.940 $\pm$ 0.003 \\
-BiGRU (tuned, 3L/256u)& 34.71 $\pm$ 1.40          & 18.09 $\pm$ 0.59          & 0.894 $\pm$ 0.009          & 0.946 $\pm$ 0.005 \\
-XGBoost (MAE loss)    & 40.75 $\pm$ 1.58          & 21.99 $\pm$ 0.47          & 0.854 $\pm$ 0.010          & 0.927 $\pm$ 0.005 \\
-ChemBERTa (pretrained)& 50.39 $\pm$ 2.30          & 24.31 $\pm$ 1.04          & 0.777 $\pm$ 0.019          & 0.899 $\pm$ 0.009 \\
+RF              & \textbf{31.3\,{\scriptsize$\pm$\,1.8}} & \textbf{15.2\,{\scriptsize$\pm$\,0.4}} & \textbf{.914\,{\scriptsize$\pm$\,.010}} & \textbf{.956\,{\scriptsize$\pm$\,.005}} \\
+Chemprop        & 31.7\,{\scriptsize$\pm$\,3.2}          & 16.8\,{\scriptsize$\pm$\,1.7}          & .911\,{\scriptsize$\pm$\,.016}          & .955\,{\scriptsize$\pm$\,.009} \\
+XGBoost         & 33.7\,{\scriptsize$\pm$\,1.6}          & 20.1\,{\scriptsize$\pm$\,0.5}          & .900\,{\scriptsize$\pm$\,.009}          & .950\,{\scriptsize$\pm$\,.005} \\
+BiGRU (tuned)   & 34.7\,{\scriptsize$\pm$\,1.4}          & 18.1\,{\scriptsize$\pm$\,0.6}          & .894\,{\scriptsize$\pm$\,.009}          & .946\,{\scriptsize$\pm$\,.005} \\
+BiGRU (default) & 36.5\,{\scriptsize$\pm$\,1.1}          & 20.7\,{\scriptsize$\pm$\,0.5}          & .884\,{\scriptsize$\pm$\,.006}          & .940\,{\scriptsize$\pm$\,.003} \\
+XGB (MAE)       & 40.8\,{\scriptsize$\pm$\,1.6}          & 22.0\,{\scriptsize$\pm$\,0.5}          & .854\,{\scriptsize$\pm$\,.010}          & .927\,{\scriptsize$\pm$\,.005} \\
+ChemBERTa       & 50.4\,{\scriptsize$\pm$\,2.3}          & 24.3\,{\scriptsize$\pm$\,1.0}          & .777\,{\scriptsize$\pm$\,.019}          & .899\,{\scriptsize$\pm$\,.009} \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -698,20 +700,22 @@ To quantify the contribution of solvent information, we compare models trained w
 
 \begin{table}[htbp]
 \centering
-\caption{Effect of solvent information on model performance (stratified 5-fold CV). ``+~Solvent'' uses concatenated solute+solvent representations; ``Solute only'' uses solute structure alone.}
+\caption{Effect of solvent information (stratified 5-fold CV). All values in nm except $R^2$ and $r$.}
 \label{tab:solvent_ablation}
-\begin{tabular}{lcccc}
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}lcccc@{}}
 \toprule
-\textbf{Model} & \textbf{RMSE (nm)} & \textbf{MAE (nm)} & $\boldsymbol{R^2}$ & \textbf{Pearson $r$} \\
+\textbf{Model} & \textbf{RMSE} & \textbf{MAE} & $\boldsymbol{R^2}$ & $\boldsymbol{r}$ \\
 \midrule
-RF + Solvent          & \textbf{31.34 $\pm$ 1.82} & \textbf{15.16 $\pm$ 0.44} & \textbf{0.914 $\pm$ 0.010} & \textbf{0.956 $\pm$ 0.005} \\
-RF Solute only        & 34.13 $\pm$ 1.44          & 16.45 $\pm$ 0.33          & 0.898 $\pm$ 0.008          & 0.948 $\pm$ 0.004 \\
+RF + Solvent       & \textbf{31.3\,{\scriptsize$\pm$\,1.8}} & \textbf{15.2\,{\scriptsize$\pm$\,0.4}} & \textbf{.914} & \textbf{.956} \\
+RF Solute only     & 34.1\,{\scriptsize$\pm$\,1.4}          & 16.5\,{\scriptsize$\pm$\,0.3}          & .898          & .948 \\
 \midrule
-Chemprop + Solvent    & 31.69 $\pm$ 3.18          & 16.84 $\pm$ 1.74          & 0.911 $\pm$ 0.016          & 0.955 $\pm$ 0.008 \\
-Chemprop Solute only  & 33.78 $\pm$ 2.73          & 16.48 $\pm$ 0.64          & 0.900 $\pm$ 0.015          & 0.949 $\pm$ 0.008 \\
+Chemprop + Solv.   & 31.7\,{\scriptsize$\pm$\,3.2}          & 16.8\,{\scriptsize$\pm$\,1.7}          & .911          & .955 \\
+Chemprop only      & 33.8\,{\scriptsize$\pm$\,2.7}          & 16.5\,{\scriptsize$\pm$\,0.6}          & .900          & .949 \\
 \midrule
-BiGRU + Solvent       & 36.45 $\pm$ 1.12          & 20.70 $\pm$ 0.51          & 0.884 $\pm$ 0.006          & 0.940 $\pm$ 0.003 \\
-BiGRU Solute only     & 39.03 $\pm$ 1.37          & 22.53 $\pm$ 0.32          & 0.866 $\pm$ 0.009          & 0.931 $\pm$ 0.005 \\
+BiGRU + Solvent    & 36.5\,{\scriptsize$\pm$\,1.1}          & 20.7\,{\scriptsize$\pm$\,0.5}          & .884          & .940 \\
+BiGRU Solute only  & 39.0\,{\scriptsize$\pm$\,1.4}          & 22.5\,{\scriptsize$\pm$\,0.3}          & .866          & .931 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -731,27 +735,29 @@ Table~\ref{tab:cross_dataset} presents results on two external datasets, with pu
 
 \begin{table}[htbp]
 \centering
-\caption{Cross-dataset benchmarking using published split protocols. $\dagger$Published results from original papers. Best result among our models in bold for each dataset.}
+\caption{Cross-dataset benchmarking. $\dagger$Published results. Best of our models in bold.}
 \label{tab:cross_dataset}
-\begin{tabular}{llccc}
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}llccc@{}}
 \toprule
-\textbf{Dataset (Split)} & \textbf{Model} & \textbf{RMSE (nm)} & \textbf{MAE (nm)} & $\boldsymbol{R^2}$ \\
+\textbf{Dataset} & \textbf{Model} & \textbf{RMSE} & \textbf{MAE} & $\boldsymbol{R^2}$ \\
 \midrule
-\multirow{5}{*}{Deep4Chem (80/10/10)}
-  & GCNN$^\dagger$            & 26.6   & ---    & ---   \\
-  & Our Chemprop              & \textbf{19.13}  & \textbf{10.66}  & \textbf{0.967} \\
-  & Our RF                    & 22.70  & 11.32  & 0.954 \\
-  & Our ChemBERTa             & 35.90  & 17.43  & 0.884 \\
-  & Our BiGRU                 & 27.07  & 17.22  & 0.934 \\
+\multirow{5}{*}{\shortstack[l]{Deep4Chem\\(80/10/10)}}
+  & GCNN$^\dagger$   & 26.6           & ---            & ---   \\
+  & Chemprop         & \textbf{19.1}  & \textbf{10.7}  & \textbf{.967} \\
+  & RF               & 22.7           & 11.3           & .954 \\
+  & ChemBERTa        & 35.9           & 17.4           & .884 \\
+  & BiGRU            & 27.1           & 17.2           & .934 \\
 \midrule
-\multirow{7}{*}{Jung 2024 (72/18/10)}
-  & Multifidelity$^\dagger$   & 31.3   & 14.6   & 0.91  \\
-  & GBFS$^\dagger$            & 32.2   & 16.2   & 0.91  \\
-  & DR-CNN$^\dagger$          & 44.4   & 23.3   & 0.82  \\
-  & Our Chemprop              & \textbf{27.36}  & \textbf{15.50}  & \textbf{0.936} \\
-  & Our RF                    & 29.82  & 15.31  & 0.924 \\
-  & Our ChemBERTa             & 38.27  & 19.27  & 0.874 \\
-  & Our BiGRU                 & 36.31  & 21.54  & 0.887 \\
+\multirow{7}{*}{\shortstack[l]{Jung 2024\\(72/18/10)}}
+  & MF$^\dagger$     & 31.3           & 14.6           & .91  \\
+  & GBFS$^\dagger$   & 32.2           & 16.2           & .91  \\
+  & DR-CNN$^\dagger$ & 44.4           & 23.3           & .82  \\
+  & Chemprop         & \textbf{27.4}  & \textbf{15.5}  & \textbf{.936} \\
+  & RF               & 29.8           & 15.3           & .924 \\
+  & ChemBERTa        & 38.3           & 19.3           & .874 \\
+  & BiGRU            & 36.3           & 21.5           & .887 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -891,15 +897,17 @@ We trained a separate RF classifier on this reconstructed data, and additionally
 
 \begin{table}[htbp]
 \centering
-\caption{Photosafety classification performance. POS = $\lambda_{\max} \in [290,700]$ nm AND MEC $\geq$ 1000. $^\dagger$Published result on original Reaxys dataset; our models use a reconstructed version (93.6\% recovery) with a different test split, so comparison is approximate.}
+\caption{Photosafety classification. $^\dagger$Published on original Reaxys data; our models use reconstructed version (93.6\% recovery).}
 \label{tab:classification}
-\begin{tabular}{lccccc}
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}lccccc@{}}
 \toprule
-\textbf{Model} & $\boldsymbol{N_{\text{test}}}$ & \textbf{Sensitivity} & \textbf{Specificity} & \textbf{Accuracy} & \textbf{AUC} \\
+\textbf{Model} & $\boldsymbol{N}$ & \textbf{Sens.} & \textbf{Spec.} & \textbf{Acc.} & \textbf{AUC} \\
 \midrule
-Mamede RF (2021)$^\dagger$  & 998   & 0.90  & 0.88  & 0.89  & ---   \\
-Our RF                      & 1,996 & 0.876 & 0.882 & 0.879 & 0.942 \\
-BiGRU direct cls            & 1,996 & 0.794 & 0.811 & 0.803 & 0.886 \\
+Mamede$^\dagger$ & 998   & .90  & .88  & .89  & --- \\
+Our RF           & 1996  & .876 & .882 & .879 & .942 \\
+BiGRU cls        & 1996  & .794 & .811 & .803 & .886 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -922,8 +930,9 @@ Although ethanol and methanol are well-represented solvents in the training set 
 \centering
 \caption{Experimental validation: predicted vs.\ measured $\lambda_{\max}$ for 16 UV-absorbing compounds in two solvents. CB = ChemBERTa. Predictions are ensemble averages across 5-fold models. $^*$Present in training data with a different solvent.}
 \label{tab:experimental}
-\small
-\begin{tabular}{lcccccccccc}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lcccccccccc@{}}
 \toprule
 & \multicolumn{4}{c}{\textbf{Ethanol}} & & \multicolumn{4}{c}{\textbf{Methanol}} \\
 \cmidrule(lr){2-5} \cmidrule(lr){7-10}
