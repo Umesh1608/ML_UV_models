@@ -145,7 +145,7 @@ Interpretability analysis confirms that both RF feature importance and BiGRU gra
     ]
 
     % ---- Five models, equal spacing, grouped by color ----
-    \node[box, fill=green!12, draw=green!40!black] (rf) at (0, 3.2)
+    \node[box, fill=green!12, draw=green!40!black] (rf) at (0, 2.9)
         {\textbf{Random Forest}\\[-1pt]{\scriptsize 1000 trees, \texttt{max\_features}$= 0.3d$}};
 
     \node[box, fill=green!12, draw=green!40!black] (xgb) at (0, 1.6)
@@ -162,7 +162,7 @@ Interpretability analysis confirms that both RF feature importance and BiGRU gra
 
     % ---- Group labels (rotated, centered on each group) ----
     \node[font=\scriptsize\bfseries, green!40!black, rotate=90, anchor=center,
-          text width=, minimum height=0pt] at (-3.5, 2.4) {Fingerprint};
+          text width=, minimum height=0pt] at (-3.5, 2.25) {Fingerprint};
     \node[font=\scriptsize\bfseries, red!40!black, rotate=90, anchor=center,
           text width=, minimum height=0pt] at (-3.5, 0) {Graph};
     \node[font=\scriptsize\bfseries, blue!40!black, rotate=90, anchor=center,
@@ -174,7 +174,7 @@ Interpretability analysis confirms that both RF feature importance and BiGRU gra
         {\textbf{\large $\hat{\lambda}_{\max}$}\\[3pt]{\scriptsize UV absorption}\\{\scriptsize wavelength (nm)}};
 
     % ---- Arrows: five models to output ----
-    \draw[arr, draw=green!40!black] (rf.east)       -- (3.6, 3.2)   |- ([yshift=12pt]out.west);
+    \draw[arr, draw=green!40!black] (rf.east)       -- (3.6, 2.9)   |- ([yshift=12pt]out.west);
     \draw[arr, draw=green!40!black] (xgb.east)      -- (3.6, 1.6)   |- ([yshift=6pt]out.west);
     \draw[arr, draw=red!40!black]   (chemprop.east) -- (3.6, 0)     |- (out.west);
     \draw[arr, draw=blue!40!black]  (bigru.east)    -- (3.6, -1.6)  |- ([yshift=-6pt]out.west);
