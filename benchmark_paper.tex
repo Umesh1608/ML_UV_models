@@ -92,32 +92,43 @@ Interpretability analysis confirms that both RF feature importance and BiGRU gra
 
     % ---- Green path (top): independent FPs, then hstacked ----
     \node[draw, circle, fill=green!12, draw=green!40!black, inner sep=2pt,
-          font=\scriptsize\bfseries] (fpnode) at (5.5, 1.3) {FP};
+          font=\scriptsize\bfseries] (fpnode) at (5.5, 1.8) {FP};
     \node[font=\tiny, green!40!black, below=1pt of fpnode] {per-mol.};
 
-    \node[box, fill=green!6, draw=green!40!black, minimum width=4.4cm] (fp) at (9.5, 1.3)
+    \node[box, fill=green!6, draw=green!40!black, minimum width=4.4cm] (fp) at (9.5, 1.8)
         {Morgan Fingerprint\\[-1pt]{\scriptsize FP(solute) $\|$ FP(solvent), $\{0,1\}^{4096}$ hstacked}};
 
-    \draw[arr, draw=green!40!black] (fork) -- (4.2, 1.3) -- (fpnode);
+    \draw[arr, draw=green!40!black] (fork) -- (4.2, 1.8) -- (fpnode);
     \draw[arr, draw=green!40!black] (fpnode) -- (fp.west);
+
+    % ---- Red path (middle): molecular graph ----
+    \node[draw, circle, fill=red!10, draw=red!40!black, inner sep=2pt,
+          font=\scriptsize\bfseries] (graphnode) at (5.5, 0) {G};
+    \node[font=\tiny, red!40!black, below=1pt of graphnode] {per-mol.};
+
+    \node[box, fill=red!6, draw=red!40!black, minimum width=4.4cm] (mg) at (9.5, 0)
+        {Molecular Graph\\[-1pt]{\scriptsize Atom/bond features per molecule, separate encoders}};
+
+    \draw[arr, draw=red!40!black] (fork) -- (graphnode);
+    \draw[arr, draw=red!40!black] (graphnode) -- (mg.west);
 
     % ---- Blue path (bottom): SMILES concat, then tokenized ----
     \node[draw, circle, fill=blue!10, draw=blue!40!black, inner sep=2pt,
-          font=\scriptsize\bfseries] (cat) at (5.5, -1.3) {$\oplus$};
+          font=\scriptsize\bfseries] (cat) at (5.5, -1.8) {$\oplus$};
     \node[font=\tiny, blue!40!black, below=1pt of cat] {concat};
 
-    \node[box, fill=blue!6, draw=blue!40!black, minimum width=4.4cm] (seq) at (9.5, -1.3)
+    \node[box, fill=blue!6, draw=blue!40!black, minimum width=4.4cm] (seq) at (9.5, -1.8)
         {Token Sequence\\[-1pt]{\scriptsize \texttt{solute\,!\,solvent} string, 57-token vocabulary}};
 
-    \draw[arr, draw=blue!40!black] (fork) -- (4.2, -1.3) -- (cat);
+    \draw[arr, draw=blue!40!black] (fork) -- (4.2, -1.8) -- (cat);
     \draw[arr, draw=blue!40!black] (cat) -- (seq.west);
 
     % ---- Stage labels ----
-    \node[font=\footnotesize\bfseries, gray!60] at (0, -2.0) {\textsc{Input}};
-    \node[font=\footnotesize\bfseries, gray!60] at (9.5, -2.2) {\textsc{Representation}};
+    \node[font=\footnotesize\bfseries, gray!60] at (0, -2.6) {\textsc{Input}};
+    \node[font=\footnotesize\bfseries, gray!60] at (9.5, -2.8) {\textsc{Representation}};
 
     \end{tikzpicture}
-    \caption{Input and representation. Both solute and solvent SMILES feed two pathways. The fingerprint path (green) computes Morgan FPs independently per molecule and hstacks them (2048+2048 = 4096-bit). The sequence path (blue) concatenates the SMILES strings before tokenization.}
+    \caption{Input and representation. Both solute and solvent SMILES feed three pathways. The fingerprint path (green) computes Morgan FPs independently per molecule and hstacks them (2048+2048 = 4096-bit). The graph path (red) converts each SMILES to a molecular graph with atom and bond features. The sequence path (blue) concatenates the SMILES strings before tokenization.}
     \label{fig:framework_input}
     \end{subfigure}
 
@@ -133,40 +144,45 @@ Interpretability analysis confirms that both RF feature importance and BiGRU gra
         arr/.style={->, thick},
     ]
 
-    % ---- Four models: mirror-symmetric around y=0, identical box size ----
-    \node[box, fill=green!12, draw=green!40!black] (rf) at (0, 1.85)
+    % ---- Five models in three groups ----
+    \node[box, fill=green!12, draw=green!40!black] (rf) at (0, 2.5)
         {\textbf{Random Forest}\\[-1pt]{\scriptsize 1000 trees, \texttt{max\_features}$= 0.3d$}};
 
-    \node[box, fill=green!12, draw=green!40!black] (xgb) at (0, 0.6)
+    \node[box, fill=green!12, draw=green!40!black] (xgb) at (0, 1.25)
         {\textbf{XGBoost}\\[-1pt]{\scriptsize 500 rounds, depth 6, $\eta = 0.1$}};
 
-    \node[box, fill=blue!12, draw=blue!40!black] (bigru) at (0, -0.7)
+    \node[box, fill=red!10, draw=red!40!black] (chemprop) at (0, 0)
+        {\textbf{Chemprop (D-MPNN)}\\[-1pt]{\scriptsize 3-step message passing, 636K params}};
+
+    \node[box, fill=blue!12, draw=blue!40!black] (bigru) at (0, -1.25)
         {\textbf{BiGRU}\\[-1pt]{\scriptsize 3$\times$256 BiGRU, 3.0M params}};
 
-    \node[box, fill=blue!12, draw=blue!40!black] (cb) at (0, -2.15)
+    \node[box, fill=blue!12, draw=blue!40!black] (cb) at (0, -2.5)
         {\textbf{ChemBERTa}\\[-1pt]{\scriptsize 6-layer Transformer, 44.1M params}};
 
     % ---- Group labels (rotated, centered on each group) ----
     \node[font=\scriptsize\bfseries, green!40!black, rotate=90, anchor=center,
-          text width=, minimum height=0pt] at (-3.5, 1.225) {Fingerprint-based};
+          text width=, minimum height=0pt] at (-3.5, 1.875) {Fingerprint};
+    \node[font=\scriptsize\bfseries, red!40!black, rotate=90, anchor=center,
+          text width=, minimum height=0pt] at (-3.5, 0) {Graph};
     \node[font=\scriptsize\bfseries, blue!40!black, rotate=90, anchor=center,
-          text width=, minimum height=0pt] at (-3.5, -1.425) {Sequence-based};
+          text width=, minimum height=0pt] at (-3.5, -1.875) {Sequence};
 
-    % ---- Dashed separator at y=0 ----
-    \draw[dashed, gray!30, thin] (-3.2, 0) -- (11.5, 0);
+    % ---- Dashed separators ----
+    \draw[dashed, gray!30, thin] (-3.2, 0.625) -- (11.5, 0.625);
+    \draw[dashed, gray!30, thin] (-3.2, -0.625) -- (11.5, -0.625);
 
     % ---- Output box ----
     \node[box, fill=orange!8, draw=orange!50!black, text width=2.0cm,
-          minimum height=2.4cm] (out) at (6.8, 0)
+          minimum height=2.8cm] (out) at (6.8, 0)
         {\textbf{\large $\hat{\lambda}_{\max}$}\\[3pt]{\scriptsize UV absorption}\\{\scriptsize wavelength (nm)}};
 
-    % ---- Arrows: all use same bend x=3.6, mirror-symmetric ----
-    % Outer pair (RF / ChemBERTa): yshift ±7pt
-    \draw[arr, draw=green!40!black] (rf.east)     -- (3.6, 1.85)  |- ([yshift=7pt]out.west);
-    \draw[arr, draw=blue!40!black]  (cb.east)     -- (3.6, -2.15) |- ([yshift=-7pt]out.west);
-    % Inner pair (XGBoost / BiGRU): yshift ±2pt
-    \draw[arr, draw=green!40!black] (xgb.east)    -- (3.6, 0.6)   |- ([yshift=2pt]out.west);
-    \draw[arr, draw=blue!40!black]  (bigru.east)  -- (3.6, -0.7)  |- ([yshift=-2pt]out.west);
+    % ---- Arrows: five models to output ----
+    \draw[arr, draw=green!40!black] (rf.east)       -- (3.6, 2.5)   |- ([yshift=10pt]out.west);
+    \draw[arr, draw=green!40!black] (xgb.east)      -- (3.6, 1.25)  |- ([yshift=5pt]out.west);
+    \draw[arr, draw=red!40!black]   (chemprop.east) -- (3.6, 0)     |- (out.west);
+    \draw[arr, draw=blue!40!black]  (bigru.east)    -- (3.6, -1.25) |- ([yshift=-5pt]out.west);
+    \draw[arr, draw=blue!40!black]  (cb.east)       -- (3.6, -2.5)  |- ([yshift=-10pt]out.west);
 
     % ---- Mini UV spectrum ----
     \begin{scope}[shift={(9.5, 0)}]
@@ -181,15 +197,15 @@ Interpretability analysis confirms that both RF feature importance and BiGRU gra
     \end{scope}
 
     % ---- Stage labels ----
-    \node[font=\footnotesize\bfseries, gray!60, text width=, minimum height=0pt] at (0, -3.1) {\textsc{Models}};
-    \node[font=\footnotesize\bfseries, gray!60, text width=, minimum height=0pt] at (8.0, -2.8) {\textsc{Prediction}};
+    \node[font=\footnotesize\bfseries, gray!60, text width=, minimum height=0pt] at (0, -3.5) {\textsc{Models}};
+    \node[font=\footnotesize\bfseries, gray!60, text width=, minimum height=0pt] at (8.0, -3.2) {\textsc{Prediction}};
 
     \end{tikzpicture}
-    \caption{Models and prediction. Fingerprint representations feed tree ensembles (green); token sequences feed neural networks (blue). Chemprop (D-MPNN, not shown) operates directly on molecular graphs. All five models predict $\lambda_{\max}$.}
+    \caption{Models and prediction. Fingerprint representations feed tree ensembles (green); molecular graphs feed the D-MPNN (red); token sequences feed recurrent and Transformer networks (blue). All five models predict $\lambda_{\max}$.}
     \label{fig:framework_models}
     \end{subfigure}
 
-    \caption{Benchmark framework for UV absorption prediction. (a)~Morgan fingerprints are computed independently per molecule and horizontally stacked (4096-bit), while token sequences are formed by string concatenation before tokenization. (b)~Four of five models are shown; Chemprop (D-MPNN) operates on molecular graphs with separate encoders for solute and solvent.}
+    \caption{Benchmark framework for UV absorption prediction. (a)~Three representation pathways: Morgan fingerprints computed independently per molecule and horizontally stacked (4096-bit), molecular graphs with atom and bond features, and token sequences formed by SMILES concatenation. (b)~Five models spanning fingerprint, graph, and sequence architectures, all predicting $\lambda_{\max}$.}
     \label{fig:benchmark_framework}
 \end{figure*}
 
