@@ -223,7 +223,7 @@ Our key contributions are:
 
 The choice of molecular representation fundamentally determines which ML methods can be applied.
 SMILES (Simplified Molecular Input Line Entry System)~\cite{weininger1988smiles} encodes molecular graphs as character strings, enabling NLP-inspired sequence models (RNNs, Transformers), while Morgan circular fingerprints~\cite{rogers2010extended} encode local chemical environments as fixed-length binary vectors amenable to classical tree-based ensembles~\cite{landrum2016rdkit, wuMoleculeNet2018}.
-Our benchmark compares both representation families: fingerprint-based models (RF, XGBoost) against sequence-based models (BiGRU, ChemBERTa) on the same prediction task.
+Our benchmark compares three representation families: fingerprint-based models (RF, XGBoost), a graph neural network (Chemprop D-MPNN), and sequence-based models (BiGRU, ChemBERTa) on the same prediction task.
 
 % ===== Related Work =====
 \section{Related Work}
