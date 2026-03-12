@@ -52,8 +52,8 @@
 
 % ===== Abstract =====
 \begin{abstract}
-Which machine learning model should a chemist choose for predicting UV absorption wavelengths?
-We benchmark five approaches---Random Forest (RF), XGBoost, Chemprop (D-MPNN), a Bidirectional GRU (BiGRU), and ChemBERTa---spanning fingerprint, graph, recurrent, and Transformer architectures on 18,755 solute--solvent pairs with stratified 5-fold cross-validation and two external datasets totaling over 40,000 molecules.
+When should a chemist use a simple model over deep learning for molecular property prediction?
+We address this question through a controlled benchmark of five approaches---Random Forest (RF), XGBoost, Chemprop (D-MPNN), a Bidirectional GRU (BiGRU), and ChemBERTa---spanning fingerprint, graph, recurrent, and Transformer architectures, using UV absorption wavelength ($\lambda_{\max}$) prediction as a testbed across 18,755 solute--solvent pairs with stratified 5-fold cross-validation and two external datasets totaling over 40,000 molecules.
 The answer depends on the task.
 For screening within known chemical space, RF with Morgan fingerprints is optimal: it matches the Chemprop graph neural network (RMSE = $31.34 \pm 1.82$ vs.\ $31.69 \pm 3.18$~nm, $p = 0.77$), trains in 15 minutes on a CPU with no hyperparameter tuning, and outperforms all sequence-based models.
 For exploring novel scaffolds, deep learning is superior: experimental validation on 16 novel UV-absorbing compounds reverses the ranking, with Chemprop (MAE = 26.2~nm), ChemBERTa (26.3~nm), and an optimized BiGRU (28.6~nm; 3-layer, 256-unit architecture identified via Bayesian hyperparameter search) all outperforming RF (38.5~nm).
