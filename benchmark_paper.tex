@@ -838,9 +838,9 @@ Across both external datasets, Chemprop achieves the best performance, followed 
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.95\textwidth]{results/parity_plot_4models.png}
-    \caption{Parity plots for all four model families (pooled 5-fold CV predictions). Green shaded bands indicate $\pm 20$~nm from perfect prediction. RF shows the tightest clustering around the diagonal, while ChemBERTa exhibits the most scatter, particularly for long-wavelength compounds. All models show increased error for $\lambda_{\max} > 500$~nm.}
-    \label{fig:parity_4models}
+    \includegraphics[width=0.95\textwidth]{results/parity_plot_5models.png}
+    \caption{Parity plots for all five model families (pooled 5-fold CV predictions). Green shaded bands indicate $\pm 20$~nm from perfect prediction. RF and Chemprop show the tightest clustering around the diagonal, while ChemBERTa exhibits the most scatter, particularly for long-wavelength compounds. All models show increased error for $\lambda_{\max} > 500$~nm.}
+    \label{fig:parity_5models}
 \end{figure}
 
 \begin{figure}[htbp]
@@ -854,11 +854,11 @@ Across both external datasets, Chemprop achieves the best performance, followed 
         \includegraphics[width=\textwidth]{results/error_by_solvent.png}
         \caption{MAE by solvent type for the five most common solvents in the dataset.}
     \end{subfigure}
-    \caption{Error breakdown by wavelength range and solvent type for all four model families (pooled 5-fold CV predictions).}
+    \caption{Error breakdown by wavelength range and solvent type for all five model families (pooled 5-fold CV predictions).}
     \label{fig:error_breakdown}
 \end{figure}
 
-Figure~\ref{fig:parity_4models} shows parity plots for all four model families on the primary dataset.
+Figure~\ref{fig:parity_5models} shows parity plots for all five model families on the primary dataset.
 RF predictions cluster most tightly around the diagonal, consistent with its lowest RMSE, while ChemBERTa shows the broadest scatter.
 All models perform best in the 250--400~nm range where training data is most abundant (Figure~\ref{fig:error_breakdown}a).
 Errors increase substantially for $\lambda_{\max} > 500$~nm, reflecting both data scarcity in this wavelength range and the greater structural complexity of long-wavelength chromophores, many of which are extended conjugated systems (porphyrins, phthalocyanines, cyanine dyes) with properties strongly dependent on 3D geometry~\cite{flemingMolecular2010}.
@@ -920,7 +920,7 @@ A single fingerprint bit corresponding to aryl diazo/hydrazine substructures acc
 
 \textbf{Practical advantages of classical ML.}
 Beyond interpretability, RF offers substantial practical advantages for molecular property prediction tasks.
-RF training completes in approximately 15 minutes on a single CPU, compared to 25 hours of GPU time for BiGRU (a 100$\times$ speedup) while achieving 10\% lower RMSE (Figure~\ref{fig:rf_practical}b).
+RF training completes in approximately 15 minutes on a single CPU, compared to 1.5 hours for Chemprop and 25 hours for BiGRU on GPU, while achieving comparable or lower RMSE (Figure~\ref{fig:rf_practical}b).
 RF requires no GPU hardware, no hyperparameter tuning of learning rates or batch sizes, and no early stopping strategy.
 These results highlight that, depending on the dataset and molecular application domain, it is prudent to evaluate classical ML models where appropriate to gain insights into relative performance before directly deploying deep learning architectures.
 While deep learning retains clear advantages in scenarios requiring transfer learning, end-to-end learning from raw data, or scalability to very large datasets, the simplicity, speed, and interpretability of fingerprint-based models make them a valuable complement, and in some cases a preferred alternative, in the molecular property prediction toolkit.

@@ -1,11 +1,7 @@
 #!/usr/bin/env python3
 """Regenerate improved error analysis figures for benchmark paper.
 
-Fixes:
-1. Figure 6a+6b: Show ALL 4 models (not just BiGRU), fix negative MAE y-axis
-2. Figure 9 (training comparison): Add ChemBERTa as 4th bar
-3. Figure 7a (feature importance): Fix empty blue legend entry
-4. NEW supplementary: Residual distribution plots for all 4 models
+All 5 models: RF, XGBoost, Chemprop, BiGRU, ChemBERTa.
 """
 
 import os
@@ -35,13 +31,14 @@ plt.rcParams.update({
 MODEL_COLORS = {
     "RF": "#27ae60",
     "XGBoost": "#f39c12",
+    "Chemprop": "#c0392b",
     "BiGRU": "#e74c3c",
     "ChemBERTa": "#3498db",
 }
 
 
 def load_all_models():
-    """Load pooled predictions for all 4 models. Returns dict of {name: (y_pred, y_test, indices)}."""
+    """Load pooled predictions for all 5 models. Returns dict of {name: (y_pred, y_test, indices)}."""
     models = {}
 
     # RF tuned (pool from per-fold)
@@ -55,6 +52,14 @@ def load_all_models():
     # XGBoost v2 (pooled file)
     d = np.load(f"{RESULTS_DIR}/xgboost_v2_cv_pooled.npz")
     models["XGBoost"] = (d["y_pred"], d["y_test"], d["indices"])
+
+    # Chemprop v2 (pool from per-fold)
+    preds, tests, indices = [], [], []
+    for i in range(5):
+        preds.append(np.load(f"{RESULTS_DIR}/chemprop_v2_fold{i}_predictions.npy"))
+        tests.append(np.load(f"{RESULTS_DIR}/chemprop_v2_fold{i}_y_test.npy"))
+        indices.append(np.load(f"{RESULTS_DIR}/chemprop_v2_fold{i}_test_indices.npy"))
+    models["Chemprop"] = (np.concatenate(preds), np.concatenate(tests), np.concatenate(indices))
 
     # BiGRU v2 (pooled file)
     d = np.load(f"{RESULTS_DIR}/bigru_solvent_v2_cv_pooled.npz")
@@ -98,7 +103,7 @@ def figure_6a(models):
     model_names = list(MODEL_COLORS.keys())
     n_models = len(model_names)
     n_ranges = len(ranges)
-    bar_width = 0.18
+    bar_width = 0.15
     x = np.arange(n_ranges)
 
     fig, ax = plt.subplots(figsize=(9, 5.5))
@@ -224,20 +229,25 @@ def figure_6b(models, solvents):
 # ═════════════════════════════════════════════════════════════════════════════
 
 def figure_9():
-    """Bar chart comparing RMSE and training time across all 4 models."""
+    """Bar chart comparing RMSE and training time across all 5 models."""
     models = {
-        "RF + Morgan FP": {
+        "RF": {
             "rmse": 31.34, "mae": 15.16,
             "train_time_min": 15,
             "color": MODEL_COLORS["RF"],
         },
-        "XGBoost + Morgan FP": {
+        "XGBoost": {
             "rmse": 33.70, "mae": 20.05,
             "train_time_min": 5,
             "color": MODEL_COLORS["XGBoost"],
         },
-        "BiGRU + Solvent": {
-            "rmse": 36.45, "mae": 20.70,
+        "Chemprop": {
+            "rmse": 31.69, "mae": 16.84,
+            "train_time_min": 90,  # ~14s/epoch × ~80 epochs × 5 folds
+            "color": MODEL_COLORS["Chemprop"],
+        },
+        "BiGRU": {
+            "rmse": 34.71, "mae": 18.09,
             "train_time_min": 1500,  # ~5 hrs/fold × 5 folds
             "color": MODEL_COLORS["BiGRU"],
         },
@@ -431,11 +441,11 @@ def figure_7a():
 # ═════════════════════════════════════════════════════════════════════════════
 
 def figure_residuals(models):
-    """2×2 residual distribution histograms + Q-Q-like residual vs predicted scatter."""
+    """3×2 residual distribution histograms + residual vs actual scatter for 5 models."""
     model_names = list(MODEL_COLORS.keys())
 
-    # Panel 1: Residual histograms (2×2)
-    fig, axes = plt.subplots(2, 2, figsize=(10, 8))
+    # Panel 1: Residual histograms (2×3)
+    fig, axes = plt.subplots(2, 3, figsize=(15, 8))
     axes = axes.flatten()
 
     for i, name in enumerate(model_names):
@@ -450,7 +460,6 @@ def figure_residuals(models):
         ax.axvline(0, color="black", linestyle="--", lw=1, alpha=0.7)
         ax.axvline(np.mean(residuals), color="red", linestyle="-", lw=1.5, alpha=0.7)
 
-        # Stats text
         ax.text(0.97, 0.95,
                 f"Mean: {np.mean(residuals):.1f}\n"
                 f"Std: {np.std(residuals):.1f}\n"
@@ -465,6 +474,8 @@ def figure_residuals(models):
         ax.set_title(name, fontweight="bold")
         ax.set_xlim(-200, 200)
 
+    axes[5].set_visible(False)
+
     plt.suptitle("Residual Distributions — 5-Fold CV", fontsize=14, fontweight="bold", y=1.01)
     plt.tight_layout()
     for ext in ("pdf", "png"):
@@ -473,8 +484,8 @@ def figure_residuals(models):
     plt.close()
     print("  [OK] Supplementary: residual_distributions.pdf/png")
 
-    # Panel 2: Residual vs predicted scatter (2×2)
-    fig, axes = plt.subplots(2, 2, figsize=(10, 8))
+    # Panel 2: Residual vs actual scatter (2×3)
+    fig, axes = plt.subplots(2, 3, figsize=(15, 8))
     axes = axes.flatten()
 
     for i, name in enumerate(model_names):
@@ -488,6 +499,8 @@ def figure_residuals(models):
         ax.set_ylabel("Residual (nm)")
         ax.set_title(name, fontweight="bold")
         ax.set_ylim(-200, 200)
+
+    axes[5].set_visible(False)
 
     plt.suptitle("Residuals vs Actual — 5-Fold CV", fontsize=14, fontweight="bold", y=1.01)
     plt.tight_layout()

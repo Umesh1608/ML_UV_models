@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-Generate 2×2 multi-model parity plot (RF, XGBoost, BiGRU, ChemBERTa)
+Generate 3×2 multi-model parity plot (RF, XGBoost, Chemprop, BiGRU, ChemBERTa)
 from pooled cross-validation predictions.
 
-Output: results/parity_plot_4models.png
+Output: results/parity_plot_5models.png
 """
 
 import os
@@ -41,7 +41,8 @@ def main():
     models = [
         ("RF (tuned)", "rf_tuned"),
         ("XGBoost", "xgboost_v2"),
-        ("BiGRU", "bigru_solvent_v2"),
+        ("Chemprop (D-MPNN)", "chemprop_v2"),
+        ("BiGRU (tuned)", "bigru_solvent_v2"),
         ("ChemBERTa", "chemberta"),
     ]
 
@@ -55,7 +56,7 @@ def main():
     global_max = max(max(y.max(), p.max()) for _, y, p in all_data) + 10
     lims = [global_min, global_max]
 
-    fig, axes = plt.subplots(2, 2, figsize=(10, 10))
+    fig, axes = plt.subplots(2, 3, figsize=(15, 10))
     axes = axes.flatten()
 
     for ax, (name, y_true, y_pred) in zip(axes, all_data):
@@ -87,8 +88,11 @@ def main():
         ax.text(0.95, 0.05, f"n = {len(y_true):,}", transform=ax.transAxes,
                 fontsize=9, ha="right", va="bottom", color="gray")
 
+    # Hide the 6th (empty) subplot
+    axes[5].set_visible(False)
+
     plt.tight_layout(pad=2.0)
-    out_path = os.path.join(RESULTS_DIR, "parity_plot_4models.png")
+    out_path = os.path.join(RESULTS_DIR, "parity_plot_5models.png")
     plt.savefig(out_path, dpi=300, bbox_inches="tight")
     print(f"  Saved parity plot to {out_path}")
     plt.close()
