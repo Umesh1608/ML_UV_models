@@ -127,6 +127,25 @@ Tables~\ref{tab:perfold_rf}--\ref{tab:perfold_chemberta} present per-fold result
 
 \begin{table}[htbp]
 \centering
+\caption{Per-fold Chemprop D-MPNN results (v2, solute only, no solvent).}
+\label{tab:perfold_chemprop_nosolvent}
+\begin{tabular}{ccccc}
+\toprule
+\textbf{Fold} & \textbf{RMSE (nm)} & \textbf{MAE (nm)} & $\boldsymbol{R^2}$ & \textbf{Pearson $r$} \\
+\midrule
+0 & 33.37 & 15.95 & 0.899 & 0.949 \\
+1 & 37.28 & 16.29 & 0.879 & 0.938 \\
+2 & 29.31 & 15.88 & 0.925 & 0.962 \\
+3 & 33.07 & 16.64 & 0.905 & 0.952 \\
+4 & 35.88 & 17.64 & 0.889 & 0.943 \\
+\midrule
+\textbf{Mean $\pm$ Std} & \textbf{33.78 $\pm$ 2.73} & \textbf{16.48 $\pm$ 0.64} & \textbf{0.900 $\pm$ 0.015} & \textbf{0.949 $\pm$ 0.008} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
 \caption{Per-fold ChemBERTa results (v2).}
 \label{tab:perfold_chemberta}
 \begin{tabular}{ccccc}
@@ -149,7 +168,7 @@ Tables~\ref{tab:perfold_rf}--\ref{tab:perfold_chemberta} present per-fold result
 \label{sec:significance}
 
 Table~\ref{tab:significance} presents paired $t$-test results across the five cross-validation folds.
-All model comparisons are statistically significant at $\alpha = 0.05$ using the parametric paired $t$-test.
+Most model comparisons are statistically significant at $\alpha = 0.05$ using the parametric paired $t$-test, with the notable exception of RF vs.\ Chemprop ($p = 0.77$).
 With only $n = 5$ folds, the Wilcoxon signed-rank test (a non-parametric alternative) yields $p = 0.0625$ for all comparisons (the minimum achievable $p$-value when all 5 paired differences are concordant), providing strong directional evidence despite not reaching conventional significance.
 
 \begin{table}[htbp]
@@ -160,6 +179,7 @@ With only $n = 5$ folds, the Wilcoxon signed-rank test (a non-parametric alterna
 \toprule
 \textbf{Comparison} & $\boldsymbol{t}$ & $\boldsymbol{p}$ & \textbf{Significant?} \\
 \midrule
+RF vs.\ Chemprop            & $0.31$ & 0.77 & No \\
 RF vs.\ BiGRU              & $-7.08$ & 0.002 & Yes \\
 RF vs.\ XGBoost            & $-8.94$ & 0.001 & Yes \\
 RF vs.\ ChemBERTa          & $-31.0$ & $<$0.001 & Yes \\
@@ -167,6 +187,7 @@ XGBoost vs.\ BiGRU         & $-4.38$ & 0.012 & Yes \\
 XGBoost vs.\ ChemBERTa     & $-21.8$ & $<$0.001 & Yes \\
 BiGRU vs.\ ChemBERTa       & $-16.0$ & $<$0.001 & Yes \\
 RF: solvent vs.\ no-solvent  & $-11.46$ & $<$0.001 & Yes \\
+Chemprop: solvent vs.\ no-solvent & $-4.33$ & 0.012 & Yes \\
 BiGRU: solvent vs.\ no-solvent & $-3.90$ & 0.018 & Yes \\
 \bottomrule
 \end{tabular}

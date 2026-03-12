@@ -46,7 +46,7 @@
 \begin{abstract}
 We benchmark Random Forest (RF), XGBoost, Chemprop (D-MPNN), a Bidirectional GRU (BiGRU) recurrent neural network optimized via Bayesian hyperparameter search, and ChemBERTa, a pretrained Transformer, for predicting UV absorption wavelengths ($\lambda_{\max}$) on 18,755 solute--solvent pairs with stratified 5-fold cross-validation and three external datasets totaling nearly 70,000 molecules; RF with concatenated solute--solvent Morgan fingerprints and the Chemprop graph neural network achieve statistically indistinguishable performance (RMSE = $31.34 \pm 1.82$ and $31.69 \pm 3.18$~nm, $p = 0.77$), both outperforming sequence-based models, while hyperparameter optimization of BiGRU (3-layer, 256-unit architecture) reduces its cross-validated RMSE by 4.8\% (to $34.71 \pm 1.40$~nm).
 However, experimental validation on 16 novel UV-absorbing compounds reverses the ranking: both deep learning models outperform RF on out-of-distribution molecules (ChemBERTa MAE = 26.3, BiGRU = 28.6 vs.\ 38.5~nm), revealing that learned representations generalize beyond fixed substructural features.
-A solvent concatenation strategy yields consistent 7--8\% RMSE reductions across model families, and interpretability analysis shows that RF feature importance and BiGRU gradient saliency independently highlight the same chromophore motifs, confirming that both architectures learn meaningful photochemistry.
+A solvent concatenation strategy yields consistent 6--8\% RMSE reductions across model families, and interpretability analysis shows that RF feature importance and BiGRU gradient saliency independently highlight the same chromophore motifs, confirming that both architectures learn meaningful photochemistry.
 These results demonstrate that models encoding local structural information (fingerprints, graph message passing, RNNs) outperform global-attention architectures on properties determined by local molecular features, while pretrained Transformers excel at out-of-distribution generalization, providing practical guidance for model selection in molecular property prediction beyond UV absorption.
 \end{abstract}
 
@@ -76,7 +76,7 @@ Our key contributions are:
     \item A comprehensive comparison across four datasets using each dataset's published evaluation protocol, enabling direct comparison with prior work.
     \item Demonstration that RF with Morgan fingerprints achieves the best cross-validated performance, reaching state-of-the-art results on two of three external datasets.
     \item Evidence that deep learning models (ChemBERTa and BiGRU) generalize better to novel out-of-distribution compounds, revealing distinct advantages for fingerprint-based and sequence-based approaches.
-    \item A solvent concatenation strategy that improves prediction accuracy for both sequence models and fingerprint-based methods.
+    \item A solvent concatenation strategy that improves prediction accuracy across fingerprint, graph, and sequence-based methods.
     \item Evidence that UV absorption prediction favors local-feature architectures on in-distribution benchmarks~\cite{chenMolecularLanguage2023}: RF feature importance analysis maps directly to known chromophore motifs, and both RF and BiGRU gradient saliency highlight the same conjugated regions, supporting the hypothesis that local electronic structure determines $\lambda_{\max}$. RF also trains 100$\times$ faster (15 minutes CPU vs.\ 25 hours GPU), though out-of-distribution evaluation reveals complementary advantages for pretrained representations.
     \item Practical validation through ICH~S10 photosafety classification and experimental UV measurements on 16 novel compounds.
 \end{itemize}
@@ -748,14 +748,17 @@ To quantify the contribution of solvent information, we compare models trained w
 RF + Solvent          & \textbf{31.34 $\pm$ 1.82} & \textbf{15.16 $\pm$ 0.44} & \textbf{0.914 $\pm$ 0.010} & \textbf{0.956 $\pm$ 0.005} \\
 RF Solute only        & 34.13 $\pm$ 1.44          & 16.45 $\pm$ 0.33          & 0.898 $\pm$ 0.008          & 0.948 $\pm$ 0.004 \\
 \midrule
+Chemprop + Solvent    & 31.69 $\pm$ 3.18          & 16.84 $\pm$ 1.74          & 0.911 $\pm$ 0.016          & 0.955 $\pm$ 0.008 \\
+Chemprop Solute only  & 33.78 $\pm$ 2.73          & 16.48 $\pm$ 0.64          & 0.900 $\pm$ 0.015          & 0.949 $\pm$ 0.008 \\
+\midrule
 BiGRU + Solvent       & 36.45 $\pm$ 1.12          & 20.70 $\pm$ 0.51          & 0.884 $\pm$ 0.006          & 0.940 $\pm$ 0.003 \\
 BiGRU Solute only     & 39.03 $\pm$ 1.37          & 22.53 $\pm$ 0.32          & 0.866 $\pm$ 0.009          & 0.931 $\pm$ 0.005 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Incorporating solvent information reduces RF RMSE by 8\% (34.13 $\to$ 31.34~nm; paired $t$-test: $t = -11.5$, $p = 0.0003$) and BiGRU RMSE by 7\% (39.03 $\to$ 36.45~nm; $t = -3.9$, $p = 0.018$), confirming that the solvent concatenation strategy effectively captures solvatochromic effects across both model families.
-The consistency of the improvement (7--8\% for both RF and BiGRU) suggests that solvent information contributes complementary predictive signal regardless of the underlying model architecture.
+Incorporating solvent information reduces RF RMSE by 8\% (34.13 $\to$ 31.34~nm; paired $t$-test: $t = -11.5$, $p = 0.0003$), Chemprop RMSE by 6\% (33.78 $\to$ 31.69~nm; $t = 4.3$, $p = 0.012$), and BiGRU RMSE by 7\% (39.03 $\to$ 36.45~nm; $t = -3.9$, $p = 0.018$), confirming that the solvent concatenation strategy effectively captures solvatochromic effects across all three model families.
+The consistency of the improvement (6--8\% across fingerprint, graph, and recurrent architectures) suggests that solvent information contributes complementary predictive signal regardless of the underlying model architecture or molecular representation.
 
 The improvement from solvent encoding is modest relative to the total prediction error, reflecting the well-established principle that chromophore structure dominates UV absorption~\cite{flemingMolecular2010}, with solvatochromic shifts typically contributing 5--20~nm variation~\cite{reichardt2011solvents}.
 Nevertheless, for applications such as ICH~S10~\cite{ICH2013S10} photosafety screening where boundary effects matter, this improvement can be practically significant.
@@ -896,7 +899,7 @@ Other high-ranking features include BODIPY cores ($\Delta\lambda_{\max} = +162$~
 \textbf{Solute dominates, solvent contributes modestly.}
 Partitioning feature importance between solute and solvent fingerprint bits reveals that solute structure accounts for 96.1\% of total importance, with solvent contributing 3.9\% (Figure~\ref{fig:rf_interpretability}b).
 This aligns with chemical intuition: chromophore structure is the primary determinant of $\lambda_{\max}$, while solvatochromic shifts are secondary effects.
-The 24.6:1 solute-to-solvent importance ratio is consistent with the modest 8\% RMSE improvement observed in the solvent ablation.
+The 24.6:1 solute-to-solvent importance ratio is consistent with the modest 6--8\% RMSE improvement observed in the solvent ablation.
 
 \textbf{Model sparsity.}
 Despite operating on 4096-dimensional fingerprint input, the RF model concentrates its decisions on a small subset of features: the top 5 features explain 26.9\% of total importance, the top 20 explain 41.6\%, and the top 100 explain 62.6\% (Figure~\ref{fig:rf_cumulative}).
@@ -1060,8 +1063,8 @@ Our key findings are:
     However, experimental validation on 16 novel compounds reverses this ranking: both ChemBERTa (MAE = 26.3~nm) and BiGRU (28.6~nm) outperform RF (38.5~nm) on out-of-distribution molecules.
     This indicates that RF excels at interpolation within known chemical space, while deep learning models learn transferable representations that extend beyond fixed substructural features.
 
-    \item \textbf{Solvent encoding improves both model families.}
-    Encoding solute and solvent as a single concatenated representation reduces RF RMSE by 8\% (34.13 $\to$ 31.34~nm) and BiGRU RMSE by 7\% (39.03 $\to$ 36.45~nm).
+    \item \textbf{Solvent encoding improves all model families.}
+    Encoding solute and solvent as a single concatenated representation reduces RMSE by 6--8\% across all tested architectures (RF 8\%, Chemprop 6\%, BiGRU 7\%; all $p < 0.02$).
     This simple approach requires no domain-specific descriptor engineering and is applicable to any model that accepts molecular representations.
 
     \item \textbf{Both model families offer interpretability.}
@@ -1115,7 +1118,7 @@ The authors declare no competing financial interest.
 \begin{suppinfo}
 The Supporting Information is available free of charge at [DOI].
 
-Per-fold cross-validation results for all five model families (Tables~S1--S6), statistical significance tests (Table~S7), RF hyperparameter sensitivity analysis, BiGRU and ChemBERTa learning curves (Figures~S1--S2), hyperparameter tuning asymmetry analysis (Table~S8), and BiGRU character-type saliency analysis (Figure~S3) (PDF).
+Per-fold cross-validation results for all five model families including solvent ablation (Tables~S1--S7), statistical significance tests (Table~S8), RF hyperparameter sensitivity analysis, BiGRU and ChemBERTa learning curves (Figures~S1--S2), hyperparameter tuning asymmetry analysis (Table~S9), and BiGRU character-type saliency analysis (Figure~S3) (PDF).
 \end{suppinfo}
 
 % ===== Bibliography =====

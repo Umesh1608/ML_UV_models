@@ -240,77 +240,114 @@ def make_chemprop_data(solutes, solvents, y, indices, orig_to_filtered=None):
 
 
 def build_loaders(solute_train, solvent_train, solute_val, solvent_val,
-                  solute_test, solvent_test):
+                  solute_test, solvent_test, solute_only=False):
     """Build Chemprop dataloaders and return (train_loader, val_loader, test_loader, scaler)."""
     feat = featurizers.SimpleMoleculeMolGraphFeaturizer()
 
-    train_dsets = [
-        data.MoleculeDataset(solute_train, feat),
-        data.MoleculeDataset(solvent_train, feat),
-    ]
-    val_dsets = [
-        data.MoleculeDataset(solute_val, feat),
-        data.MoleculeDataset(solvent_val, feat),
-    ]
-    test_dsets = [
-        data.MoleculeDataset(solute_test, feat),
-        data.MoleculeDataset(solvent_test, feat),
-    ]
+    if solute_only:
+        train_dset = data.MoleculeDataset(solute_train, feat)
+        val_dset = data.MoleculeDataset(solute_val, feat)
+        test_dset = data.MoleculeDataset(solute_test, feat)
 
-    train_mcdset = data.MulticomponentDataset(train_dsets)
-    val_mcdset = data.MulticomponentDataset(val_dsets)
-    test_mcdset = data.MulticomponentDataset(test_dsets)
+        scaler = train_dset.normalize_targets()
+        val_dset.normalize_targets(scaler)
 
-    scaler = train_mcdset.normalize_targets()
-    val_mcdset.normalize_targets(scaler)
-    # Don't normalize test targets — we need raw targets for evaluation
+        train_loader = data.build_dataloader(
+            train_dset, batch_size=BATCH_SIZE, shuffle=True, num_workers=0,
+        )
+        val_loader = data.build_dataloader(
+            val_dset, batch_size=BATCH_SIZE, shuffle=False, num_workers=0,
+        )
+        test_loader = data.build_dataloader(
+            test_dset, batch_size=BATCH_SIZE, shuffle=False, num_workers=0,
+        )
+    else:
+        train_dsets = [
+            data.MoleculeDataset(solute_train, feat),
+            data.MoleculeDataset(solvent_train, feat),
+        ]
+        val_dsets = [
+            data.MoleculeDataset(solute_val, feat),
+            data.MoleculeDataset(solvent_val, feat),
+        ]
+        test_dsets = [
+            data.MoleculeDataset(solute_test, feat),
+            data.MoleculeDataset(solvent_test, feat),
+        ]
 
-    train_loader = data.build_dataloader(
-        train_mcdset, batch_size=BATCH_SIZE, shuffle=True, num_workers=0,
-    )
-    val_loader = data.build_dataloader(
-        val_mcdset, batch_size=BATCH_SIZE, shuffle=False, num_workers=0,
-    )
-    test_loader = data.build_dataloader(
-        test_mcdset, batch_size=BATCH_SIZE, shuffle=False, num_workers=0,
-    )
+        train_mcdset = data.MulticomponentDataset(train_dsets)
+        val_mcdset = data.MulticomponentDataset(val_dsets)
+        test_mcdset = data.MulticomponentDataset(test_dsets)
+
+        scaler = train_mcdset.normalize_targets()
+        val_mcdset.normalize_targets(scaler)
+
+        train_loader = data.build_dataloader(
+            train_mcdset, batch_size=BATCH_SIZE, shuffle=True, num_workers=0,
+        )
+        val_loader = data.build_dataloader(
+            val_mcdset, batch_size=BATCH_SIZE, shuffle=False, num_workers=0,
+        )
+        test_loader = data.build_dataloader(
+            test_mcdset, batch_size=BATCH_SIZE, shuffle=False, num_workers=0,
+        )
 
     return train_loader, val_loader, test_loader, scaler
 
 
-def build_model(scaler):
-    """Build Chemprop MulticomponentMPNN model."""
-    mcmp = nn.MulticomponentMessagePassing(
-        blocks=[nn.BondMessagePassing(d_h=D_H, depth=DEPTH) for _ in range(2)],
-        n_components=2,
-    )
+def build_model(scaler, solute_only=False):
+    """Build Chemprop MPNN model (single or multicomponent)."""
+    from chemprop.models import MPNN as SingleMPNN
+
     agg = nn.MeanAggregation()
     output_transform = UnscaleTransform.from_standard_scaler(scaler)
-    ffn = nn.RegressionFFN(
-        input_dim=mcmp.output_dim,
-        output_transform=output_transform,
-    )
 
-    model = multi.MulticomponentMPNN(
-        mcmp, agg, ffn,
-        metrics=[ChempropRMSE(), ChempropMAE()],
-        warmup_epochs=WARMUP_EPOCHS,
-        init_lr=INIT_LR,
-        max_lr=MAX_LR,
-        final_lr=FINAL_LR,
-    )
+    if solute_only:
+        mp = nn.BondMessagePassing(d_h=D_H, depth=DEPTH)
+        ffn = nn.RegressionFFN(
+            input_dim=mp.output_dim,
+            output_transform=output_transform,
+        )
+        model = SingleMPNN(
+            mp, agg, ffn,
+            metrics=[ChempropRMSE(), ChempropMAE()],
+            warmup_epochs=WARMUP_EPOCHS,
+            init_lr=INIT_LR,
+            max_lr=MAX_LR,
+            final_lr=FINAL_LR,
+        )
+        n_components = 1
+    else:
+        mcmp = nn.MulticomponentMessagePassing(
+            blocks=[nn.BondMessagePassing(d_h=D_H, depth=DEPTH) for _ in range(2)],
+            n_components=2,
+        )
+        ffn = nn.RegressionFFN(
+            input_dim=mcmp.output_dim,
+            output_transform=output_transform,
+        )
+        model = multi.MulticomponentMPNN(
+            mcmp, agg, ffn,
+            metrics=[ChempropRMSE(), ChempropMAE()],
+            warmup_epochs=WARMUP_EPOCHS,
+            init_lr=INIT_LR,
+            max_lr=MAX_LR,
+            final_lr=FINAL_LR,
+        )
+        n_components = 2
 
     n_params = sum(p.numel() for p in model.parameters())
     print(f"  >> Chemprop D-MPNN: {n_params:,} params "
-          f"(d_h={D_H}, depth={DEPTH}, 2 components)")
+          f"(d_h={D_H}, depth={DEPTH}, {n_components} component{'s' if n_components > 1 else ''})")
     return model
 
 
 # ─── Training ─────────────────────────────────────────────────────────────────
 
-def train_fold(fold_idx, solutes, solvents, y, folds, orig_to_filtered):
+def train_fold(fold_idx, solutes, solvents, y, folds, orig_to_filtered, solute_only=False):
     """Train a single fold. Returns metrics dict or None if interrupted/skipped."""
-    name = f"chemprop_v2_fold{fold_idx}"
+    prefix = "chemprop_v2_nosolvent" if solute_only else "chemprop_v2"
+    name = f"{prefix}_fold{fold_idx}"
 
     # Check if already done
     metrics_path = os.path.join(RESULTS_DIR, f"{name}_metrics.json")
@@ -346,10 +383,11 @@ def train_fold(fold_idx, solutes, solvents, y, folds, orig_to_filtered):
         solute_train, solvent_train,
         solute_val, solvent_val,
         solute_test, solvent_test,
+        solute_only=solute_only,
     )
 
     # Build model
-    model = build_model(scaler)
+    model = build_model(scaler, solute_only=solute_only)
 
     # Callbacks
     best_ckpt_path = os.path.join(RESULTS_DIR, f"{name}_best")
@@ -420,7 +458,11 @@ def train_fold(fold_idx, solutes, solvents, y, folds, orig_to_filtered):
 
     # Predict
     if best_ckpt:
-        best_model = multi.MulticomponentMPNN.load_from_checkpoint(best_ckpt)
+        if solute_only:
+            from chemprop.models import MPNN as SingleMPNN
+            best_model = SingleMPNN.load_from_checkpoint(best_ckpt)
+        else:
+            best_model = multi.MulticomponentMPNN.load_from_checkpoint(best_ckpt)
     else:
         best_model = model
 
@@ -456,7 +498,7 @@ def train_fold(fold_idx, solutes, solvents, y, folds, orig_to_filtered):
 
 # ─── Primary CV ───────────────────────────────────────────────────────────────
 
-def run_primary_cv(fold_id=None):
+def run_primary_cv(fold_id=None, solute_only=False):
     """Run 5-fold CV on primary dataset."""
     solutes, solvents, y, orig_indices = load_primary_data()
     folds = load_fold_indices()
@@ -470,7 +512,8 @@ def run_primary_cv(fold_id=None):
     all_metrics = []
 
     for fold in fold_range:
-        metrics = train_fold(fold, solutes, solvents, y, folds, orig_to_filtered)
+        metrics = train_fold(fold, solutes, solvents, y, folds, orig_to_filtered,
+                            solute_only=solute_only)
         if metrics is None:
             return
         all_metrics.append(metrics)
@@ -480,13 +523,15 @@ def run_primary_cv(fold_id=None):
             gpu_cooldown()
 
     if len(all_metrics) == N_FOLDS:
-        print_aggregate(all_metrics)
+        prefix = "chemprop_v2_nosolvent" if solute_only else "chemprop_v2"
+        label = "solute only" if solute_only else "solute + solvent"
+        print_aggregate(all_metrics, prefix=prefix, label=label)
 
 
-def print_aggregate(all_metrics):
+def print_aggregate(all_metrics, prefix="chemprop_v2", label="solute + solvent"):
     """Print and save aggregate metrics across folds."""
     print(f"\n{'='*70}")
-    print("  AGGREGATE: Chemprop D-MPNN (v2, 5-fold CV)")
+    print(f"  AGGREGATE: Chemprop D-MPNN (v2, {label}, 5-fold CV)")
     print(f"{'='*70}")
 
     agg = {"n_folds": len(all_metrics)}
@@ -499,7 +544,7 @@ def print_aggregate(all_metrics):
         agg[f"{key}_values"] = vals
         print(f"  {key}: {mean:.2f} ± {std:.2f}")
 
-    agg_path = os.path.join(RESULTS_DIR, "chemprop_v2_cv_aggregate.json")
+    agg_path = os.path.join(RESULTS_DIR, f"{prefix}_cv_aggregate.json")
     with open(agg_path, "w") as f:
         json.dump(agg, f, indent=2)
     print(f"  Saved to {agg_path}")
@@ -721,6 +766,10 @@ def main():
         "--dataset", choices=["primary", "deep4chem"], default="primary",
         help="Dataset to train on (default: primary)",
     )
+    parser.add_argument(
+        "--no-solvent", action="store_true",
+        help="Train solute-only model (single-component MPNN, no solvent graph)",
+    )
     args = parser.parse_args()
 
     if args.summary:
@@ -728,7 +777,7 @@ def main():
         return
 
     if args.dataset == "primary":
-        run_primary_cv(fold_id=args.fold)
+        run_primary_cv(fold_id=args.fold, solute_only=args.no_solvent)
     else:
         run_cross_dataset(args.dataset)
 
