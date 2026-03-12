@@ -95,7 +95,7 @@ Interpretability analysis confirms that both RF feature importance and BiGRU gra
           font=\scriptsize\bfseries] (fpnode) at (5.5, 1.8) {FP};
     \node[font=\tiny, green!40!black, below=1pt of fpnode] {per-mol.};
 
-    \node[box, fill=green!6, draw=green!40!black, minimum width=4.4cm] (fp) at (9.5, 1.8)
+    \node[box, fill=green!6, draw=green!40!black, minimum width=4.4cm, text width=4.0cm] (fp) at (9.5, 1.8)
         {Morgan Fingerprint\\[-1pt]{\scriptsize FP(solute) $\|$ FP(solvent), $\{0,1\}^{4096}$ hstacked}};
 
     \draw[arr, draw=green!40!black] (fork) -- (4.2, 1.8) -- (fpnode);
@@ -117,7 +117,7 @@ Interpretability analysis confirms that both RF feature importance and BiGRU gra
           font=\scriptsize\bfseries] (cat) at (5.5, -1.8) {$\oplus$};
     \node[font=\tiny, blue!40!black, below=1pt of cat] {concat};
 
-    \node[box, fill=blue!6, draw=blue!40!black, minimum width=4.4cm] (seq) at (9.5, -1.8)
+    \node[box, fill=blue!6, draw=blue!40!black, minimum width=4.4cm, text width=4.0cm] (seq) at (9.5, -1.8)
         {Token Sequence\\[-1pt]{\scriptsize \texttt{solute\,!\,solvent} string, 57-token vocabulary}};
 
     \draw[arr, draw=blue!40!black] (fork) -- (4.2, -1.8) -- (cat);
