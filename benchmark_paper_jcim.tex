@@ -695,24 +695,24 @@ Kang et al.~\cite{kang2020prediction} and Urbina et al.~\cite{beard2022uvadvisor
 
     % --- Four model columns ---
     % RF column
-    \node[localbox] (rf) at (-5.4, 1.8) {RF + Morgan FP};
+    \node[localbox] (rf) at (-6.0, 1.8) {RF + Morgan FP};
     \node[annot, below=0pt of rf] (rfdesc) {Radius-2 substructures};
-    \node[font=\scriptsize\bfseries, text=green!50!black] at (-5.4, 0.7) {LOCAL bits};
+    \node[font=\scriptsize\bfseries, text=green!50!black] at (-6.0, 0.7) {LOCAL bits};
 
     % Chemprop column
-    \node[localbox] (chemprop) at (-1.8, 1.8) {Chemprop (D-MPNN)};
+    \node[localbox] (chemprop) at (-2.0, 1.8) {Chemprop (D-MPNN)};
     \node[annot, below=0pt of chemprop] (chempropdesc) {3-hop bond messages};
-    \node[font=\scriptsize\bfseries, text=green!50!black] at (-1.8, 0.7) {LOCAL graph};
+    \node[font=\scriptsize\bfseries, text=green!50!black] at (-2.0, 0.7) {LOCAL graph};
 
     % BiGRU column
-    \node[localbox] (bigru) at (1.8, 1.8) {BiGRU (RNN)};
+    \node[localbox] (bigru) at (2.0, 1.8) {BiGRU (RNN)};
     \node[annot, below=0pt of bigru] (bigrudesc) {Sequential context};
-    \node[font=\scriptsize\bfseries, text=green!50!black] at (1.8, 0.7) {LOCAL seq.};
+    \node[font=\scriptsize\bfseries, text=green!50!black] at (2.0, 0.7) {LOCAL seq.};
 
     % ChemBERTa column
-    \node[globalbox] (bert) at (5.4, 1.8) {ChemBERTa};
+    \node[globalbox] (bert) at (6.0, 1.8) {ChemBERTa};
     \node[annot, below=0pt of bert] (bertdesc) {Full self-attention};
-    \node[font=\scriptsize\bfseries, text=red!50!black] at (5.4, 0.7) {GLOBAL attn.};
+    \node[font=\scriptsize\bfseries, text=red!50!black] at (6.0, 0.7) {GLOBAL attn.};
 
     % --- Arrows from property to models ---
     \draw[->, thick, green!50!black] (uvprop.south west) ++(0.2,0) -- (rf.north) node[midway, left, annot] {matches};
@@ -721,10 +721,10 @@ Kang et al.~\cite{kang2020prediction} and Urbina et al.~\cite{beard2022uvadvisor
     \draw[->, thick, red!40!black, dashed] (uvprop.south east) ++(-0.2,0) -- (bert.north) node[midway, right, annot] {mismatch};
 
     % --- Result boxes at bottom ---
-    \node[draw, rounded corners=2pt, fill=green!5, font=\scriptsize, align=center] (rfres) at (-5.4, -0.2) {RMSE = \textbf{31.34} nm\\(best cross-val)};
-    \node[draw, rounded corners=2pt, fill=green!5, font=\scriptsize, align=center] (chempropres) at (-1.8, -0.2) {RMSE = \textbf{31.69} nm\\(636K params)};
-    \node[draw, rounded corners=2pt, fill=green!5, font=\scriptsize, align=center] (bigrures) at (1.8, -0.2) {RMSE = \textbf{34.71} nm\\(3.0M params)};
-    \node[draw, rounded corners=2pt, fill=red!5, font=\scriptsize, align=center] (bertres) at (5.4, -0.2) {RMSE = \textbf{50.39} nm\\(44.1M params)};
+    \node[draw, rounded corners=2pt, fill=green!5, font=\scriptsize, align=center] (rfres) at (-6.0, -0.2) {RMSE = \textbf{31.34} nm\\(best cross-val)};
+    \node[draw, rounded corners=2pt, fill=green!5, font=\scriptsize, align=center] (chempropres) at (-2.0, -0.2) {RMSE = \textbf{31.69} nm\\(636K params)};
+    \node[draw, rounded corners=2pt, fill=green!5, font=\scriptsize, align=center] (bigrures) at (2.0, -0.2) {RMSE = \textbf{34.71} nm\\(3.0M params)};
+    \node[draw, rounded corners=2pt, fill=red!5, font=\scriptsize, align=center] (bertres) at (6.0, -0.2) {RMSE = \textbf{50.39} nm\\(44.1M params)};
 
     % --- Bottom citation ---
     \node[annot, text width=12cm, align=center] at (0, -1.3) {Local-feature models (RF, D-MPNN, BiGRU) outperform the global-attention Transformer on in-distribution UV data.};
