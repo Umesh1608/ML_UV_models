@@ -52,13 +52,13 @@
 
 % ===== Abstract =====
 \begin{abstract}
-Accurate prediction of UV absorption wavelengths ($\lambda_{\max}$) from molecular structure is essential for photosafety screening, materials design, and photochemistry.
-We present a systematic benchmark of machine learning approaches for $\lambda_{\max}$ prediction, comparing Random Forest (RF) with Morgan fingerprints, XGBoost, the Chemprop directed message passing neural network (D-MPNN), a Bidirectional GRU (BiGRU) sequence model, and ChemBERTa, a pretrained Transformer fine-tuned on SMILES strings.
-Models are evaluated on a primary dataset of 18,755 solute--solvent pairs (Joung + Beard) using stratified 5-fold cross-validation, with external validation on two independent datasets totaling over 40,000 molecules using each dataset's published split protocol for direct comparison with prior work.
-RF and Chemprop achieve statistically indistinguishable cross-validated performance (RMSE = $31.34 \pm 1.82$ and $31.69 \pm 3.18$ nm, $p = 0.77$), both outperforming BiGRU (RMSE = $36.45 \pm 1.12$ nm) and matching or exceeding published deep learning baselines on external datasets, including GCNN on Deep4Chem (our RMSE = 22.70 vs.\ 26.6 nm) and GBFS on Jung et al.\ (our RMSE = 29.82 vs.\ 32.2 nm).
-ChemBERTa, a pretrained Transformer (44.1M parameters), achieves the worst cross-validated performance (RMSE = $50.39 \pm 2.30$ nm), yet experimental validation on 16 novel UV-absorbing compounds reveals that both deep learning models outperform RF on out-of-distribution molecules (ChemBERTa MAE = 26.3, BiGRU = 28.6 vs.\ 38.5 nm for RF), suggesting that learned representations generalize beyond fixed substructural features.
-We introduce a solvent concatenation strategy encoding solute and solvent as a single representation, yielding consistent improvement across all tested model families (8\% RMSE reduction for RF, 6\% for Chemprop, 7\% for BiGRU).
-These complementary strengths (RF for interpolation within known chemical space, deep learning for extrapolation to novel scaffolds) provide practical guidance for model selection in UV property prediction.
+Which machine learning model should a chemist choose for predicting UV absorption wavelengths?
+We benchmark five approaches---Random Forest (RF), XGBoost, Chemprop (D-MPNN), a Bidirectional GRU (BiGRU), and ChemBERTa---spanning fingerprint, graph, recurrent, and Transformer architectures on 18,755 solute--solvent pairs with stratified 5-fold cross-validation and two external datasets totaling over 40,000 molecules.
+The answer depends on the task.
+For screening within known chemical space, RF with Morgan fingerprints is optimal: it matches the Chemprop graph neural network (RMSE = $31.34 \pm 1.82$ vs.\ $31.69 \pm 3.18$~nm, $p = 0.77$), trains in 15 minutes on a CPU with no hyperparameter tuning, and outperforms all sequence-based models.
+For exploring novel scaffolds, deep learning is superior: experimental validation on 16 novel UV-absorbing compounds reverses the ranking, with Chemprop (MAE = 26.2~nm), ChemBERTa (26.3~nm), and an optimized BiGRU (28.6~nm; 3-layer, 256-unit architecture identified via Bayesian hyperparameter search) all outperforming RF (38.5~nm).
+In either case, encoding solvent identity improves all models: a simple SMILES/fingerprint concatenation strategy yields 6--8\% RMSE reductions across fingerprint, graph, and recurrent architectures ($p < 0.02$), without domain-specific descriptor engineering.
+Interpretability analysis confirms that both RF feature importance and BiGRU gradient saliency independently highlight the same chromophore motifs, and that local-feature architectures (fingerprints, graph message passing, RNNs) systematically outperform global-attention Transformers on this locally determined property.
 \end{abstract}
 
 \textbf{Keywords:} UV absorption, molecular property prediction, deep learning, recurrent neural networks, random forest, Morgan fingerprints, graph neural network, Chemprop, ChemBERTa, solvent effects, benchmarking
@@ -212,12 +212,12 @@ The UV absorption prediction task presents several distinctive challenges that m
 In this work, we present a benchmark study comparing five ML approaches---Random Forest, XGBoost, Chemprop (D-MPNN), Bidirectional GRU, and ChemBERTa---spanning fingerprint, graph, recurrent, and Transformer architectures for $\lambda_{\max}$ prediction.
 Our key contributions are:
 \begin{itemize}
-    \item A comprehensive comparison across three datasets using each dataset's published evaluation protocol, enabling direct comparison with prior work.
-    \item Demonstration that RF and Chemprop achieve the best cross-validated performance, with Chemprop setting new state-of-the-art results on both external datasets.
-    \item Evidence that deep learning models (ChemBERTa and BiGRU) generalize better to novel out-of-distribution compounds, revealing distinct advantages for fingerprint-based and sequence-based approaches.
-    \item A solvent concatenation strategy that improves prediction accuracy across fingerprint, graph, and sequence-based methods.
-    \item Evidence that UV absorption prediction favors local-feature architectures on in-distribution benchmarks~\cite{chenMolecularLanguage2023}: RF feature importance analysis maps directly to known chromophore motifs, and both RF and BiGRU gradient saliency highlight the same conjugated regions, supporting the hypothesis that local electronic structure determines $\lambda_{\max}$. RF also trains 100$\times$ faster (15 minutes CPU vs.\ 25 hours GPU), though out-of-distribution evaluation reveals complementary advantages for pretrained representations.
-    \item Practical validation through ICH~S10 photosafety classification and experimental UV measurements on 16 novel compounds.
+    \item \textbf{Practical model selection guidance:} RF is optimal for in-distribution screening (fast, no GPU, no tuning needed); deep learning models generalize better to novel compounds. We validate this on 16 experimentally measured UV-absorbing molecules.
+    \item \textbf{Controlled multi-architecture comparison} across three datasets using published evaluation protocols. Chemprop (D-MPNN) with default hyperparameters sets new state-of-the-art results on both external datasets, while RF and Chemprop are statistically tied on primary cross-validation.
+    \item \textbf{Optimized BiGRU architecture} via Bayesian hyperparameter search (3-layer, 256-unit, 4.8\% RMSE improvement), providing a tuned sequence-based model for practitioners without access to graph-based tools.
+    \item \textbf{Architecture-independent solvent encoding:} a simple concatenation strategy yields 6--8\% RMSE reductions across fingerprint, graph, and recurrent models ($p < 0.02$), without domain-specific descriptor engineering.
+    \item \textbf{Locality-of-property hypothesis:} local-feature architectures (fingerprints, graph message passing, RNNs) systematically outperform global-attention Transformers on UV absorption, which is determined by local electronic structure~\cite{chenMolecularLanguage2023}. RF feature importance and BiGRU gradient saliency independently highlight the same chromophore motifs, confirming that both architectures learn meaningful photochemistry.
+    \item \textbf{Photosafety application:} ICH~S10 classification on a reconstructed Reaxys dataset validates practical utility.
 \end{itemize}
 
 
