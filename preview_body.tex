@@ -963,17 +963,19 @@ Sulisobenzone   & 287 & 330 & 346 & 355 & & 286 & 326 & 346 & 352 \\
 
 \begin{table}[htbp]
 \centering
-\caption{Aggregate wetlab validation metrics (16 molecules $\times$ 2 solvents = 32 data points). 95\% bootstrap CIs from 10,000 resamples.}
+\caption{Aggregate wetlab validation (16 mol.\ $\times$ 2 solvents = 32 points). 95\% bootstrap CIs in brackets.}
 \label{tab:wetlab_summary}
-\begin{tabular}{lcc}
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}lcc@{}}
 \toprule
-\textbf{Model} & \textbf{MAE (nm) [95\% CI]} & \textbf{RMSE (nm) [95\% CI]} \\
+\textbf{Model} & \textbf{MAE (nm)} & \textbf{RMSE (nm)} \\
 \midrule
-Chemprop (D-MPNN) & \textbf{26.2}              & 35.7 \\
-ChemBERTa         & 26.3 [20.1--33.0] & \textbf{32.2} [25.2--38.8] \\
-BiGRU (default)   & 28.6 [22.7--35.0] & 33.9 [26.2--41.2] \\
-BiGRU (tuned)     & 31.5 & 37.0 \\
-RF + Morgan FP    & 38.5 [31.6--45.9]          & 43.7 [35.3--51.7] \\
+Chemprop    & \textbf{26.2}         & 35.7 \\
+ChemBERTa   & 26.3 {\scriptsize[20--33]}  & \textbf{32.2} {\scriptsize[25--39]} \\
+BiGRU (def.)& 28.6 {\scriptsize[23--35]}  & 33.9 {\scriptsize[26--41]} \\
+BiGRU (tun.)& 31.5                  & 37.0 \\
+RF          & 38.5 {\scriptsize[32--46]}  & 43.7 {\scriptsize[35--52]} \\
 \bottomrule
 \end{tabular}
 \end{table}
