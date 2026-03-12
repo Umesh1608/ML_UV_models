@@ -3,48 +3,56 @@ Suggested Reviewers for JCIM Submission
 "When Do Simple Models Win? Machine Learning Architectures for UV Absorption Prediction
 and Insights for General Molecular Property Prediction"
 
-1. Jurgen Bajorath
+--- Cited in our paper ---
+
+1. Sereina Riniker
+   ETH Zurich, Switzerland (Chemistry and Applied Biosciences)
+   Email: sriniker@ethz.ch
+   Expertise: Molecular fingerprints, cheminformatics, molecular representations
+   Cited: riniker2013similarity (SimilarityMaps visualization we use for saliency)
+   JCIM publications: Multiple, including MD fingerprints (JCIM, 2017) and
+   molecular representation benchmarking. Expert on fingerprint vs. learned
+   representations -- directly relevant to our core comparison.
+
+2. Artem Cherkasov
+   University of British Columbia, Canada (Dept. of Urologic Sciences)
+   Email: acherkasov@prostatecentre.com
+   Expertise: QSAR/QSPR model development, ML benchmarking, drug discovery
+   Cited: cherkasov2014qsar (QSAR guidelines we follow for evaluation methodology)
+   JCIM publications: 5+ papers on CADD, QSAR, and deep learning for molecular
+   properties. Expert in ML benchmarking best practices.
+
+3. Juyong Lee
+   Kangwon National University, South Korea (Dept. of Chemistry)
+   Email: juyong.lee@kangwon.ac.kr
+   Expertise: ML for electronic transitions, RF for spectral properties
+   Cited: kang2020prediction (RF for electronic transition prediction, JCIM 2020)
+   JCIM publications: "Prediction of Molecular Electronic Transitions Using
+   Random Forests" (JCIM, 2020). Closest domain expertise to our UV absorption
+   prediction work. We cite but do not replicate his results.
+
+--- Not cited but strong JCIM experts ---
+
+4. Jurgen Bajorath
    University of Bonn, Germany (LIMES Institute)
    Email: bajorath@bit.uni-bonn.de
-   Expertise: Cheminformatics, QSAR, ML benchmarking, activity cliffs
-   Relevance: Leading authority on ML benchmarking for molecular properties;
-   Herman Skolnik Award (2015); published extensively in JCIM on when ML models
-   succeed or fail. Directly relevant to our "when do simple models win" question.
+   Expertise: Cheminformatics, ML benchmarking, activity cliffs, QSAR
+   JCIM publications: Extensive (50+ JCIM papers); Herman Skolnik Award (2015).
+   Leading authority on when ML models succeed or fail for molecular properties.
+   Directly relevant to our "when do simple models win" question.
 
-2. Francesca Grisoni
-   Eindhoven University of Technology, Netherlands
+5. Francesca Grisoni
+   Eindhoven University of Technology, Netherlands (Biomedical Engineering)
    Email: f.grisoni@tue.nl
    Expertise: SMILES-based deep learning, chemical language models, ML limitations
-   Relevance: Published "Exposing the Limitations of Molecular Machine Learning
-   with Activity Cliffs" (JCIM, 2022); ERC Starting Grant on molecular deep learning.
-   Expert in exactly the SMILES-based models and benchmarking questions we address.
+   JCIM publications: "Exposing the Limitations of Molecular Machine Learning
+   with Activity Cliffs" (JCIM, 2022); ERC Starting Grant (2022).
+   Expert on benchmarking SMILES-based models and understanding their failure modes.
 
-3. Sereina Riniker
-   ETH Zurich, Switzerland
-   Email: sriniker@ethz.ch
-   Expertise: Molecular representations, fingerprints, cheminformatics benchmarking
-   Relevance: Extensive work on molecular fingerprint representations and their
-   comparison with learned representations. Directly relevant to our Morgan FP
-   vs. learned representation analysis.
-
-4. Raghunathan Ramakrishnan
-   Tata Institute of Fundamental Research (TIFR), Hyderabad, India
-   Email: ramakrishnan@tifrh.res.in
-   Expertise: ML for UV-Vis absorption prediction, electronic spectra, TDDFT + ML
-   Relevance: One of few researchers publishing specifically on ML for UV-Vis
-   absorption prediction; "Electronic Spectra from TDDFT and Machine Learning
-   in Chemical Space" (J. Chem. Phys., 2015). Domain-specific expertise in our
-   exact prediction target.
-
-5. Olexandr Isayev
-   Carnegie Mellon University, USA
-   Email: olexandr@cmu.edu
-   Expertise: ML for molecular properties, GNNs, neural network potentials
-   Relevance: Carl and Amy Jones Professor; extensive work on GNNs and ML
-   for molecular property prediction; strong perspective on representation
-   learning vs. fixed descriptors.
-
-Note: Confirm email addresses and affiliations at time of submission.
-No institutional conflicts with University of Iowa or Midwest Bioprocessing Center.
-No direct conflicts: we do not benchmark software from or replicate results of
-any suggested reviewer.
+========================================
+Notes:
+- Confirm email addresses and affiliations at time of submission.
+- No institutional conflicts with University of Iowa or Midwest Bioprocessing Center.
+- Tropsha (UNC) excluded: JCIM Associate Editor since 2015.
+- Yang, Pereira/Mamede, Cole/Jung excluded: we directly benchmark their work/software.
+- Vermeire excluded: Chemprop co-developer.
