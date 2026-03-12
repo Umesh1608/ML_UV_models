@@ -284,6 +284,10 @@ After merging, deduplication, and canonicalization, the combined dataset contain
 No outlier filtering on $\lambda_{\max}$ values was applied; all experimentally reported values in the 200--900~nm range were retained.
 Target values ($\lambda_{\max}$) range from 200 to 900~nm, with a median of 325~nm.
 
+To assess generalizability beyond the primary dataset, we additionally evaluate on two external datasets using their published split protocols, training models from scratch on each dataset's training split.
+The \textbf{Deep4Chem} database~\cite{joung2021deep} contains 30,094 chromophore--solvent combinations; after deduplication and preprocessing, 17,683 records remain (reported GCNN baseline: RMSE = 26.6~nm; 80/10/10 random split).
+The \textbf{Jung et al.\ (2024)} dataset~\cite{jung2024machine} contains approximately 26,000 records with multiple published baselines: GBFS (RMSE = 32.2~nm, MAE = 16.2~nm, $R^2$ = 0.91), Multifidelity (RMSE = 31.3~nm), and DR-CNN (RMSE = 44.4~nm; 72/18/10 random split).
+
 \begin{table}[htbp]
 \centering
 \caption{Summary of the primary Joung+Beard dataset after preprocessing.}
@@ -616,22 +620,6 @@ where \texttt{!} serves as the start/separator token and \texttt{E} as the end/p
 
 For fingerprint-based models, we adopt an analogous strategy: Morgan fingerprints are computed separately for the solute and solvent, then concatenated into a single feature vector (2048 + 2048 = 4096 dimensions).
 This ``solvent concatenation'' approach requires no domain-specific descriptor engineering and enables both model families to learn solvent effects from molecular structure alone.
-
-
-% ===== External Validation Datasets =====
-\section{External Validation Datasets}
-\label{sec:datasets}
-
-To assess generalizability beyond the primary Joung+Beard dataset, we evaluate on two external datasets using their published split protocols.
-For each external dataset, models are trained from scratch on the dataset's training split and evaluated on its test split, matching the exact protocol used by the original authors.
-
-\subsection{Deep4Chem (Joung 2020)}
-The Deep4Chem database contains 30,094 chromophore--solvent combinations~\cite{joung2021deep}; after deduplication and preprocessing, 17,683 records remain for benchmarking (reported GCNN baseline: RMSE = 26.6~nm).
-We replicate the 80/10/10 random train/validation/test split.
-
-\subsection{Jung et al.\ (2024)}
-Approximately 26,000 records with multiple published baselines~\cite{jung2024machine}: GBFS (RMSE = 32.2~nm, MAE = 16.2~nm, $R^2$ = 0.91), Multifidelity (RMSE = 31.3~nm), and DR-CNN (RMSE = 44.4~nm).
-We use the 72/18/10 random split matching the published protocol.
 
 
 % ===== Results and Discussion =====
