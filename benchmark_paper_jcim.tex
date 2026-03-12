@@ -147,8 +147,8 @@ Figure~\ref{fig:benchmark_framework} provides an overview of this multi-pathway 
     \draw[arr, draw=blue!40!black] (cat) -- (seq.west);
 
     % ---- Stage labels ----
-    \node[font=\footnotesize\bfseries, gray!60] at (0, -2.7) {\textsc{Input}};
-    \node[font=\footnotesize\bfseries, gray!60] at (9.5, -2.7) {\textsc{Representation}};
+    \node[font=\footnotesize\bfseries, gray!60] at (0, -3.0) {\textsc{Input}};
+    \node[font=\footnotesize\bfseries, gray!60] at (9.5, -3.0) {\textsc{Representation}};
 
     \end{tikzpicture}
     \caption{Input and representation. Both solute and solvent SMILES feed three pathways. The fingerprint path (green) computes Morgan FPs independently per molecule and hstacks them (2048+2048 = 4096-bit). The graph path (red) converts each SMILES to a molecular graph with atom and bond features. The sequence path (blue) concatenates the SMILES strings before tokenization.}
