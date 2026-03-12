@@ -128,10 +128,10 @@ Figure~\ref{fig:benchmark_framework} provides an overview of this multi-pathway 
           font=\scriptsize\bfseries] (graphnode) at (5.5, 0) {G};
     \node[font=\tiny, red!40!black, below=1pt of graphnode] {per-mol.};
 
-    \node[box, fill=red!6, draw=red!40!black, minimum width=4.4cm] (mg) at (9.5, 0)
+    \node[box, fill=red!6, draw=red!40!black, minimum width=4.4cm, text width=4.0cm] (mg) at (9.5, 0)
         {Molecular Graph\\[-1pt]{\scriptsize Atom/bond features per molecule, separate encoders}};
 
-    \draw[arr, draw=red!40!black] (fork) -- (graphnode);
+    \draw[arr, draw=red!40!black] (fork) -- (4.2, 0) -- (graphnode);
     \draw[arr, draw=red!40!black] (graphnode) -- (mg.west);
 
     % ---- Blue path (bottom): SMILES concat, then tokenized ----
