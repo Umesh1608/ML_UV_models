@@ -19,11 +19,11 @@ American Chemical Society}
 
 We are pleased to submit our manuscript entitled ``When Do Simple Models Win? Machine Learning Architectures for UV Absorption Prediction and Insights for General Molecular Property Prediction'' for consideration as an Article in the \textit{Journal of Chemical Information and Modeling}.
 
-This work provides a systematic, controlled benchmark of five machine learning approaches---Random Forest, XGBoost, Chemprop (D-MPNN), BiGRU, and ChemBERTa---spanning fingerprint, graph, recurrent, and Transformer architectures for predicting UV absorption wavelengths ($\lambda_{\max}$), using identical data splits, preprocessing, and evaluation protocols across all models.
+This work provides a systematic, controlled benchmark of five machine learning models spanning four architecture families---fingerprint-based ensembles (Random Forest, XGBoost), a directed message-passing graph neural network, a bidirectional gated recurrent network, and a pretrained Transformer---for predicting UV absorption wavelengths ($\lambda_{\max}$), using identical data splits, preprocessing, and evaluation protocols across all models.
 Our key findings are:
 
 \begin{enumerate}
-    \item \textbf{Complementary strengths of simple and deep models.} Random Forest with Morgan fingerprints and the Chemprop graph neural network achieve statistically indistinguishable cross-validated performance (RMSE = 31.34 and 31.69~nm, $p = 0.77$), both outperforming sequence-based models. However, experimental validation on 16 novel UV-absorbing compounds reverses this ranking: both deep learning models outperform RF on out-of-distribution molecules (ChemBERTa MAE = 26.3 vs.\ RF 38.5~nm).
+    \item \textbf{Complementary strengths of simple and deep models.} Random Forest with Morgan fingerprints and the D-MPNN graph neural network achieve statistically indistinguishable cross-validated performance (RMSE = 31.34 and 31.69~nm, $p = 0.77$), both outperforming sequence-based models. However, experimental validation on 16 novel UV-absorbing compounds reverses this ranking: deep learning models outperform RF on out-of-distribution molecules (Transformer MAE = 26.3 vs.\ RF 38.5~nm).
 
     \item \textbf{Practical solvent encoding.} A simple SMILES/fingerprint concatenation strategy for encoding solute--solvent pairs yields consistent 6--8\% RMSE reductions across all model families, without requiring domain-specific descriptor engineering.
 

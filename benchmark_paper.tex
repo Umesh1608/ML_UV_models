@@ -61,7 +61,7 @@ In either case, encoding solvent identity improves all models: a simple SMILES/f
 Interpretability analysis confirms that both RF feature importance and BiGRU gradient saliency independently highlight the same chromophore motifs, and that architectures with local inductive bias systematically outperform global-attention Transformers on this locally determined property.
 \end{abstract}
 
-\textbf{Keywords:} UV absorption, molecular property prediction, deep learning, recurrent neural networks, random forest, Morgan fingerprints, graph neural network, Chemprop, ChemBERTa, solvent effects, benchmarking
+\textbf{Keywords:} UV absorption, molecular property prediction, deep learning, recurrent neural networks, random forest, Morgan fingerprints, graph neural network, directed message passing, pretrained Transformer, solvent effects, benchmarking
 
 % ===== Introduction =====
 \section{Introduction}
@@ -221,11 +221,11 @@ The UV absorption prediction task presents several distinctive challenges that m
     \item \textbf{Practical relevance:} ICH~S10 guidelines require photosafety screening of pharmaceutical compounds, where $\lambda_{\max}$ prediction serves as a first-pass filter.
 \end{enumerate}
 
-In this work, we present a benchmark study comparing five ML approaches---Random Forest, XGBoost, Chemprop (D-MPNN), Bidirectional GRU, and ChemBERTa---spanning fingerprint, graph, recurrent, and Transformer architectures for $\lambda_{\max}$ prediction.
+In this work, we present a benchmark study comparing five ML models spanning four architecture families---fingerprint-based ensembles (Random Forest, XGBoost), a directed message-passing graph neural network (D-MPNN), a bidirectional gated recurrent network (BiGRU), and a pretrained Transformer---for $\lambda_{\max}$ prediction.
 Our key contributions are:
 \begin{itemize}
     \item \textbf{Practical model selection guidance:} RF is optimal for in-distribution screening (fast, no GPU, no tuning needed); deep learning models generalize better to novel compounds. We validate this on 16 experimentally measured UV-absorbing molecules.
-    \item \textbf{Controlled multi-architecture comparison} across three datasets using published evaluation protocols. Chemprop (D-MPNN) with default hyperparameters sets new state-of-the-art results on both external datasets, while RF and Chemprop are statistically tied on primary cross-validation.
+    \item \textbf{Controlled multi-architecture comparison} across three datasets using published evaluation protocols. The D-MPNN with default hyperparameters sets new state-of-the-art results on both external datasets, while RF and D-MPNN are statistically tied on primary cross-validation.
     \item \textbf{Optimized BiGRU architecture} via Bayesian hyperparameter search (3-layer, 256-unit, 4.8\% RMSE improvement), demonstrating that a sequence-based approach operating on raw SMILES can match graph and fingerprint methods without compromising prediction accuracy.
     \item \textbf{Architecture-independent solvent encoding:} a simple concatenation strategy yields 6--8\% RMSE reductions across fingerprint, graph, and recurrent models ($p < 0.02$), without domain-specific descriptor engineering.
     \item \textbf{Locality-of-property hypothesis:} architectures with local inductive bias systematically outperform global-attention Transformers on UV absorption, which is determined by local electronic structure~\cite{chenMolecularLanguage2023}. All three encode molecular structure with an implicit spatial cutoff (Morgan fingerprints through a fixed radius, D-MPNN through bounded message-passing depth, and BiGRU through gradient decay in the recurrent hidden state), while Transformers impose no such locality constraint through global self-attention. RF feature importance and BiGRU gradient saliency independently highlight the same chromophore motifs, confirming that both architectures learn meaningful photochemistry.
@@ -325,7 +325,7 @@ Metrics are reported as mean $\pm$ standard deviation across five folds: root-me
 Statistical significance of pairwise model differences is assessed using paired $t$-tests across the five fold RMSE values ($\alpha = 0.05$).
 
 For external datasets, we use the exact split protocols published by the original authors to enable direct comparison with reported results.
-All models are implemented using scikit-learn~\cite{pedregosa2011scikit} (RF), XGBoost~\cite{chen2016xgboost}, TensorFlow~\cite{abadi2016tensorflow} (BiGRU), and PyTorch with HuggingFace Transformers (ChemBERTa).
+Models are implemented using scikit-learn~\cite{pedregosa2011scikit} (RF), XGBoost~\cite{chen2016xgboost}, TensorFlow~\cite{abadi2016tensorflow} (BiGRU), Chemprop v2~\cite{yangAnalyzingLearnedMolecular2019} with PyTorch Lightning (D-MPNN), and PyTorch with HuggingFace Transformers~\cite{chithrananda2020chemberta} (pretrained Transformer).
 Figure~\ref{fig:model_overview} provides a high-level comparison of the three model families, illustrating the fundamental differences in molecular representation and model complexity.
 
 % ============== Architecture Overview: 3-panel ==============
@@ -577,11 +577,12 @@ Figure~\ref{fig:bigru_architectures} compares the default and optimized BiGRU ar
 \end{figure}
 
 
-\subsection{Pretrained Transformer (ChemBERTa)}
+\subsection{Pretrained Transformer}
 \label{sec:chemberta}
 
-To assess whether pretraining on large molecular corpora bridges the gap between sequence models and fingerprint-based approaches, we include ChemBERTa~\cite{chithrananda2020chemberta}, a RoBERTa~\cite{liu2019roberta} model pretrained on SMILES from the ZINC database~\cite{irwin2005zinc}.
-ChemBERTa uses a byte-pair encoding (BPE) tokenizer trained on SMILES, with 6 Transformer layers, 12 attention heads, and a hidden dimension of 768, totaling 44.1M parameters.
+To assess whether pretraining on large molecular corpora bridges the gap between sequence models and fingerprint-based approaches, we adopt ChemBERTa~\cite{chithrananda2020chemberta} as our Transformer representative.
+ChemBERTa is a RoBERTa~\cite{liu2019roberta} architecture pretrained on SMILES from the ZINC database~\cite{irwin2005zinc}, selected because it is among the most widely used pretrained molecular Transformers and provides a direct comparison between pretrained global-attention and locally biased architectures.
+It uses a byte-pair encoding (BPE) tokenizer trained on SMILES, with 6 Transformer layers, 12 attention heads, and a hidden dimension of 768, totaling 44.1M parameters.
 
 We fine-tune ChemBERTa for regression by adding a linear prediction head (768 $\to$ 256 $\to$ 1) on top of the \texttt{[CLS]} token representation.
 Solvent information is encoded by concatenating solute and solvent SMILES with a dot separator (\texttt{solute.solvent}), analogous to the exclamation-mark separator used for BiGRU.
@@ -589,11 +590,11 @@ Fine-tuning uses AdamW~\cite{loshchilov2019decoupled} with learning rate $5 \tim
 Mixed-precision (float16) training is used on the same NVIDIA RTX 4090 GPU.
 
 
-\subsection{Graph Neural Network (Chemprop D-MPNN)}
+\subsection{Graph Neural Network (D-MPNN)}
 \label{sec:chemprop}
 
-To include a 2D graph-based representation, we evaluate Chemprop~\cite{yangAnalyzingLearnedMolecular2019}, the most widely adopted GNN for molecular property prediction.
-Chemprop implements a Directed Message Passing Neural Network (D-MPNN) that operates on the molecular graph by passing messages along directed bonds rather than atoms, avoiding redundant information flow to the source atom at each step.
+To include a 2D graph-based representation, we adopt the Directed Message Passing Neural Network (D-MPNN) architecture via Chemprop~\cite{yangAnalyzingLearnedMolecular2019}, selected for its established performance across diverse molecular property benchmarks and its native support for multicomponent (solute--solvent) inputs.
+The D-MPNN operates on the molecular graph by passing messages along directed bonds rather than atoms, avoiding redundant information flow to the source atom at each step.
 Given a molecular graph with atom features $\vect{x}_v$ and bond features $\vect{e}_{vw}$, directed bond hidden states $\vect{h}_{vw}^{(t)}$ are updated over $T$ steps:
 \begin{equation}
     \vect{h}_{vw}^{(t)} = \tau\!\left(\vect{h}_{vw}^{(0)} + \matr{W}_t \sum_{u \in N(v) \setminus w} \vect{h}_{uv}^{(t-1)}\right)
@@ -601,7 +602,7 @@ Given a molecular graph with atom features $\vect{x}_v$ and bond features $\vect
 where $\tau$ is ReLU, $N(v) \setminus w$ denotes neighbors of $v$ excluding $w$, and $\vect{h}_{vw}^{(0)} = \tau(\matr{W}_0 \, [\vect{x}_v \| \vect{e}_{vw}])$ is initialized from concatenated atom and bond features.
 After $T = 3$ message-passing steps, atom-level representations are obtained by summing incoming bond messages and passed through mean pooling to produce a fixed-length molecular vector.
 
-We use Chemprop v2 in a multicomponent configuration: separate D-MPNN encoders process the solute and solvent molecular graphs independently (hidden dimension $d_h = 300$ each), and their pooled representations are concatenated before a feed-forward regression head.
+We adapt the D-MPNN for solute--solvent prediction using a multicomponent configuration: separate D-MPNN encoders process the solute and solvent molecular graphs independently (hidden dimension $d_h = 300$ each), and their pooled representations are concatenated before a feed-forward regression head.
 All D-MPNN hyperparameters are kept at their published defaults~\cite{yangAnalyzingLearnedMolecular2019}; no architecture or hyperparameter tuning was performed.
 This yields 636K trainable parameters.
 Target values are normalized to zero mean and unit variance during training.
