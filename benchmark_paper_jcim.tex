@@ -51,7 +51,6 @@ For screening within known chemical space, RF with Morgan fingerprints is optima
 For exploring novel scaffolds, deep learning is superior: experimental validation on 16 novel UV-absorbing compounds shows that Chemprop (MAE = 26.2~nm), ChemBERTa (26.3~nm), and an optimized BiGRU (28.6~nm; 3-layer, 256-unit architecture identified via Bayesian hyperparameter search) all outperform RF (38.5~nm), as learned representations generalize where fixed fingerprints cannot.
 In either case, encoding solvent identity improves all models: a simple SMILES/fingerprint concatenation strategy yields 6--8\% RMSE reductions across fingerprint, graph, and recurrent architectures ($p < 0.02$), without domain-specific descriptor engineering.
 Interpretability analysis confirms that both RF feature importance and BiGRU gradient saliency independently highlight the same chromophore motifs, and that architectures with local inductive bias systematically outperform global-attention Transformers on this locally determined property.
-All three architectures encode molecular structure with an implicit spatial cutoff --- Morgan fingerprints through a fixed radius, D-MPNN through bounded message-passing depth, and BiGRU through gradient decay in the recurrent hidden state --- while Transformers impose no such locality constraint through global self-attention.
 \end{abstract}
 
 % ===== Introduction =====
@@ -664,6 +663,7 @@ The strong performance of fingerprint-based RF can be understood through the phy
 Electronic transitions responsible for $\lambda_{\max}$ are localized to chromophoric regions of the molecule, with absorption wavelength determined by local structural features such as conjugation length, substituent effects, and heteroatom character~\cite{flemingMolecular2010, reichardt2011solvents}.
 Morgan fingerprints encode precisely these local substructural environments~\cite{rogers2010extended}, and our feature importance analysis confirms that the model's top features correspond to known chromophore motifs.
 That Chemprop's D-MPNN, with 3 message-passing steps capturing a comparable local neighborhood to Morgan radius-2 fingerprints, achieves statistically indistinguishable performance (31.69 vs.\ 31.34~nm, $p = 0.77$) reinforces this locality hypothesis: both representations that match the spatial scale of chromophoric features perform well, regardless of whether the model operates on explicit fingerprint bits or learned graph embeddings.
+All three architectures encode molecular structure with an implicit spatial cutoff --- Morgan fingerprints through a fixed radius, D-MPNN through bounded message-passing depth, and BiGRU through gradient decay in the recurrent hidden state --- while Transformers impose no such locality constraint through global self-attention.
 Kang et al.~\cite{kang2020prediction} and Urbina et al.~\cite{beard2022uvadvisor} similarly found that fingerprint- and RNN-based models excel at electronic transition prediction, further supporting the hypothesis that UV absorption is a local-feature-dependent property.
 
 \begin{figure}[htbp]
