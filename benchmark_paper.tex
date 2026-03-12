@@ -213,7 +213,7 @@ In this work, we present a benchmark study comparing five ML approaches---Random
 Our key contributions are:
 \begin{itemize}
     \item A comprehensive comparison across three datasets using each dataset's published evaluation protocol, enabling direct comparison with prior work.
-    \item Demonstration that RF with Morgan fingerprints achieves the best cross-validated performance, reaching state-of-the-art results on both external datasets.
+    \item Demonstration that RF and Chemprop achieve the best cross-validated performance, with Chemprop setting new state-of-the-art results on both external datasets.
     \item Evidence that deep learning models (ChemBERTa and BiGRU) generalize better to novel out-of-distribution compounds, revealing distinct advantages for fingerprint-based and sequence-based approaches.
     \item A solvent concatenation strategy that improves prediction accuracy across fingerprint, graph, and sequence-based methods.
     \item Evidence that UV absorption prediction favors local-feature architectures on in-distribution benchmarks~\cite{chenMolecularLanguage2023}: RF feature importance analysis maps directly to known chromophore motifs, and both RF and BiGRU gradient saliency highlight the same conjugated regions, supporting the hypothesis that local electronic structure determines $\lambda_{\max}$. RF also trains 100$\times$ faster (15 minutes CPU vs.\ 25 hours GPU), though out-of-distribution evaluation reveals complementary advantages for pretrained representations.
@@ -793,11 +793,12 @@ Table~\ref{tab:cross_dataset} presents results on two external datasets, with pu
   & Our ChemBERTa             & 35.90  & 17.43  & 0.884 \\
   & Our BiGRU                 & 27.07  & 17.22  & 0.934 \\
 \midrule
-\multirow{6}{*}{Jung 2024 (72/18/10)}
+\multirow{7}{*}{Jung 2024 (72/18/10)}
   & Multifidelity$^\dagger$   & 31.3   & 14.6   & 0.91  \\
   & GBFS$^\dagger$            & 32.2   & 16.2   & 0.91  \\
   & DR-CNN$^\dagger$          & 44.4   & 23.3   & 0.82  \\
-  & Our RF                    & \textbf{29.82}  & \textbf{15.31}  & \textbf{0.924} \\
+  & Our Chemprop              & \textbf{27.36}  & \textbf{15.50}  & \textbf{0.936} \\
+  & Our RF                    & 29.82  & 15.31  & 0.924 \\
   & Our ChemBERTa             & 38.27  & 19.27  & 0.874 \\
   & Our BiGRU                 & 36.31  & 21.54  & 0.887 \\
 \bottomrule
@@ -810,11 +811,11 @@ RF also outperforms the GCNN by 15\%, and BiGRU performs competitively (RMSE = 2
 That a 2D GNN trained from scratch outperforms all other models on this dataset suggests that learned graph representations can capture structural patterns beyond what fixed fingerprints encode, particularly when the training set is large enough to learn effective bond-level features.
 
 \textbf{Jung et al.\ (2024).}
-RF again achieves the best result among all methods (RMSE = 29.82~nm), outperforming the published GBFS (32.2~nm) and multifidelity (31.3~nm) approaches.
+Chemprop again achieves the best result (RMSE = 27.36~nm), followed closely by RF (29.82~nm), both outperforming the published multifidelity (31.3~nm) and GBFS (32.2~nm) approaches.
 BiGRU (RMSE = 36.31~nm) and ChemBERTa (38.27~nm) fall between the GBFS and DR-CNN published baselines.
-Our RF model uses a simpler architecture than both published methods (which involve feature selection pipelines and multi-task learning, respectively), yet achieves superior performance.
+Our top two models use simpler architectures than the published methods (which involve feature selection pipelines and multi-task learning, respectively), yet achieve superior performance.
 
-Across both external datasets, RF consistently outperforms BiGRU and ChemBERTa, reinforcing the finding from our primary dataset that fingerprint-based models excel at in-distribution prediction.
+Across both external datasets, Chemprop achieves the best performance, followed by RF, with both consistently outperforming BiGRU and ChemBERTa, reinforcing the finding that local-feature models (graph message passing and fingerprints) excel at in-distribution prediction.
 
 
 % --- Error Analysis ---

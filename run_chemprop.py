@@ -603,6 +603,11 @@ CROSS_DATASET_INFO = {
         "display": "Deep4Chem (Joung 2020)",
         "random_split": {"train": 0.8, "val": 0.1, "test": 0.1},
     },
+    "jung2024": {
+        "file": os.path.join(DATA_DIR, "jung2024_processed.csv"),
+        "display": "Jung 2024",
+        "random_split": {"train": 0.72, "val": 0.18, "test": 0.10},
+    },
 }
 
 
@@ -763,7 +768,7 @@ def main():
         help="Print summary of all results",
     )
     parser.add_argument(
-        "--dataset", choices=["primary", "deep4chem"], default="primary",
+        "--dataset", choices=["primary", "deep4chem", "jung2024"], default="primary",
         help="Dataset to train on (default: primary)",
     )
     parser.add_argument(
