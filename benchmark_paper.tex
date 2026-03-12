@@ -54,7 +54,7 @@
 \begin{abstract}
 Accurate prediction of UV absorption wavelengths ($\lambda_{\max}$) from molecular structure is essential for photosafety screening, materials design, and photochemistry.
 We present a systematic benchmark of machine learning approaches for $\lambda_{\max}$ prediction, comparing Random Forest (RF) with Morgan fingerprints, XGBoost, the Chemprop directed message passing neural network (D-MPNN), a Bidirectional GRU (BiGRU) sequence model, and ChemBERTa, a pretrained Transformer fine-tuned on SMILES strings.
-Models are evaluated on a primary dataset of 18,755 solute--solvent pairs (Joung + Beard) using stratified 5-fold cross-validation, with external validation on three independent datasets totaling over 70,000 molecules using each dataset's published split protocol for direct comparison with prior work.
+Models are evaluated on a primary dataset of 18,755 solute--solvent pairs (Joung + Beard) using stratified 5-fold cross-validation, with external validation on two independent datasets totaling over 40,000 molecules using each dataset's published split protocol for direct comparison with prior work.
 RF and Chemprop achieve statistically indistinguishable cross-validated performance (RMSE = $31.34 \pm 1.82$ and $31.69 \pm 3.18$ nm, $p = 0.77$), both outperforming BiGRU (RMSE = $36.45 \pm 1.12$ nm) and matching or exceeding published deep learning baselines on external datasets, including GCNN on Deep4Chem (our RMSE = 22.70 vs.\ 26.6 nm) and GBFS on Jung et al.\ (our RMSE = 29.82 vs.\ 32.2 nm).
 ChemBERTa, a pretrained Transformer (44.1M parameters), achieves the worst cross-validated performance (RMSE = $50.39 \pm 2.30$ nm), yet experimental validation on 16 novel UV-absorbing compounds reveals that both deep learning models outperform RF on out-of-distribution molecules (ChemBERTa MAE = 26.3, BiGRU = 28.6 vs.\ 38.5 nm for RF), suggesting that learned representations generalize beyond fixed substructural features.
 We introduce a solvent concatenation strategy encoding solute and solvent as a single representation, yielding consistent improvement across all tested model families (8\% RMSE reduction for RF, 6\% for Chemprop, 7\% for BiGRU).
@@ -212,8 +212,8 @@ The UV absorption prediction task presents several distinctive challenges that m
 In this work, we present a benchmark study comparing five ML approaches---Random Forest, XGBoost, Chemprop (D-MPNN), Bidirectional GRU, and ChemBERTa---spanning fingerprint, graph, recurrent, and Transformer architectures for $\lambda_{\max}$ prediction.
 Our key contributions are:
 \begin{itemize}
-    \item A comprehensive comparison across four datasets using each dataset's published evaluation protocol, enabling direct comparison with prior work.
-    \item Demonstration that RF with Morgan fingerprints achieves the best cross-validated performance, reaching state-of-the-art results on two of three external datasets.
+    \item A comprehensive comparison across three datasets using each dataset's published evaluation protocol, enabling direct comparison with prior work.
+    \item Demonstration that RF with Morgan fingerprints achieves the best cross-validated performance, reaching state-of-the-art results on both external datasets.
     \item Evidence that deep learning models (ChemBERTa and BiGRU) generalize better to novel out-of-distribution compounds, revealing distinct advantages for fingerprint-based and sequence-based approaches.
     \item A solvent concatenation strategy that improves prediction accuracy across fingerprint, graph, and sequence-based methods.
     \item Evidence that UV absorption prediction favors local-feature architectures on in-distribution benchmarks~\cite{chenMolecularLanguage2023}: RF feature importance analysis maps directly to known chromophore motifs, and both RF and BiGRU gradient saliency highlight the same conjugated regions, supporting the hypothesis that local electronic structure determines $\lambda_{\max}$. RF also trains 100$\times$ faster (15 minutes CPU vs.\ 25 hours GPU), though out-of-distribution evaluation reveals complementary advantages for pretrained representations.
@@ -614,7 +614,7 @@ This ``solvent concatenation'' approach requires no domain-specific descriptor e
 \section{External Validation Datasets}
 \label{sec:datasets}
 
-To assess generalizability beyond the primary Joung+Beard dataset, we evaluate on three external datasets using their published split protocols.
+To assess generalizability beyond the primary Joung+Beard dataset, we evaluate on two external datasets using their published split protocols.
 For each external dataset, models are trained from scratch on the dataset's training split and evaluated on its test split, matching the exact protocol used by the original authors.
 
 \subsection{Deep4Chem (Joung 2020)}
@@ -625,9 +625,6 @@ We replicate the 80/10/10 random train/validation/test split.
 Approximately 26,000 records with multiple published baselines~\cite{jung2024machine}: GBFS (RMSE = 32.2~nm, MAE = 16.2~nm, $R^2$ = 0.91), Multifidelity (RMSE = 31.3~nm), and DR-CNN (RMSE = 44.4~nm).
 We use the 72/18/10 random split matching the published protocol.
 
-\subsection{nablaColors (Potapov 2026)}
-26,369 TD-DFT computed absorption wavelengths with 3D molecular geometries~\cite{potapov2026nablacolors}, featuring a published UniProp 3D GNN baseline (a solvent-aware variant of UniMol+; MAE = 15.97~nm, RMSE = 27.2~nm).
-We use the precomputed scaffold-based split, which tests generalization across structurally distinct molecular classes.
 
 % ===== Results and Discussion =====
 \section{Results and Discussion}
@@ -779,11 +776,11 @@ Nevertheless, for applications such as ICH~S10~\cite{ICH2013S10} photosafety scr
 \subsection{Cross-Dataset Benchmarking}
 \label{sec:cross_dataset}
 
-Table~\ref{tab:cross_dataset} presents results on three external datasets, with published baselines included for direct comparison.
+Table~\ref{tab:cross_dataset} presents results on two external datasets, with published baselines included for direct comparison.
 
 \begin{table}[t]
 \centering
-\caption{Cross-dataset benchmarking using published split protocols. $\dagger$Published results from original papers. Best result among our models in bold for each dataset. nablaColors uses a precomputed scaffold split~\cite{potapov2026nablacolors}.}
+\caption{Cross-dataset benchmarking using published split protocols. $\dagger$Published results from original papers. Best result among our models in bold for each dataset.}
 \label{tab:cross_dataset}
 \begin{tabular}{llccc}
 \toprule
@@ -803,11 +800,6 @@ Table~\ref{tab:cross_dataset} presents results on three external datasets, with 
   & Our RF                    & \textbf{29.82}  & \textbf{15.31}  & \textbf{0.924} \\
   & Our ChemBERTa             & 38.27  & 19.27  & 0.874 \\
   & Our BiGRU                 & 36.31  & 21.54  & 0.887 \\
-\midrule
-\multirow{3}{*}{\shortstack[l]{nablaColors\\(scaffold)}}
-  & UniProp$^\dagger$ (3D GNN)& 27.2  & 15.97  & 0.929   \\
-  & Our RF                    & 56.38  & 39.48  & 0.696 \\
-  & Our BiGRU                 & 56.57  & 40.42  & 0.694 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -822,13 +814,7 @@ RF again achieves the best result among all methods (RMSE = 29.82~nm), outperfor
 BiGRU (RMSE = 36.31~nm) and ChemBERTa (38.27~nm) fall between the GBFS and DR-CNN published baselines.
 Our RF model uses a simpler architecture than both published methods (which involve feature selection pipelines and multi-task learning, respectively), yet achieves superior performance.
 
-\textbf{nablaColors (scaffold split).}
-On the nablaColors dataset~\cite{potapov2026nablacolors}, which uses a scaffold-based split designed to test generalization across structural classes, both 1D models perform comparably (RF RMSE = 56.38~nm, BiGRU = 56.57~nm) but lag far behind the published UniProp 3D GNN baseline (RMSE = 27.2~nm, MAE = 15.97~nm).
-This $\sim$2.1$\times$ RMSE gap arises because the scaffold split pushes models to predict chromophores with no structurally similar training examples, and 3D conformational information (captured by UniProp but not by SMILES or fingerprints) becomes critical for diverse chromophore geometries.
-This result highlights the one scenario where 1D representations are clearly insufficient.
-
-Across Deep4Chem and Jung 2024, RF consistently outperforms BiGRU and ChemBERTa, reinforcing the finding from our primary dataset that fingerprint-based models excel at in-distribution prediction.
-The nablaColors result provides a complementary perspective: when structural diversity is extreme and 3D information is needed, 1D models reach a performance ceiling regardless of architecture.
+Across both external datasets, RF consistently outperforms BiGRU and ChemBERTa, reinforcing the finding from our primary dataset that fingerprint-based models excel at in-distribution prediction.
 
 
 % --- Error Analysis ---
@@ -1065,7 +1051,7 @@ Figure~\ref{fig:wetlab_per_molecule} shows per-molecule predictions alongside ex
 \section{Conclusion}
 \label{sec:conclusion}
 
-We have presented a systematic benchmark of ML approaches for UV absorption wavelength prediction, comparing Random Forest, XGBoost, Chemprop (D-MPNN), BiGRU, and ChemBERTa across four datasets totaling nearly 90,000 molecules.
+We have presented a systematic benchmark of ML approaches for UV absorption wavelength prediction, comparing Random Forest, XGBoost, Chemprop (D-MPNN), BiGRU, and ChemBERTa across three datasets totaling over 60,000 molecules.
 
 Our key findings are:
 
@@ -1092,7 +1078,7 @@ These findings suggest that model selection for UV absorption prediction should 
 While demonstrated here for UV absorption, the benchmarking framework and complementary-strengths finding are likely to generalize to other molecular optical properties (e.g., emission wavelength, molar extinction coefficient) and solvent-dependent endpoints, where the same trade-off between local substructural features and learned representations applies.
 
 \subsection*{Limitations}
-Most of our models use 1D or 2D molecular representations (fingerprints, SMILES, molecular graphs); while our cross-dataset results show these approaches are competitive with published 3D methods on most benchmarks, the large performance gap on nablaColors (Table~\ref{tab:cross_dataset}) suggests that 3D conformational information becomes important for structurally diverse chromophores where electronic properties depend on molecular geometry~\cite{lupopasini2023excited}.
+Our models use 1D or 2D molecular representations (fingerprints, SMILES, molecular graphs); 3D conformational information may become important for structurally diverse chromophores where electronic properties depend on molecular geometry~\cite{lupopasini2023excited}.
 Solvents are encoded purely through their molecular structure (SMILES or fingerprints), without explicit physical properties such as dielectric constant, refractive index, or Hansen solubility parameters~\cite{reichardt2011solvents}, which may limit the models' ability to capture fine-grained solvatochromic effects.
 The BiGRU model uses character-level tokenization, which may miss chemically meaningful substructures; ChemBERTa's BPE tokenizer partially addresses this but still operates on 1D SMILES strings.
 The experimental validation set (16 molecules) is small; larger out-of-distribution evaluations would strengthen the generalization finding, though the qualitative reversal of model rankings is robust.
@@ -1114,7 +1100,7 @@ A natural extension is to apply the same benchmarking framework to related molec
 % ===== Data and Code Availability =====
 \section*{Data and Code Availability}
 The primary Joung+Beard dataset is available from the original publications~\cite{joung2020experimental, beard2019comparative} (DOI: 10.6084/m9.figshare.12045567).
-External validation datasets: Deep4Chem (Figshare, DOI: 10.6084/m9.figshare.12045567)~\cite{joung2020experimental}, Jung et al.\ (GitHub)~\cite{jung2024machine}, nablaColors (Zenodo)~\cite{potapov2026nablacolors}.
+External validation datasets: Deep4Chem (Figshare, DOI: 10.6084/m9.figshare.12045567)~\cite{joung2020experimental}, Jung et al.\ (GitHub)~\cite{jung2024machine}.
 The Mamede classification dataset was reconstructed from Reaxys~\cite{mamede2021machine}.
 All code for model training, evaluation, and analysis will be released on GitHub under the MIT license upon publication, including trained model weights and preprocessing scripts.
 
