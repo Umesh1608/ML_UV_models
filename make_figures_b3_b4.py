@@ -52,9 +52,14 @@ def make_wetlab_figure():
     cb_etoh = np.array([349.3, 323.1, 341.9, 348.4, 339.9, 313.7, 325.7, 294.8, 324.9, 290.8, 357.3, 324.5, 295.2, 320.1, 342.9, 329.5], dtype=float)
     cb_meoh = np.array([346.7, 318.3, 334.9, 341.4, 332.9, 307.9, 321.1, 293.1, 322.8, 290.9, 349.7, 316.7, 293.8, 316.2, 331.9, 326.2], dtype=float)
 
+    # Chemprop (D-MPNN) predictions from wetlab_predictions.csv
+    gnn_etoh = np.array([309.4, 353.9, 318.5, 276.3, 301.9, 366.9, 310.6, 336.3, 327.6, 334.3, 384.6, 333.6, 282.2, 325.2, 312.3, 337.7], dtype=float)
+    gnn_meoh = np.array([301.8, 350.6, 308.5, 265.4, 293.5, 359.1, 302.2, 334.8, 322.2, 332.8, 381.1, 326.7, 278.6, 323.7, 303.2, 334.0], dtype=float)
+
     bigru_avg = (bigru_etoh + bigru_meoh) / 2.0
     rf_avg = (rf_etoh + rf_meoh) / 2.0
     cb_avg = (cb_etoh + cb_meoh) / 2.0
+    gnn_avg = (gnn_etoh + gnn_meoh) / 2.0
 
     # Sort by experimental value for better visualization
     sort_idx = np.argsort(exp_avg)
@@ -63,16 +68,18 @@ def make_wetlab_figure():
     rf_avg = rf_avg[sort_idx]
     bigru_avg = bigru_avg[sort_idx]
     cb_avg = cb_avg[sort_idx]
+    gnn_avg = gnn_avg[sort_idx]
 
     n = len(molecules)
     y = np.arange(n)
-    height = 0.2
+    height = 0.16
 
     fig, ax = plt.subplots(figsize=(10, 10))
-    ax.barh(y + 1.5*height, exp_avg, height, label="Experimental", color="#2c3e50", alpha=0.85)
-    ax.barh(y + 0.5*height, rf_avg, height, label="RF", color="#e74c3c", alpha=0.75)
-    ax.barh(y - 0.5*height, bigru_avg, height, label="BiGRU", color="#3498db", alpha=0.75)
-    ax.barh(y - 1.5*height, cb_avg, height, label="ChemBERTa", color="#2ecc71", alpha=0.75)
+    ax.barh(y + 2.0*height, exp_avg, height, label="Experimental", color="#2c3e50", alpha=0.85)
+    ax.barh(y + 1.0*height, gnn_avg, height, label="GNN (D-MPNN)", color="#9b59b6", alpha=0.75)
+    ax.barh(y + 0.0*height, cb_avg, height, label="ChemBERTa", color="#2ecc71", alpha=0.75)
+    ax.barh(y - 1.0*height, bigru_avg, height, label="BiGRU", color="#3498db", alpha=0.75)
+    ax.barh(y - 2.0*height, rf_avg, height, label="RF", color="#e74c3c", alpha=0.75)
 
     ax.set_xlabel("$\\lambda_{\\max}$ (nm)", fontsize=12)
     ax.set_ylabel("")

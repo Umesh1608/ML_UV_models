@@ -1054,11 +1054,11 @@ This complementarity extends beyond the local/global distinction: RF's fixed-voc
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=\textwidth]{results/wetlab_per_molecule.png}
-    \caption{Per-molecule comparison of experimental and predicted $\lambda_{\max}$ for 16 sunscreen-related compounds, averaged over EtOH and MeOH solvents. Molecules are sorted by experimental $\lambda_{\max}$. Cinnamic Acid is a notable outlier where all models overpredict by $\sim$65--75~nm, while ChemBERTa achieves the closest predictions for most molecules.}
+    \caption{Per-molecule comparison of experimental and predicted $\lambda_{\max}$ for 16 sunscreen-related compounds, averaged over EtOH and MeOH solvents. Molecules are sorted by experimental $\lambda_{\max}$. The D-MPNN closely tracks experimental values for small chromophores (Cinnamic Acid, PABA) but overpredicts benzophenones (Dioxybenzone, Octocrylene), while all models struggle with Octocrylene.}
     \label{fig:wetlab_per_molecule}
 \end{figure}
 
-Figure~\ref{fig:wetlab_per_molecule} shows per-molecule predictions alongside experimental values, illustrating the pattern more concretely: ChemBERTa tracks the experimental trend most closely for mid-range absorbers (PABA, Homosalate, Padimate~O, Ferulic Acid), while all models struggle with Cinnamic Acid and Octocrylene.
+Figure~\ref{fig:wetlab_per_molecule} shows per-molecule predictions alongside experimental values, illustrating the pattern more concretely: the D-MPNN achieves near-exact predictions for Cinnamic Acid and PABA where other models overpredict by 60--80~nm, while all models struggle with Octocrylene. ChemBERTa tracks the experimental trend most closely for mid-range absorbers (Padimate~O, Ferulic Acid).
 
 % ===== Conclusion =====
 \section{Conclusion}
