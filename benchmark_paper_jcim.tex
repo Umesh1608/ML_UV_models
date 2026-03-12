@@ -177,10 +177,10 @@ Figure~\ref{fig:benchmark_framework} provides an overview of this multi-pathway 
     \node[box, fill=red!10, draw=red!40!black] (chemprop) at (0, 0)
         {\textbf{GNN}\\[-1pt]{\scriptsize D-MPNN (Chemprop), 636K params}};
 
-    \node[box, fill=blue!12, draw=blue!40!black] (bigru) at (0, -2.0)
+    \node[box, fill=blue!12, draw=blue!40!black] (bigru) at (0, -1.6)
         {\textbf{BiGRU RNN}\\[-1pt]{\scriptsize 3$\times$256 bidirectional GRU, 3.0M params}};
 
-    \node[box, fill=blue!12, draw=blue!40!black] (cb) at (0, -3.6)
+    \node[box, fill=blue!12, draw=blue!40!black] (cb) at (0, -3.2)
         {\textbf{Transformer}\\[-1pt]{\scriptsize ChemBERTa, 44.1M params}};
 
     % ---- Group labels (rotated, centered on each group) ----
@@ -189,19 +189,19 @@ Figure~\ref{fig:benchmark_framework} provides an overview of this multi-pathway 
     \node[font=\scriptsize\bfseries, red!40!black, rotate=90, anchor=center,
           text width=, minimum height=0pt] at (-3.5, 0) {Graph};
     \node[font=\scriptsize\bfseries, blue!40!black, rotate=90, anchor=center,
-          text width=, minimum height=0pt] at (-3.5, -2.8) {Sequence};
+          text width=, minimum height=0pt] at (-3.5, -2.4) {Sequence};
 
     % ---- Output box ----
     \node[box, fill=orange!8, draw=orange!50!black, text width=2.0cm,
-          minimum height=3.4cm] (out) at (6.8, -0.2)
+          minimum height=3.4cm] (out) at (6.8, 0)
         {\textbf{\large $\hat{\lambda}_{\max}$}\\[3pt]{\scriptsize UV absorption}\\{\scriptsize wavelength (nm)}};
 
     % ---- Arrows: five models to output ----
     \draw[arr, draw=green!40!black] (rf.east)       -- (3.6, 2.9)   |- ([yshift=12pt]out.west);
     \draw[arr, draw=green!40!black] (xgb.east)      -- (3.6, 1.6)   |- ([yshift=6pt]out.west);
     \draw[arr, draw=red!40!black]   (chemprop.east) -- (3.6, 0)     |- (out.west);
-    \draw[arr, draw=blue!40!black]  (bigru.east)    -- (3.6, -2.0)  |- ([yshift=-6pt]out.west);
-    \draw[arr, draw=blue!40!black]  (cb.east)       -- (3.6, -3.6)  |- ([yshift=-12pt]out.west);
+    \draw[arr, draw=blue!40!black]  (bigru.east)    -- (3.6, -1.6)  |- ([yshift=-6pt]out.west);
+    \draw[arr, draw=blue!40!black]  (cb.east)       -- (3.6, -3.2)  |- ([yshift=-12pt]out.west);
 
     % ---- Mini UV spectrum ----
     \begin{scope}[shift={(9.5, 0)}]
@@ -216,8 +216,8 @@ Figure~\ref{fig:benchmark_framework} provides an overview of this multi-pathway 
     \end{scope}
 
     % ---- Stage labels ----
-    \node[font=\footnotesize\bfseries, gray!60, text width=, minimum height=0pt] at (0, -4.5) {\textsc{Models}};
-    \node[font=\footnotesize\bfseries, gray!60, text width=, minimum height=0pt] at (8.0, -4.2) {\textsc{Prediction}};
+    \node[font=\footnotesize\bfseries, gray!60, text width=, minimum height=0pt] at (0, -4.1) {\textsc{Models}};
+    \node[font=\footnotesize\bfseries, gray!60, text width=, minimum height=0pt] at (8.0, -3.8) {\textsc{Prediction}};
 
     \end{tikzpicture}
     \caption{Models and prediction. Fingerprint representations feed tree ensembles (green); molecular graphs feed the D-MPNN (red); token sequences feed recurrent and Transformer networks (blue). All five models predict $\lambda_{\max}$.}
