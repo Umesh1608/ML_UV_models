@@ -1,41 +1,50 @@
 Suggested Reviewers for JCIM Submission
 ========================================
-"When Do Simple Models Win? Machine Learning Architectures for UV Absorption Prediction and Insights for General Molecular Property Prediction"
+"When Do Simple Models Win? Machine Learning Architectures for UV Absorption Prediction
+and Insights for General Molecular Property Prediction"
 
-1. Pat Walters
-   Relay Therapeutics
-   Email: pat@relaytx.com
-   Expertise: Cheminformatics benchmarking, molecular property prediction, practical ML
-   Relevance: Widely known for critical benchmarking of ML models in drug discovery;
-   author of "Practical Cheminformatics" blog; strong focus on when simple models suffice.
+1. Jurgen Bajorath
+   University of Bonn, Germany (LIMES Institute)
+   Email: bajorath@bit.uni-bonn.de
+   Expertise: Cheminformatics, QSAR, ML benchmarking, activity cliffs
+   Relevance: Leading authority on ML benchmarking for molecular properties;
+   Herman Skolnik Award (2015); published extensively in JCIM on when ML models
+   succeed or fail. Directly relevant to our "when do simple models win" question.
 
-2. Kevin Yang
-   Microsoft Research
-   Email: kevinyang@microsoft.com
-   Expertise: Molecular property prediction, graph neural networks, MoleculeNet
-   Relevance: Co-developer of Chemprop and D-MPNN; extensive work on molecular
-   representation benchmarking; familiar with RF vs. GNN comparisons.
+2. Francesca Grisoni
+   Eindhoven University of Technology, Netherlands
+   Email: f.grisoni@tue.nl
+   Expertise: SMILES-based deep learning, chemical language models, ML limitations
+   Relevance: Published "Exposing the Limitations of Molecular Machine Learning
+   with Activity Cliffs" (JCIM, 2022); ERC Starting Grant on molecular deep learning.
+   Expert in exactly the SMILES-based models and benchmarking questions we address.
 
-3. Esben Bjerrum
-   AstraZeneca
-   Email: esben.bjerrum@astrazeneca.com
-   Expertise: SMILES-based deep learning, molecular generation, QSAR
-   Relevance: Pioneer of SMILES-based RNN models for molecular properties;
-   extensive publications on character-level SMILES models (relevant to BiGRU).
+3. Sereina Riniker
+   ETH Zurich, Switzerland
+   Email: sriniker@ethz.ch
+   Expertise: Molecular representations, fingerprints, cheminformatics benchmarking
+   Relevance: Extensive work on molecular fingerprint representations and their
+   comparison with learned representations. Directly relevant to our Morgan FP
+   vs. learned representation analysis.
 
-4. Rocio Mercado
-   Chalmers University of Technology
-   Email: rocio.mercado@chalmers.se
-   Expertise: Molecular generation, graph-based models, benchmarking
-   Relevance: Work on molecular representation comparisons and
-   practical evaluation of deep generative models in chemistry.
+4. Raghunathan Ramakrishnan
+   Tata Institute of Fundamental Research (TIFR), Hyderabad, India
+   Email: ramakrishnan@tifrh.res.in
+   Expertise: ML for UV-Vis absorption prediction, electronic spectra, TDDFT + ML
+   Relevance: One of few researchers publishing specifically on ML for UV-Vis
+   absorption prediction; "Electronic Spectra from TDDFT and Machine Learning
+   in Chemical Space" (J. Chem. Phys., 2015). Domain-specific expertise in our
+   exact prediction target.
 
-5. Andrew White
-   University of Rochester / FutureHouse
-   Email: andrew.white@rochester.edu
-   Expertise: ML for chemistry, molecular property prediction, language models
-   Relevance: Active in ML for chemistry community; author of "Deep Learning for
-   Molecules and Materials"; perspective on Transformer vs. classical approaches.
+5. Olexandr Isayev
+   Carnegie Mellon University, USA
+   Email: olexandr@cmu.edu
+   Expertise: ML for molecular properties, GNNs, neural network potentials
+   Relevance: Carl and Amy Jones Professor; extensive work on GNNs and ML
+   for molecular property prediction; strong perspective on representation
+   learning vs. fixed descriptors.
 
 Note: Confirm email addresses and affiliations at time of submission.
 No institutional conflicts with University of Iowa or Midwest Bioprocessing Center.
+No direct conflicts: we do not benchmark software from or replicate results of
+any suggested reviewer.
