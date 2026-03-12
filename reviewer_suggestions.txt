@@ -1,6 +1,6 @@
 Suggested Reviewers for JCIM Submission
 ========================================
-"When Do Simple Models Win? Machine Learning Architectures for UV Absorption Prediction"
+"When Do Simple Models Win? Machine Learning Architectures for UV Absorption Prediction and Insights for General Molecular Property Prediction"
 
 1. Pat Walters
    Relay Therapeutics
