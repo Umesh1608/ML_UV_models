@@ -1,0 +1,466 @@
+% Two-column preview to approximate published JCIM layout
+% Compile with: pdflatex preview_twocol.tex && bibtex preview_twocol && pdflatex preview_twocol && pdflatex preview_twocol
+\documentclass[10pt,twocolumn,letterpaper]{article}
+
+% ===== Page geometry to mimic ACS two-column =====
+\usepackage[margin=0.75in, columnsep=0.3in]{geometry}
+
+% ===== Packages (same as JCIM version) =====
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{subcaption}
+\usepackage{siunitx}
+\usepackage{adjustbox}
+\usepackage{soul}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, positioning, shapes, calc, fit, decorations.pathreplacing}
+\usepackage{longtable}
+\usepackage{multirow}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{placeins}
+\usepackage{natbib}
+\usepackage{hyperref}
+\usepackage{times}  % ACS uses Times-like font
+\usepackage[small,bf]{caption}
+\usepackage{titlesec}
+
+% ===== ACS-like section formatting =====
+\titleformat{\section}{\normalfont\bfseries\large}{\thesection.}{0.5em}{}
+\titleformat{\subsection}{\normalfont\bfseries}{\thesubsection.}{0.5em}{}
+\titlespacing*{\section}{0pt}{1.5ex plus 0.5ex}{1ex plus 0.2ex}
+\titlespacing*{\subsection}{0pt}{1.2ex plus 0.3ex}{0.8ex plus 0.2ex}
+
+% ===== Custom Commands =====
+\newcommand{\vect}[1]{\mathbf{#1}}
+\newcommand{\matr}[1]{\mathbf{#1}}
+
+% ===== ACS-like title block =====
+\title{\Large\bfseries When Do Simple Models Win? Machine Learning Architectures for UV Absorption Prediction and Insights for General Molecular Property Prediction}
+
+\author{Umesh Arampath,$^{a,b}$ Bryant Pero,$^{b}$ David Stewart,$^{a}$ and David Demirjian$^{b}$\\[6pt]
+\small $^{a}$Department of Mathematics, University of Iowa, Iowa City, USA\\
+\small $^{b}$Midwest Bioprocessing Center, Illinois, USA\\[3pt]
+\small Email: uarampath@mwbioprocessing.com}
+
+\date{}
+
+\begin{document}
+
+\twocolumn[
+  \maketitle
+  \begin{@twocolumnfalse}
+  \begin{abstract}
+\noindent
+What determines which machine learning architecture wins for molecular property prediction?
+We address this question through a controlled comparison of five models spanning four architecture families: fingerprint-based ensembles (Random Forest, XGBoost), a directed message-passing graph neural network (GNN), a bidirectional gated recurrent network (BiGRU), and a pretrained Transformer, using UV absorption wavelength ($\lambda_{\max}$) prediction as a testbed across 18,755 solute--solvent pairs with stratified 5-fold cross-validation and two external datasets totaling over 40,000 molecules.
+The answer depends on the task.
+For screening within known chemical space, RF with Morgan fingerprints is optimal: it matches the GNN (RMSE = $31.34 \pm 1.82$ vs.\ $31.69 \pm 3.18$~nm, $p = 0.77$), trains in 15 minutes on a CPU with no hyperparameter tuning, and outperforms all sequence-based models.
+For exploring novel scaffolds, deep learning is superior: experimental validation on 16 novel UV-absorbing compounds shows that the GNN (MAE = 26.2~nm), Transformer (26.3~nm), and an optimized BiGRU (28.6~nm; 3-layer, 256-unit architecture identified via Bayesian hyperparameter search) all outperform RF (38.5~nm), as learned representations generalize where fixed fingerprints cannot.
+In either case, encoding solvent identity improves all models: a simple SMILES/fingerprint concatenation strategy yields 6--8\% RMSE reductions across fingerprint, graph, and recurrent architectures ($p < 0.02$), without domain-specific descriptor engineering.
+Interpretability analysis confirms that both RF feature importance and BiGRU gradient saliency independently highlight the same chromophore motifs, and that architectures with local inductive bias systematically outperform global-attention Transformers on this locally determined property.
+  \end{abstract}
+  \vspace{1em}
+  \noindent\textbf{Keywords:} UV absorption, molecular property prediction, deep learning, random forest, Morgan fingerprints, graph neural network, Chemprop, ChemBERTa, solvent effects, benchmarking
+  \vspace{1.5em}
+  \end{@twocolumnfalse}
+]
+
+% ===== Introduction =====
+\section{Introduction}
+\label{sec:introduction}
+
+Ultraviolet--visible (UV--Vis) absorption spectroscopy is a fundamental technique in chemistry, with the wavelength of maximum absorption ($\lambda_{\max}$) serving as a key property for molecular characterization, photosafety assessment, and materials design.\cite{flemingMolecular2010}
+When a molecule absorbs UV--Vis light, electrons undergo transitions between molecular orbitals; $\lambda_{\max}$ corresponds to the most probable electronic transition and is governed by the extent of $\pi$-conjugation, heteroatom substituents, and molecular geometry.\cite{reichardt2011solvents}
+Experimental determination of $\lambda_{\max}$ requires synthesizing and measuring each compound, creating a demand for accurate \textit{in silico} prediction methods that can accelerate screening of large chemical libraries.\cite{ghosh2019deep}
+
+Machine learning (ML) approaches for molecular property prediction have proliferated in recent years, spanning classical methods using engineered molecular descriptors (e.g., Morgan fingerprints\cite{rogers2010extended} with Random Forest\cite{breiman2001random}) to deep learning architectures that learn representations directly from molecular strings (SMILES\cite{weininger1988smiles}) or graphs.\cite{gilmer2017neural}
+Large curated datasets such as the Joung+Beard database\cite{joung2020experimental, beard2019comparative} and benchmarking suites like MoleculeNet\cite{wuMoleculeNet2018} have accelerated progress, yet systematic comparisons across multiple datasets with consistent methodology remain rare. Without such comparisons, practitioners lack guidance on which model families to deploy for a given chemistry domain.
+Recent work has highlighted that well-tuned classical models can match or exceed complex deep learning architectures for molecular property prediction,\cite{panapitiya2022evaluation, walters2021applications} suggesting that no universal ``best model'' exists; rather, the optimal choice depends on the interplay between molecular representation, property type, and the novelty of target compounds relative to training data.
+
+The UV absorption prediction task presents several distinctive challenges that make it an ideal benchmarking target:
+\begin{enumerate}
+    \item \textbf{Solvent dependence:} $\lambda_{\max}$ varies with solvent environment (solvatochromism), requiring models to encode both solute structure and solvent identity.
+    \item \textbf{Representation diversity:} Although absorption depends on electronic structure influenced by molecular geometry, our results show that 1D representations (fingerprints, SMILES) capture the dominant structure--property relationships for UV absorption, with 3D methods offering advantages primarily for structurally diverse datasets (see Cross-Dataset Benchmarking).
+    \item \textbf{Diverse benchmarks:} Multiple published datasets with varying sizes, chemical spaces, and evaluation protocols enable comprehensive assessment.
+    \item \textbf{Practical relevance:} ICH~S10 guidelines require photosafety screening of pharmaceutical compounds, where $\lambda_{\max}$ prediction serves as a first-pass filter.
+\end{enumerate}
+
+In this work, we present a benchmark study comparing five ML approaches---Random Forest, XGBoost, Chemprop (D-MPNN), Bidirectional GRU, and ChemBERTa---spanning fingerprint, graph, recurrent, and Transformer architectures for $\lambda_{\max}$ prediction.
+Our key contributions are:
+\begin{itemize}
+    \item \textbf{Practical model selection guidance:} RF is optimal for in-distribution screening (fast, no GPU, no tuning needed); deep learning models generalize better to novel compounds. We validate this on 16 experimentally measured UV-absorbing molecules.
+    \item \textbf{Controlled multi-architecture comparison} across three datasets using published evaluation protocols. Chemprop (D-MPNN) with default hyperparameters sets new state-of-the-art results on both external datasets, while RF and Chemprop are statistically tied on primary cross-validation.
+    \item \textbf{Optimized BiGRU architecture} via Bayesian hyperparameter search (3-layer, 256-unit, 4.8\% RMSE improvement), demonstrating that a sequence-based approach operating on raw SMILES can match graph and fingerprint methods without compromising prediction accuracy.
+    \item \textbf{Architecture-independent solvent encoding:} a simple concatenation strategy yields 6--8\% RMSE reductions across fingerprint, graph, and recurrent models ($p < 0.02$), without domain-specific descriptor engineering.
+    \item \textbf{Locality-of-property hypothesis:} architectures with local inductive bias systematically outperform global-attention Transformers on UV absorption.
+    \item \textbf{Photosafety application:} ICH~S10 classification on a reconstructed Reaxys dataset validates practical utility.
+\end{itemize}
+
+The choice of molecular representation fundamentally determines which ML methods can be applied.
+SMILES (Simplified Molecular Input Line Entry System)\cite{weininger1988smiles} encodes molecular graphs as character strings, enabling NLP-inspired sequence models (RNNs, Transformers), while Morgan circular fingerprints\cite{rogers2010extended} encode local chemical environments as fixed-length binary vectors amenable to classical tree-based ensembles.\cite{landrum2016rdkit, wuMoleculeNet2018}
+Our benchmark compares three representation families: fingerprint-based models (RF, XGBoost), a graph neural network (Chemprop D-MPNN), and sequence-based models (BiGRU, ChemBERTa) on the same prediction task.
+Figure~\ref{fig:benchmark_framework} provides an overview of this multi-pathway framework.
+
+% ===== Figure 1: Benchmark Framework =====
+% Wide figure spanning both columns
+\begin{figure*}[!ht]
+    \centering
+    % ===== (a) Input and Representation =====
+    \begin{subfigure}[b]{\textwidth}
+    \centering
+    \begin{tikzpicture}[scale=0.88, every node/.style={scale=0.88},
+        >=Stealth,
+        box/.style={draw, rounded corners=4pt, align=center, font=\small, inner sep=5pt},
+        arr/.style={->, thick, draw=gray!50},
+    ]
+    % ---- Input boxes (identical size) ----
+    \node[box, fill=gray!6, draw=gray!50, minimum width=3.4cm] (mol) at (0, 1.0)
+        {Solute SMILES\\[-1pt]{\scriptsize\texttt{CC(/C=C/c1cc(OC)c(O)c1)=O}}};
+    \node[box, fill=gray!6, draw=gray!50, minimum width=3.4cm] (solv) at (0, -1.0)
+        {Solvent SMILES\\[-1pt]{\scriptsize\texttt{CCO} (ethanol)}};
+
+    % ---- Input arrows: two lines join into one arrow ----
+    \draw[thick, draw=gray!50] (mol.east) -- (2.5, 1.0) -- (2.5, 0);
+    \draw[thick, draw=gray!50] (solv.east) -- (2.5, -1.0) -- (2.5, 0);
+    \coordinate (fork) at (4.2, 0);
+    \draw[arr] (2.5, 0) -- (fork);
+
+    % ---- Green path (top): independent FPs, then hstacked ----
+    \node[draw, circle, fill=green!12, draw=green!40!black, inner sep=2pt,
+          font=\scriptsize\bfseries] (fpnode) at (5.5, 1.8) {FP};
+    \node[font=\tiny, green!40!black, below=1pt of fpnode] {per-mol.};
+
+    \node[box, fill=green!6, draw=green!40!black, minimum width=4.4cm, text width=4.0cm] (fp) at (9.5, 1.8)
+        {Morgan Fingerprint\\[-1pt]{\scriptsize FP(solute) $\|$ FP(solvent), $\{0,1\}^{4096}$ hstacked}};
+
+    \draw[arr, draw=green!40!black] (fork) -- (4.2, 1.8) -- (fpnode);
+    \draw[arr, draw=green!40!black] (fpnode) -- (fp.west);
+
+    % ---- Red path (middle): molecular graph ----
+    \node[draw, circle, fill=red!10, draw=red!40!black, inner sep=2pt,
+          font=\scriptsize\bfseries] (graphnode) at (5.5, 0) {G};
+    \node[font=\tiny, red!40!black, below=1pt of graphnode] {per-mol.};
+
+    \node[box, fill=red!6, draw=red!40!black, minimum width=4.4cm, text width=4.0cm] (mg) at (9.5, 0)
+        {Molecular Graph\\[-1pt]{\scriptsize Atom/bond features per molecule, separate encoders}};
+
+    \draw[arr, draw=red!40!black] (fork) -- (4.2, 0) -- (graphnode);
+    \draw[arr, draw=red!40!black] (graphnode) -- (mg.west);
+
+    % ---- Blue path (bottom): SMILES concat, then tokenized ----
+    \node[draw, circle, fill=blue!10, draw=blue!40!black, inner sep=2pt,
+          font=\scriptsize\bfseries] (cat) at (5.5, -1.8) {$\oplus$};
+    \node[font=\tiny, blue!40!black, below=1pt of cat] {concat};
+
+    \node[box, fill=blue!6, draw=blue!40!black, minimum width=4.4cm, text width=4.0cm] (seq) at (9.5, -1.8)
+        {Token Sequence\\[-1pt]{\scriptsize \texttt{solute\,!\,solvent} string, 57-token vocabulary}};
+
+    \draw[arr, draw=blue!40!black] (fork) -- (4.2, -1.8) -- (cat);
+    \draw[arr, draw=blue!40!black] (cat) -- (seq.west);
+
+    % ---- Stage labels ----
+    \node[font=\footnotesize\bfseries, gray!60] at (0, -2.6) {\textsc{Input}};
+    \node[font=\footnotesize\bfseries, gray!60] at (9.5, -2.8) {\textsc{Representation}};
+
+    \end{tikzpicture}
+    \caption{Input and representation.}
+    \label{fig:framework_input}
+    \end{subfigure}
+
+    \vspace{0.3cm}
+
+    % ===== (b) Models and Prediction =====
+    \begin{subfigure}[b]{\textwidth}
+    \centering
+    \begin{tikzpicture}[scale=0.88, every node/.style={scale=0.88},
+        >=Stealth,
+        box/.style={draw, rounded corners=4pt, align=center, font=\small,
+                     inner sep=5pt, text width=4.6cm, minimum height=1.0cm},
+        arr/.style={->, thick},
+    ]
+
+    % ---- Five models, equal spacing, grouped by color ----
+    \node[box, fill=green!12, draw=green!40!black] (rf) at (0, 2.9)
+        {\textbf{Random Forest}\\[-1pt]{\scriptsize 1000 trees, \texttt{max\_features}$= 0.3d$}};
+
+    \node[box, fill=green!12, draw=green!40!black] (xgb) at (0, 1.6)
+        {\textbf{XGBoost}\\[-1pt]{\scriptsize 500 rounds, depth 6, $\eta = 0.1$}};
+
+    \node[box, fill=red!10, draw=red!40!black] (chemprop) at (0, 0)
+        {\textbf{Chemprop (D-MPNN)}\\[-1pt]{\scriptsize 3-step message passing, 636K params}};
+
+    \node[box, fill=blue!12, draw=blue!40!black] (bigru) at (0, -1.6)
+        {\textbf{BiGRU}\\[-1pt]{\scriptsize 3$\times$256 BiGRU, 3.0M params}};
+
+    \node[box, fill=blue!12, draw=blue!40!black] (cb) at (0, -3.2)
+        {\textbf{ChemBERTa}\\[-1pt]{\scriptsize 6-layer Transformer, 44.1M params}};
+
+    % ---- Group labels ----
+    \node[font=\scriptsize\bfseries, green!40!black, rotate=90, anchor=center] at (-3.5, 2.25) {Fingerprint};
+    \node[font=\scriptsize\bfseries, red!40!black, rotate=90, anchor=center] at (-3.5, 0) {Graph};
+    \node[font=\scriptsize\bfseries, blue!40!black, rotate=90, anchor=center] at (-3.5, -2.4) {Sequence};
+
+    % ---- Output box ----
+    \node[box, fill=orange!8, draw=orange!50!black, text width=2.0cm,
+          minimum height=3.4cm] (out) at (6.8, 0)
+        {\textbf{\large $\hat{\lambda}_{\max}$}\\[3pt]{\scriptsize UV absorption}\\{\scriptsize wavelength (nm)}};
+
+    % ---- Arrows ----
+    \draw[arr, draw=green!40!black] (rf.east)       -- (3.6, 2.9)   |- ([yshift=12pt]out.west);
+    \draw[arr, draw=green!40!black] (xgb.east)      -- (3.6, 1.6)   |- ([yshift=6pt]out.west);
+    \draw[arr, draw=red!40!black]   (chemprop.east) -- (3.6, 0)     |- (out.west);
+    \draw[arr, draw=blue!40!black]  (bigru.east)    -- (3.6, -1.6)  |- ([yshift=-6pt]out.west);
+    \draw[arr, draw=blue!40!black]  (cb.east)       -- (3.6, -3.2)  |- ([yshift=-12pt]out.west);
+
+    % ---- Mini UV spectrum ----
+    \begin{scope}[shift={(9.5, 0)}]
+        \draw[gray!40, ->] (0,-0.9) -- (0,1.0);
+        \node[font=\tiny, gray!50, rotate=90] at (-0.25, 0.05) {Abs.};
+        \draw[gray!40, ->] (0,-0.9) -- (1.8,-0.9);
+        \node[font=\tiny, gray!50] at (0.9, -1.1) {$\lambda$ (nm)};
+        \draw[orange!70!red, thick, smooth, tension=0.7]
+            plot coordinates {(0.1,-0.7) (0.3,-0.5) (0.55,-0.1) (0.8,0.45) (0.95,0.7) (1.1,0.45) (1.3,0.0) (1.5,-0.55) (1.65,-0.7)};
+        \draw[dashed, orange!60!black] (0.95,0.7) -- (0.95,-0.9);
+        \node[font=\tiny\bfseries, orange!60!black] at (0.95, -1.05) {$\lambda_{\max}$};
+    \end{scope}
+
+    % ---- Stage labels ----
+    \node[font=\footnotesize\bfseries, gray!60] at (0, -4.1) {\textsc{Models}};
+    \node[font=\footnotesize\bfseries, gray!60] at (8.0, -3.8) {\textsc{Prediction}};
+
+    \end{tikzpicture}
+    \caption{Models and prediction.}
+    \label{fig:framework_models}
+    \end{subfigure}
+
+    \caption{Benchmark framework for UV absorption prediction.}
+    \label{fig:benchmark_framework}
+\end{figure*}
+
+
+\FloatBarrier
+% ===== Related Work =====
+\section{Related Work}
+\label{sec:related_work}
+
+Machine learning for UV absorption prediction has evolved from classical QSAR models using handcrafted descriptors to modern deep learning approaches operating on molecular graphs and strings.
+We survey the key approaches relevant to our benchmark.
+
+\textbf{Fingerprint-based methods.}
+Morgan circular fingerprints,\cite{rogers2010extended} also known as extended-connectivity fingerprints (ECFP), encode local atomic environments as fixed-length binary vectors and have become the de facto standard molecular representation for classical ML.\cite{wuMoleculeNet2018}
+When combined with tree-based ensemble methods such as Random Forests\cite{breiman2001random} or gradient boosting,\cite{chen2016xgboost} fingerprint-based models achieve competitive performance on many molecular property prediction tasks, including aqueous solubility,\cite{delaney2004esol, panapitiya2022evaluation} toxicity,\cite{mayr2016deeptox} and UV absorption.\cite{mamede2021machine}
+Mamede et al.\cite{mamede2021machine} used RF with Morgan fingerprints for ICH~S10\cite{ICH2013S10} photosafety classification on a 74,784-compound Reaxys dataset, achieving sensitivity 0.90 and specificity 0.88.
+
+\textbf{Sequence models on SMILES.}
+The SMILES representation\cite{weininger1988smiles} maps molecular graphs to character strings, enabling natural language processing techniques for molecular property prediction.
+Recurrent neural networks,\cite{elman1990finding} including Long Short-Term Memory (LSTM)\cite{hochreiter1997long} and Gated Recurrent Unit (GRU)\cite{cho2014learning} architectures, process SMILES as sequential data, learning molecular features without explicit descriptor engineering.
+Bidirectional variants (BiGRU, BiLSTM)\cite{schuster1997bidirectional} capture context from both directions, improving representation quality for molecular strings.
+Liu et al.\ combined BiGRU with GraphSAGE for molecular toxicity prediction on Tox21;\cite{liuPredictionMolecularToxicity2023} we adopt only their BiGRU component for SMILES-based regression.
+
+\textbf{Graph neural networks.}
+GNNs operate directly on molecular graphs through iterative message passing,\cite{gilmer2017neural} learning atom-level representations from connectivity and atomic features.
+Joung et al.\cite{joung2021deep} reported a Graph Convolutional Neural Network (GCNN) achieving RMSE = 26.6~nm for absorption peak prediction on their Deep4Chem database of 30,094 chromophore--solvent combinations.
+Jung et al.\cite{jung2024machine} compared multiple architectures including a Gradient Boosted Feature Selection (GBFS) pipeline achieving RMSE = 32.2~nm.
+
+\textbf{Solvent effects.}
+Solvatochromism, the shift in absorption wavelength as a function of solvent environment, is a well-studied phenomenon in physical chemistry.\cite{reichardt2011solvents}
+Despite its importance, most ML studies for UV absorption either ignore solvent effects entirely or use categorical solvent labels.
+
+% ===== Methods =====
+\section{Methods}
+\label{sec:methods}
+
+\subsection{Dataset Description and Preparation}
+\label{sec:dataset}
+
+Our primary dataset combines the Joung et al.\ Experimental Database of Optical Properties\cite{joung2020experimental} and the Beard et al.\ Comparative Dataset of UV/Vis Absorption Spectra.\cite{beard2019comparative}
+After merging, deduplication, and canonicalization, the combined dataset contains \textbf{18,755 solute--solvent pairs} spanning 7,016 unique chromophores and 365 solvents.
+
+\begin{table}[htbp]
+\centering
+\caption{Summary of the primary Joung+Beard dataset after preprocessing.}
+\label{tab:dataset_summary}
+\begin{tabular}{lr}
+\toprule
+\textbf{Attribute} & \textbf{Value} \\
+\midrule
+Total records & 18,755 \\
+Unique chromophores & 7,016 \\
+Unique solvents & 365 \\
+$\lambda_{\max}$ range & 200--900 nm \\
+$\lambda_{\max}$ median & 325 nm \\
+SMILES vocabulary & 57 tokens \\
+Max sequence length & 650 tokens \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+\subsection{Evaluation Protocol}
+\label{sec:evaluation}
+
+For the primary dataset, we use \textbf{stratified 5-fold cross-validation}\cite{kohavi1995study} with a 64/16/20 train/validation/test split.
+Stratification is performed on solvent identity to ensure representative solvent coverage in each fold.
+For deep learning models, the validation set is used exclusively for early stopping (patience = 25 epochs), preventing data leakage from the test set.
+
+Metrics are reported as mean $\pm$ standard deviation across five folds: root-mean-square error (RMSE), mean absolute error (MAE), coefficient of determination ($R^2$), and Pearson correlation coefficient ($r$).
+
+
+\subsection{Random Forest with Morgan Fingerprints}
+\label{sec:rf}
+
+Random Forest (RF)\cite{breiman2001random} is an ensemble method that constructs $B$ decision trees, each trained on a bootstrap sample of the data, and averages their predictions to reduce variance.
+For a regression task, the ensemble prediction is:
+\begin{equation}
+    \hat{y}(\vect{x}) = \frac{1}{B} \sum_{b=1}^{B} T_b(\vect{x})
+\end{equation}
+where $T_b$ denotes the $b$-th decision tree.
+
+The input representation for RF is the Morgan circular fingerprint,\cite{rogers2010extended} which encodes local chemical environments by enumerating all atom-centered circular substructures up to a specified radius $r$.
+The optimal configuration uses $B = 1000$ trees, no maximum depth constraint, and $\lfloor 0.3d \rfloor$ features considered per split.
+
+
+\subsection{Gradient Boosting (XGBoost)}
+\label{sec:xgboost}
+
+XGBoost\cite{chen2016xgboost} constructs an additive ensemble of decision trees trained sequentially, where each new tree $f_t$ fits the residual errors of the current ensemble.
+We use $T = 500$ rounds, max depth 6, $\eta = 0.1$, and histogram-based tree construction.
+
+
+\subsection{Chemprop (D-MPNN)}
+\label{sec:chemprop}
+
+Chemprop\cite{yang2019analyzing} implements a Directed Message Passing Neural Network (D-MPNN) that operates on molecular graphs by passing messages along directed bonds.
+At each message-passing step $t$, hidden states on directed edges are updated:
+\begin{equation}
+    \vect{m}_{vw}^{t+1} = \sum_{u \in \mathcal{N}(v) \setminus w} M_t(\vect{h}_{uv}^t)
+\end{equation}
+\begin{equation}
+    \vect{h}_{vw}^{t+1} = U_t(\vect{h}_{vw}^t, \vect{m}_{vw}^{t+1})
+\end{equation}
+
+We use the multicomponent variant with separate message-passing blocks for solute and solvent (636K total parameters), 3 message-passing steps, hidden dimension 300, mean aggregation, and default hyperparameters.
+
+
+\subsection{Recurrent Neural Networks and BiGRU}
+\label{sec:bigru}
+
+The Gated Recurrent Unit (GRU)\cite{cho2014learning} addresses vanishing gradients through update gate $\vect{z}_t$ and reset gate $\vect{r}_t$:
+\begin{align}
+    \vect{z}_t &= \sigma(\matr{W}_z \vect{x}_t + \matr{U}_z \vect{h}_{t-1} + \vect{b}_z) \\
+    \vect{r}_t &= \sigma(\matr{W}_r \vect{x}_t + \matr{U}_r \vect{h}_{t-1} + \vect{b}_r) \\
+    \vect{h}_t &= (1 - \vect{z}_t) \odot \vect{h}_{t-1} + \vect{z}_t \odot \tilde{\vect{h}}_t
+\end{align}
+
+After Bayesian HPO (25 Optuna trials), the optimized BiGRU uses 256 units per direction, 3 stacked layers ($\sim$3.0M parameters), achieving RMSE = $34.71 \pm 1.40$~nm (4.8\% improvement over default).
+
+
+\subsection{ChemBERTa (Transformer)}
+\label{sec:chemberta}
+
+ChemBERTa\cite{chithrananda2020chemberta} is a RoBERTa-based\cite{liu2019roberta} Transformer pretrained on SMILES strings from the ZINC database using masked language modeling.
+The model has 6 Transformer layers, 12 attention heads, hidden dimension 768, and 44.1M parameters.
+We fine-tune all layers on our regression task using AdamW with learning rate $5 \times 10^{-5}$, batch size 8 with gradient accumulation 4 (effective batch 32), for up to 100 epochs with early stopping (patience 15).
+
+
+% ===== Results =====
+\section{Results}
+\label{sec:results}
+
+\subsection{Primary Dataset: Cross-Validated Performance}
+\label{sec:primary_results}
+
+% Results table
+\begin{table*}[!ht]
+\centering
+\caption{Cross-validated performance on the Joung+Beard dataset (18,755 solute--solvent pairs, stratified 5-fold CV with 64/16/20 splits). Best values in bold.}
+\label{tab:primary_results}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Model} & \textbf{RMSE (nm)} & \textbf{MAE (nm)} & \textbf{$R^2$} & \textbf{Pearson $r$} \\
+\midrule
+\textbf{RF (tuned)} & $\mathbf{31.34 \pm 1.82}$ & $\mathbf{15.16 \pm 0.44}$ & $\mathbf{0.914 \pm 0.010}$ & $\mathbf{0.956 \pm 0.005}$ \\
+Chemprop (D-MPNN)   & $31.69 \pm 3.18$ & $16.84 \pm 1.74$ & $0.911 \pm 0.016$ & $0.955 \pm 0.009$ \\
+XGBoost             & $33.70 \pm 1.61$ & $20.05 \pm 0.48$ & $0.900 \pm 0.009$ & $0.950 \pm 0.005$ \\
+BiGRU (tuned)       & $34.71 \pm 1.40$ & $18.09 \pm 0.59$ & $0.894 \pm 0.009$ & $0.946 \pm 0.005$ \\
+BiGRU (default)     & $36.45 \pm 1.12$ & $20.70 \pm 0.51$ & $0.884 \pm 0.006$ & $0.940 \pm 0.003$ \\
+ChemBERTa           & $50.39 \pm 2.30$ & $24.31 \pm 1.04$ & $0.777 \pm 0.019$ & $0.899 \pm 0.009$ \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+Table~\ref{tab:primary_results} presents the primary cross-validated results.
+RF achieves the best overall performance (RMSE = $31.34 \pm 1.82$~nm), statistically tied with Chemprop D-MPNN ($31.69 \pm 3.18$~nm; paired $t$-test $p = 0.77$).
+Both fingerprint and graph-based models significantly outperform the sequence-based BiGRU (tuned: $34.71 \pm 1.40$~nm) and ChemBERTa ($50.39 \pm 2.30$~nm).
+
+
+% ===== Parity plots =====
+\begin{figure*}[!ht]
+    \centering
+    \includegraphics[width=0.95\textwidth]{results/parity_plot_5models.png}
+    \caption{Parity plots for all five model families (pooled 5-fold CV predictions). Green shaded bands indicate $\pm 20$~nm from perfect prediction. RF and Chemprop show the tightest clustering around the diagonal, while ChemBERTa exhibits the most scatter, particularly for long-wavelength compounds. All models show increased error for $\lambda_{\max} > 500$~nm.}
+    \label{fig:parity_5models}
+\end{figure*}
+
+
+% ===== Error breakdown =====
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}[t]{0.48\textwidth}
+        \includegraphics[width=\textwidth]{results/error_by_wavelength.png}
+        \caption{MAE by wavelength range.}
+    \end{subfigure}
+
+    \begin{subfigure}[t]{0.48\textwidth}
+        \includegraphics[width=\textwidth]{results/error_by_solvent.png}
+        \caption{MAE by solvent type.}
+    \end{subfigure}
+    \caption{Error breakdown by wavelength range and solvent type for all five model families (pooled 5-fold CV predictions).}
+    \label{fig:error_breakdown}
+\end{figure}
+
+Figure~\ref{fig:parity_5models} shows parity plots for all five model families on the primary dataset.
+RF and Chemprop predictions cluster most tightly around the diagonal, consistent with their lowest RMSE, while ChemBERTa shows the broadest scatter.
+All models perform best in the 250--400~nm range where training data is most abundant (Figure~\ref{fig:error_breakdown}a).
+Error distributions across the five most common solvents (Figure~\ref{fig:error_breakdown}b) show relatively consistent performance, with slightly higher errors for chloroform and dichloromethane.
+
+
+\subsection{Model Interpretability}
+\label{sec:interpretability}
+
+A key advantage of fingerprint-based models is their interpretability through feature importance analysis.
+Random Forest models provide direct access to the contribution of each input feature through Gini importance, a measure of how much each feature reduces prediction variance across all decision trees in the ensemble.
+
+Since each bit in a Morgan fingerprint corresponds to a specific molecular substructure (a circular neighborhood of radius $\leq 2$ around each atom), high-importance bits can be decoded back to chemically meaningful structural motifs.
+The top-ranked feature (12.7\% of total importance) corresponds to aryl diazo/hydrazine substructures; molecules containing this substructure exhibit a mean $\lambda_{\max}$ of 543~nm compared to 401~nm without ($\Delta\lambda_{\max} = +143$~nm).
+
+\textbf{Practical advantages of classical ML.}
+Beyond interpretability, RF offers substantial practical advantages for molecular property prediction tasks.
+RF training completes in approximately 15 minutes on a single CPU, compared to 1.5 hours for Chemprop and 25 hours for BiGRU on GPU, while achieving comparable or lower RMSE.
+RF requires no GPU hardware, no hyperparameter tuning of learning rates or batch sizes, and no early stopping strategy.
+
+% ===== Training comparison =====
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\columnwidth]{results/rf_training_comparison.png}
+    \caption{RMSE vs.\ training time comparison across all five model families (5-fold CV total). RF achieves the lowest RMSE with orders-of-magnitude less compute.}
+    \label{fig:rf_practical}
+\end{figure}
+
+
+% ===== Conclusion (abbreviated) =====
+\section{Conclusion}
+\label{sec:conclusion}
+
+We have presented a systematic benchmark of ML approaches for UV absorption wavelength prediction, comparing Random Forest, XGBoost, Chemprop (D-MPNN), BiGRU, and ChemBERTa across three datasets totaling over 60,000 molecules.
+Our central finding is that optimal model selection depends on the intended application: RF for in-distribution screening (fast, interpretable, no GPU), and deep learning (GNN, Transformer, optimized RNN) for generalization to novel compounds.
+
+More broadly, these findings offer practical guidance for molecular property prediction beyond UV absorption: when a target property is determined by local molecular features (conjugation, substituent effects, functional groups), models that encode local structural information are expected to outperform global-attention architectures on in-distribution benchmarks, while pretrained Transformers retain advantages for out-of-distribution generalization to novel scaffolds.
+
+
+% ===== Bibliography =====
+\bibliographystyle{achemso}
+\bibliography{Proposal,references_zo}
+
+\end{document}
