@@ -74,7 +74,7 @@ The UV absorption prediction task presents several distinctive challenges that m
     \item \textbf{Practical relevance:} ICH~S10 guidelines require photosafety screening of pharmaceutical compounds, where $\lambda_{\max}$ prediction serves as a first-pass filter.
 \end{enumerate}
 
-In this work, we present a benchmark study comparing five ML models spanning four architecture families---fingerprint-based ensembles (Random Forest, XGBoost), a directed message-passing graph neural network (D-MPNN), a bidirectional gated recurrent network (BiGRU), and a pretrained Transformer---for $\lambda_{\max}$ prediction.
+In this work, we present a study comparing five ML models spanning four architecture families---fingerprint-based ensembles (Random Forest, XGBoost), a directed message-passing graph neural network (D-MPNN), a bidirectional gated recurrent network (BiGRU), and a pretrained Transformer---for $\lambda_{\max}$ prediction.
 Our key contributions are:
 \begin{itemize}
     \item \textbf{Practical model selection guidance:} RF is optimal for in-distribution screening (fast, no GPU, no tuning needed); deep learning models generalize better to novel compounds. We validate this on 16 experimentally measured UV-absorbing molecules.
