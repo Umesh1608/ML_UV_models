@@ -680,12 +680,12 @@ Kang et al.~\cite{kang2020prediction} and Urbina et al.~\cite{beard2022uvadvisor
         localbox/.style={box, fill=green!12, draw=green!50!black},
         globalbox/.style={box, fill=red!10, draw=red!50!black},
         propbox/.style={draw, rounded corners=5pt, fill=blue!8, draw=blue!40!black, minimum width=4cm, minimum height=0.8cm, align=center, font=\small\bfseries},
-        annot/.style={font=\scriptsize, text=gray!70!black},
+        annot/.style={font=\scriptsize, text=black},
         every node/.style={inner sep=4pt}
     ]
     % --- Header: UV absorption property ---
-    \node[propbox] (uvprop) at (0, 4.2) {UV $\lambda_{\max}$ = local chromophore property};
-    \node[annot, below=1pt of uvprop] (uvsub) {Woodward--Fieser rules: $\lambda_{\max} = \text{base} + \sum \Delta_i$ (local substituent contributions)};
+    \node[annot] (uvsub) at (0, 5.0) {Woodward--Fieser rules: $\lambda_{\max} = \text{base} + \sum \Delta_i$ (local substituent contributions)};
+    \node[propbox, below=1pt of uvsub] (uvprop) {UV $\lambda_{\max}$ = local chromophore property};
 
     % --- Four model columns ---
     % RF column
