@@ -1022,7 +1022,7 @@ RF + Morgan FP    & 38.5 [31.6--45.9]          & 43.7 [35.3--51.7] \\
 \end{tabular}
 \end{table}
 
-Chemprop, ChemBERTa, and BiGRU all outperform RF on this experimental validation set. Averaging across both solvents (32 predictions), Chemprop achieves the lowest MAE (26.2~nm), followed closely by ChemBERTa (26.3~nm [95\% bootstrap CI: 20.1--33.0]), BiGRU (28.6~nm [22.7--35.0]), and RF (38.5~nm [31.6--45.9]).
+Chemprop (GNN), ChemBERTa (CB-Transformer), and BiGRU all outperform RF on this experimental validation set. Averaging across both solvents (32 predictions), Chemprop achieves the lowest MAE (26.2~nm), followed closely by ChemBERTa (26.3~nm [95\% bootstrap CI: 20.1--33.0]), BiGRU (28.6~nm [22.7--35.0]), and RF (38.5~nm [31.6--45.9]).
 ChemBERTa achieves the lowest RMSE (32.2~nm) because Chemprop has several large outlier errors on benzophenone derivatives (Dioxybenzone, Oxybenzone: 40--84~nm errors), inflating its RMSE (35.7~nm) despite competitive median accuracy.
 On cross-validated benchmarks, ChemBERTa was worst (RMSE = 50.39~nm) and Chemprop was tied with RF; yet on novel compounds, deep learning models consistently outperform RF.
 This gap reflects a fundamental difference: RF relies on exact substructure matching through Morgan fingerprint bits, excelling at interpolation within the training distribution but struggling when novel functional groups or conjugation patterns are underrepresented.
