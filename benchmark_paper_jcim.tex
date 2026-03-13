@@ -13,11 +13,14 @@
 \usepackage{longtable}
 \usepackage{multirow}
 \usepackage[dvipsnames]{xcolor}
+\usepackage{colortbl}
 \usepackage{placeins}
 
 % ===== Custom Commands =====
 \newcommand{\vect}[1]{\mathbf{#1}}
 \newcommand{\matr}[1]{\mathbf{#1}}
+\definecolor{goodpred}{RGB}{198,239,206}
+\newcommand{\gp}[1]{\cellcolor{goodpred}{#1}}
 
 % ===== Title and Authors =====
 \title{When Do Simple Models Win? Machine Learning Architectures for UV Absorption Prediction and Insights for General Molecular Property Prediction}
@@ -973,7 +976,7 @@ Although ethanol and methanol are well-represented solvents in the training set 
 
 \begin{table}[htbp]
 \centering
-\caption{Experimental validation: predicted vs.\ measured $\lambda_{\max}$ (nm) for 16 UV-absorbing compounds in two solvents. GNN = D-MPNN, CB = ChemBERTa. Predictions are ensemble averages across 5-fold models. Bold values indicate predictions within 10~nm of the experimental value. $^*$Present in training data with a different solvent.}
+\caption{Experimental validation: predicted vs.\ measured $\lambda_{\max}$ (nm) for 16 UV-absorbing compounds in two solvents. GNN = D-MPNN, CB = ChemBERTa. Predictions are ensemble averages across 5-fold models. \colorbox{goodpred}{Green} cells indicate predictions within 10~nm of the experimental value. $^*$Present in training data with a different solvent.}
 \label{tab:experimental}
 \small
 \begin{tabular}{lccccccccccc}
@@ -982,21 +985,21 @@ Although ethanol and methanol are well-represented solvents in the training set 
 \cmidrule(lr){2-6} \cmidrule(lr){8-12}
 \textbf{Molecule} & \textbf{Exp.} & \textbf{GNN} & \textbf{CB} & \textbf{BiGRU} & \textbf{RF} & & \textbf{Exp.} & \textbf{GNN} & \textbf{CB} & \textbf{BiGRU} & \textbf{RF} \\
 \midrule
-Amiloxate       & 309 & \textbf{309} & 349 & \textbf{318} & 359 & & 298 & \textbf{302} & 347 & 316 & 359 \\
-Avobenzone      & 358 & \textbf{354} & 323 & 329 & 337 & & 358 & \textbf{351} & 318 & 327 & 333 \\
-Caffeic Acid    & 325 & \textbf{319} & 342 & 338 & 347 & & 325 & 309 & \textbf{335} & \textbf{335} & 345 \\
-Cinnamic Acid   & 275 & \textbf{276} & 348 & 353 & 348 & & 276 & 265 & 341 & 351 & 345 \\
-Coumaric Acid   & 310 & \textbf{302} & 340 & 348 & 346 & & 309 & 294 & 333 & 343 & 344 \\
+Amiloxate       & 309 & \gp{309} & 349 & \gp{318} & 359 & & 298 & \gp{302} & 347 & 316 & 359 \\
+Avobenzone      & 358 & \gp{354} & 323 & 329 & 337 & & 358 & \gp{351} & 318 & 327 & 333 \\
+Caffeic Acid    & 325 & \gp{319} & 342 & 338 & 347 & & 325 & 309 & \gp{335} & \gp{335} & 345 \\
+Cinnamic Acid   & 275 & \gp{276} & 348 & 353 & 348 & & 276 & 265 & 341 & 351 & 345 \\
+Coumaric Acid   & 310 & \gp{302} & 340 & 348 & 346 & & 309 & 294 & 333 & 343 & 344 \\
 Dioxybenzone    & 283 & 367 & 314 & 315 & 327 & & 283 & 359 & 308 & 315 & 320 \\
-Ferulic Acid$^*$  & 324 & 311 & \textbf{326} & 313 & 346 & & 324 & 302 & \textbf{321} & 310 & 344 \\
+Ferulic Acid$^*$  & 324 & 311 & \gp{326} & 313 & 346 & & 324 & 302 & \gp{321} & 310 & 344 \\
 Homosalate      & 308 & 336 & 295 & 335 & 332 & & 308 & 335 & 293 & 336 & 327 \\
 Octinoxate      & 309 & 328 & 325 & 326 & 334 & & 308 & 322 & 323 & 323 & 332 \\
 Octisalate      & 308 & 334 & 291 & 339 & 353 & & 308 & 333 & 291 & 333 & 349 \\
 Octocrylene     & 301 & 385 & 357 & 344 & 390 & & 302 & 381 & 350 & 344 & 389 \\
-Oxybenzone      & 287 & 334 & 325 & \textbf{301} & 328 & & 287 & 327 & 317 & \textbf{299} & 321 \\
-PABA            & 291 & \textbf{282} & \textbf{295} & 322 & 308 & & 290 & 279 & \textbf{294} & 319 & 306 \\
-Padimate O      & 310 & 325 & \textbf{320} & 334 & 340 & & 310 & 324 & \textbf{316} & 330 & 337 \\
-Sinapic Acid    & 324 & 312 & 343 & \textbf{318} & 347 & & 324 & 303 & \textbf{332} & \textbf{314} & 346 \\
+Oxybenzone      & 287 & 334 & 325 & \gp{301} & 328 & & 287 & 327 & 317 & \gp{299} & 321 \\
+PABA            & 291 & \gp{282} & \gp{295} & 322 & 308 & & 290 & 279 & \gp{294} & 319 & 306 \\
+Padimate O      & 310 & 325 & \gp{320} & 334 & 340 & & 310 & 324 & \gp{316} & 330 & 337 \\
+Sinapic Acid    & 324 & 312 & 343 & \gp{318} & 347 & & 324 & 303 & \gp{332} & \gp{314} & 346 \\
 Sulisobenzone   & 287 & 338 & 330 & 346 & 355 & & 286 & 334 & 326 & 346 & 352 \\
 \midrule
 \textbf{MAE (nm)} & & \textbf{25.5} & 27.8 & 28.9 & 39.3 & & & \textbf{26.9} & 24.9 & 28.4 & 37.7 \\
