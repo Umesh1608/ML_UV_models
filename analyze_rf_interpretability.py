@@ -234,8 +234,8 @@ def plot_cumulative_importance(avg_imp):
         ax.axvline(idx + 1, color="#bdc3c7", linestyle="--", lw=0.8)
         ax.annotate(f"{idx + 1} features → {pct}%",
                     xy=(idx + 1, pct), xytext=(idx + 50, pct - 5),
-                    fontsize=9, color="#7f8c8d",
-                    arrowprops=dict(arrowstyle="->", color="#bdc3c7"))
+                    fontsize=10, fontweight="bold", color="black",
+                    arrowprops=dict(arrowstyle="->", color="#555555"))
 
     ax.set_xlim(0, 500)
     ax.set_ylim(0, 101)
