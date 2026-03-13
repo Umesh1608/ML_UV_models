@@ -1,6 +1,6 @@
-# When Do Simple Models Win? Benchmarking Machine Learning for UV Absorption Prediction
+# When Do Simple Models Win? Machine Learning Architectures for UV Absorption Prediction and Insights for General Molecular Property Prediction
 
-Systematic benchmark of five ML model families for predicting UV-Vis absorption maxima (lambda_max) from molecular structure. We compare fingerprint-based methods (Random Forest, XGBoost), a graph neural network (Chemprop D-MPNN), a character-level recurrent network (BiGRU), and a pretrained transformer (ChemBERTa) across cross-validation, cross-dataset transfer, and wetlab experimental validation.
+A controlled comparison of five models spanning four architecture families — fingerprint-based ensembles (Random Forest, XGBoost), a directed message-passing graph neural network (Chemprop D-MPNN), a bidirectional gated recurrent network (BiGRU), and a pretrained Transformer (ChemBERTa) — for predicting UV-Vis absorption wavelength (lambda_max) across 18,755 solute-solvent pairs. The answer depends on the task: RF is optimal for screening within known chemical space, while deep learning is superior for exploring novel scaffolds. Encoding solvent identity improves all models by 6-8% RMSE without domain-specific descriptor engineering.
 
 ## Key Findings
 
