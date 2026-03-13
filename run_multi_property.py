@@ -1,17 +1,22 @@
 #!/usr/bin/env python3
 """
-Multi-property benchmark: RF, BiGRU, and ChemBERTa on emission, log_mec, and lipophilicity.
+Multi-property benchmark: RF, XGBoost, Chemprop, BiGRU, and ChemBERTa across 4 properties.
 
-Strengthens the "local-feature models win" claim by testing on multiple properties:
-  1. Fluorescence emission (λ_em)  — LOCAL property, with solvent
-  2. log₁₀(MEC)                    — LOCAL property, with solvent (RF only)
-  3. Lipophilicity (LogP)           — CONTROL property, no solvent
+Tests the locality hypothesis — local-bias models (RF, Chemprop) should dominate on
+LOCAL properties while global-attention models (ChemBERTa) compete on GLOBAL properties.
+
+Properties:
+  1. Fluorescence emission (λ_em)  — LOCAL, with solvent
+  2. log₁₀(MEC)                    — LOCAL, with solvent (RF/XGBoost only — too large for DL)
+  3. Lipophilicity (LogP)           — GLOBAL, no solvent
+  4. Aqueous solubility (logS)     — GLOBAL, no solvent
 
 Usage:
   python3 run_multi_property.py --property emission --model rf                 # RF on emission, all folds
   python3 run_multi_property.py --property emission --model bigru --fold 0     # BiGRU fold 0
+  python3 run_multi_property.py --property solubility --model chemprop         # Chemprop on solubility
   python3 run_multi_property.py --property lipophilicity --model chemberta     # ChemBERTa all folds
-  python3 run_multi_property.py --property log_mec --model rf                  # RF on MEC (RF only)
+  python3 run_multi_property.py --property log_mec --model rf                  # RF on MEC
   python3 run_multi_property.py --summary                                      # aggregate + compare
 """
 
@@ -63,7 +68,7 @@ PROPERTY_INFO = {
         "has_solvent": True,
         "smiles_col": "smiles",
         "solvent_col": "solvent_smiles",
-        "models": ["rf", "bigru", "chemberta"],
+        "models": ["rf", "xgboost", "chemprop", "bigru", "chemberta"],
     },
     "log_mec": {
         "file": os.path.join(DATA_DIR, "mamede_log_mec_processed.csv"),
@@ -73,7 +78,7 @@ PROPERTY_INFO = {
         "has_solvent": True,
         "smiles_col": "smiles",
         "solvent_col": "solvent_smiles",
-        "models": ["rf"],  # DL too expensive on 81K rows
+        "models": ["rf", "xgboost"],  # DL too expensive on 81K rows
     },
     "lipophilicity": {
         "file": os.path.join(DATA_DIR, "lipophilicity_processed.csv"),
@@ -83,7 +88,17 @@ PROPERTY_INFO = {
         "has_solvent": False,
         "smiles_col": "smiles",
         "solvent_col": None,
-        "models": ["rf", "bigru", "chemberta"],
+        "models": ["rf", "xgboost", "chemprop", "bigru", "chemberta"],
+    },
+    "solubility": {
+        "file": os.path.join(DATA_DIR, "aqsoldb_processed.csv"),
+        "target_col": "exp",
+        "display": "Aqueous Solubility (logS)",
+        "unit": "logS",
+        "has_solvent": False,
+        "smiles_col": "smiles",
+        "solvent_col": None,
+        "models": ["rf", "xgboost", "chemprop", "bigru", "chemberta"],
     },
 }
 
@@ -285,9 +300,12 @@ def run_rf_fold(data, folds, fold_idx, results_dir, fp_all, fp_valid_mask, prefi
 
     print(f"\n  [RF Fold {fold_idx}] Train: {len(X_train)}, Test: {len(X_test)}")
 
+    # Limit parallelism for large datasets to avoid OOM (each worker copies data)
+    n_jobs = 4 if len(X_train) > 20000 else -1
+
     t0 = time.time()
     model = RandomForestRegressor(
-        n_estimators=500, max_depth=None, n_jobs=-1, random_state=SEED
+        n_estimators=500, max_depth=None, n_jobs=n_jobs, random_state=SEED
     )
     model.fit(X_train, y_train)
     elapsed = time.time() - t0
@@ -295,6 +313,60 @@ def run_rf_fold(data, folds, fold_idx, results_dir, fp_all, fp_valid_mask, prefi
     y_pred = model.predict(X_test)
     metrics = compute_metrics(y_test, y_pred)
     print(f"  [RF Fold {fold_idx}] Done in {elapsed:.0f}s — RMSE={metrics['RMSE']:.2f} "
+          f"MAE={metrics['MAE']:.2f} R²={metrics['R2']:.4f}")
+
+    # Save
+    import joblib
+    save_fold_results(results_dir, prefix, fold_idx, metrics, y_pred, y_test, test_idx[mask_test])
+    model_path = os.path.join(results_dir, f"{prefix}_fold{fold_idx}_model.joblib")
+    joblib.dump(model, model_path)
+
+    del model
+    gc.collect()
+    return metrics
+
+
+# ─── XGBoost training ────────────────────────────────────────────────────
+
+def run_xgboost_fold(data, folds, fold_idx, results_dir, fp_all, fp_valid_mask, prefix="xgboost"):
+    """Train XGBoost on one fold. Combines train+val (no early stopping on val)."""
+    existing = load_fold_results(results_dir, prefix, fold_idx)
+    if existing is not None:
+        print(f"\n  [XGBoost Fold {fold_idx}] Already done (RMSE={existing[0]['RMSE']}). Skipping.")
+        return existing[0]
+
+    import xgboost as xgb
+
+    train_idx, val_idx, test_idx = folds[fold_idx]
+    train_val_idx = np.concatenate([train_idx, val_idx])
+
+    # Apply valid mask
+    mask_train = fp_valid_mask[train_val_idx]
+    mask_test = fp_valid_mask[test_idx]
+
+    X_train = fp_all[train_val_idx][mask_train]
+    y_train = data["y"][train_val_idx][mask_train]
+    X_test = fp_all[test_idx][mask_test]
+    y_test = data["y"][test_idx][mask_test]
+
+    # Use GPU for large datasets (faster + avoids CPU RAM pressure)
+    use_gpu = len(X_train) > 20000
+    device_str = "cuda" if use_gpu else "cpu"
+    n_jobs = 1 if use_gpu else -1
+
+    print(f"\n  [XGBoost Fold {fold_idx}] Train: {len(X_train)}, Test: {len(X_test)}, device={device_str}")
+
+    t0 = time.time()
+    model = xgb.XGBRegressor(
+        n_estimators=500, max_depth=6, learning_rate=0.1,
+        tree_method="hist", device=device_str, random_state=SEED, n_jobs=n_jobs,
+    )
+    model.fit(X_train, y_train)
+    elapsed = time.time() - t0
+
+    y_pred = model.predict(X_test)
+    metrics = compute_metrics(y_test, y_pred)
+    print(f"  [XGBoost Fold {fold_idx}] Done in {elapsed:.0f}s — RMSE={metrics['RMSE']:.2f} "
           f"MAE={metrics['MAE']:.2f} R²={metrics['R2']:.4f}")
 
     # Save
@@ -412,6 +484,199 @@ def run_chemberta_fold(data, folds, fold_idx, results_dir, prefix="chemberta"):
     return metrics
 
 
+# ─── Chemprop training ──────────────────────────────────────────────────────
+
+def run_chemprop_fold(data, folds, fold_idx, results_dir, prefix="chemprop"):
+    """Train Chemprop D-MPNN on one fold. Single or multicomponent based on has_solvent."""
+    existing = load_fold_results(results_dir, prefix, fold_idx)
+    if existing is not None:
+        print(f"\n  [Chemprop Fold {fold_idx}] Already done (RMSE={existing[0]['RMSE']}). Skipping.")
+        return existing[0]
+
+    import torch
+    import lightning.pytorch as pl
+    from lightning.pytorch.callbacks import ModelCheckpoint, EarlyStopping
+    from chemprop import data as cpdata, featurizers, nn as cpnn
+    from chemprop.models import multi as cpmulti, MPNN as SingleMPNN
+    from chemprop.nn.metrics import RMSE as ChempropRMSE, MAE as ChempropMAE
+    from chemprop.nn.transforms import UnscaleTransform
+
+    # Import gpu_cooldown from run_chemprop
+    sys.path.insert(0, SCRIPT_DIR)
+    from run_chemprop import gpu_cooldown, ProgressCallback
+
+    # Chemprop hyperparameters (same as primary benchmark)
+    CP_MAX_EPOCHS = 100
+    CP_PATIENCE = 15
+    CP_BATCH_SIZE = 64
+    CP_D_H = 300
+    CP_DEPTH = 3
+    CP_WARMUP = 2
+    CP_INIT_LR = 1e-4
+    CP_MAX_LR = 1e-3
+    CP_FINAL_LR = 1e-4
+
+    torch.set_float32_matmul_precision("medium")
+    pl.seed_everything(SEED + fold_idx, workers=True)
+
+    train_idx, val_idx, test_idx = folds[fold_idx]
+    solute_only = not data["has_solvent"]
+
+    print(f"\n  [Chemprop Fold {fold_idx}] Train: {len(train_idx)}, "
+          f"Val: {len(val_idx)}, Test: {len(test_idx)}, "
+          f"{'single-component' if solute_only else 'multicomponent'}")
+
+    # Create MoleculeDatapoints
+    from rdkit import Chem
+
+    def make_datapoints(indices, with_targets=True):
+        solute_dps, solvent_dps = [], []
+        valid_idx = []
+        for i in indices:
+            smi = str(data["smiles"][i])
+            mol = Chem.MolFromSmiles(smi)
+            if mol is None:
+                continue
+            yval = np.array([data["y"][i]]) if with_targets else None
+            solute_dps.append(cpdata.MoleculeDatapoint.from_smi(smi, y=yval))
+            if not solute_only:
+                sol_smi = str(data["solvents"][i])
+                sol_mol = Chem.MolFromSmiles(sol_smi)
+                if sol_mol is None:
+                    solute_dps.pop()
+                    continue
+                solvent_dps.append(cpdata.MoleculeDatapoint.from_smi(sol_smi))
+            valid_idx.append(i)
+        return solute_dps, solvent_dps, np.array(valid_idx)
+
+    solute_train, solvent_train, train_valid = make_datapoints(train_idx)
+    solute_val, solvent_val, val_valid = make_datapoints(val_idx)
+    solute_test, solvent_test, test_valid = make_datapoints(test_idx)
+
+    n_skipped = (len(train_idx) + len(val_idx) + len(test_idx)
+                 - len(train_valid) - len(val_valid) - len(test_valid))
+    if n_skipped > 0:
+        print(f"  Skipped {n_skipped} invalid SMILES entries")
+
+    # Build datasets and loaders
+    feat = featurizers.SimpleMoleculeMolGraphFeaturizer()
+
+    if solute_only:
+        train_dset = cpdata.MoleculeDataset(solute_train, feat)
+        val_dset = cpdata.MoleculeDataset(solute_val, feat)
+        test_dset = cpdata.MoleculeDataset(solute_test, feat)
+        scaler = train_dset.normalize_targets()
+        val_dset.normalize_targets(scaler)
+    else:
+        train_dsets = [cpdata.MoleculeDataset(solute_train, feat),
+                       cpdata.MoleculeDataset(solvent_train, feat)]
+        val_dsets = [cpdata.MoleculeDataset(solute_val, feat),
+                     cpdata.MoleculeDataset(solvent_val, feat)]
+        test_dsets = [cpdata.MoleculeDataset(solute_test, feat),
+                      cpdata.MoleculeDataset(solvent_test, feat)]
+        train_dset = cpdata.MulticomponentDataset(train_dsets)
+        val_dset = cpdata.MulticomponentDataset(val_dsets)
+        test_dset = cpdata.MulticomponentDataset(test_dsets)
+        scaler = train_dset.normalize_targets()
+        val_dset.normalize_targets(scaler)
+
+    train_loader = cpdata.build_dataloader(train_dset, batch_size=CP_BATCH_SIZE, shuffle=True, num_workers=0)
+    val_loader = cpdata.build_dataloader(val_dset, batch_size=CP_BATCH_SIZE, shuffle=False, num_workers=0)
+    test_loader = cpdata.build_dataloader(test_dset, batch_size=CP_BATCH_SIZE, shuffle=False, num_workers=0)
+
+    # Build model
+    agg = cpnn.MeanAggregation()
+    output_transform = UnscaleTransform.from_standard_scaler(scaler)
+
+    if solute_only:
+        mp = cpnn.BondMessagePassing(d_h=CP_D_H, depth=CP_DEPTH)
+        ffn = cpnn.RegressionFFN(input_dim=mp.output_dim, output_transform=output_transform)
+        model = SingleMPNN(
+            mp, agg, ffn,
+            metrics=[ChempropRMSE(), ChempropMAE()],
+            warmup_epochs=CP_WARMUP, init_lr=CP_INIT_LR,
+            max_lr=CP_MAX_LR, final_lr=CP_FINAL_LR,
+        )
+    else:
+        mcmp = cpnn.MulticomponentMessagePassing(
+            blocks=[cpnn.BondMessagePassing(d_h=CP_D_H, depth=CP_DEPTH) for _ in range(2)],
+            n_components=2,
+        )
+        ffn = cpnn.RegressionFFN(input_dim=mcmp.output_dim, output_transform=output_transform)
+        model = cpmulti.MulticomponentMPNN(
+            mcmp, agg, ffn,
+            metrics=[ChempropRMSE(), ChempropMAE()],
+            warmup_epochs=CP_WARMUP, init_lr=CP_INIT_LR,
+            max_lr=CP_MAX_LR, final_lr=CP_FINAL_LR,
+        )
+
+    n_params = sum(p.numel() for p in model.parameters())
+    print(f"  >> Chemprop: {n_params:,} params "
+          f"({'single' if solute_only else 'multi'}-component)")
+
+    # Callbacks
+    fold_name = f"{prefix}_fold{fold_idx}"
+    checkpoint_best = ModelCheckpoint(
+        dirpath=results_dir, filename=f"{fold_name}_best",
+        monitor="val_loss", save_top_k=1, mode="min",
+    )
+    early_stop = EarlyStopping(
+        monitor="val_loss", patience=CP_PATIENCE, mode="min", min_delta=1e-5,
+    )
+    progress = ProgressCallback(name=fold_name, report_every=5)
+
+    # Check for resume checkpoint
+    ckpt_resume = None
+    for suffix in ["_latest.ckpt", "_best.ckpt"]:
+        candidate = os.path.join(results_dir, f"{fold_name}{suffix}")
+        if os.path.exists(candidate):
+            ckpt_resume = candidate
+            print(f"  >> Resuming from {os.path.basename(candidate)}")
+            break
+
+    # Train
+    trainer = pl.Trainer(
+        max_epochs=CP_MAX_EPOCHS, accelerator="auto", devices=1,
+        callbacks=[checkpoint_best, early_stop, progress],
+        enable_progress_bar=False, logger=False,
+        enable_model_summary=(fold_idx == 0),
+    )
+
+    t0 = time.time()
+    trainer.fit(model, train_loader, val_loader, ckpt_path=ckpt_resume)
+    elapsed = time.time() - t0
+    print(f"  [{fold_name}] Training complete in {elapsed:.0f}s "
+          f"({trainer.current_epoch + 1} epochs)")
+
+    # Load best model and predict
+    best_ckpt = checkpoint_best.best_model_path
+    if best_ckpt and os.path.exists(best_ckpt):
+        if solute_only:
+            best_model = SingleMPNN.load_from_checkpoint(best_ckpt)
+        else:
+            best_model = cpmulti.MulticomponentMPNN.load_from_checkpoint(best_ckpt)
+    else:
+        best_model = model
+
+    preds = trainer.predict(best_model, test_loader)
+    y_pred = torch.cat(preds, dim=0).squeeze(-1).numpy()
+    y_test = data["y"][test_valid]
+
+    metrics = compute_metrics(y_test, y_pred)
+    print(f"  >> {fold_name} — RMSE={metrics['RMSE']:.2f} MAE={metrics['MAE']:.2f} "
+          f"R²={metrics['R2']:.4f} r={metrics['Pearson_r']:.4f}")
+
+    save_fold_results(results_dir, prefix, fold_idx, metrics, y_pred, y_test, test_valid)
+
+    # Cleanup
+    del model, best_model, trainer
+    torch.cuda.empty_cache()
+    gc.collect()
+    gpu_cooldown(seconds=10)
+
+    return metrics
+
+
 # ─── Main runners ─────────────────────────────────────────────────────────────
 
 def run_property_model(prop_key, model_key, fold_idx=None):
@@ -448,6 +713,13 @@ def run_property_model(prop_key, model_key, fold_idx=None):
         fp_all, fp_valid_mask = compute_fps(data)
         for fi in fold_range:
             run_rf_fold(data, folds, fi, results_dir, fp_all, fp_valid_mask, prefix)
+    elif model_key == "xgboost":
+        fp_all, fp_valid_mask = compute_fps(data)
+        for fi in fold_range:
+            run_xgboost_fold(data, folds, fi, results_dir, fp_all, fp_valid_mask, prefix)
+    elif model_key == "chemprop":
+        for fi in fold_range:
+            run_chemprop_fold(data, folds, fi, results_dir, prefix)
     elif model_key == "bigru":
         verify_gpu_available()
         for fi in fold_range:
@@ -495,6 +767,8 @@ def print_summary():
     print("  --- UV λ_max (from primary benchmark, for comparison) ---")
     for prefix, label in [
         ("rf_tuned", "RF TUNED"),
+        ("xgboost_v2", "XGBoost"),
+        ("chemprop_v2", "Chemprop"),
         ("bigru_solvent_v2", "BiGRU+Solvent"),
         ("chemberta", "ChemBERTa"),
     ]:
@@ -514,7 +788,7 @@ def main():
     parser = argparse.ArgumentParser(description="Multi-property benchmark runner")
     parser.add_argument("--property", choices=list(PROPERTY_INFO.keys()),
                         help="Property to benchmark")
-    parser.add_argument("--model", choices=["rf", "bigru", "chemberta"],
+    parser.add_argument("--model", choices=["rf", "xgboost", "chemprop", "bigru", "chemberta"],
                         help="Model to train")
     parser.add_argument("--fold", type=int, choices=range(N_FOLDS), default=None,
                         help="Fold index (0-4). Omit for all folds.")

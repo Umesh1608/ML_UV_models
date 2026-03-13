@@ -241,6 +241,9 @@ def train_dl_model(model_type, X_train, X_test, y_train, y_test,
     # Use separate val set for early stopping if provided, otherwise use test set
     val_data = (X_val, y_val) if X_val is not None else (X_test, y_test)
 
+    # Build model before checkpoint resume (needed for load_weights)
+    model.build(input_shape=(None, input_length))
+
     # ── Resume from checkpoint if available ──────────────────────────────
     best_path = os.path.join(results_dir, f"{name}_best.keras")
     latest_path = os.path.join(results_dir, f"{name}_latest.keras")
@@ -320,7 +323,6 @@ def train_dl_model(model_type, X_train, X_test, y_train, y_test,
         cooldown_cb = GpuCooldownCallback()
         print(f"  >> GPU cooldown: {gpu_cooldown}s between epochs")
 
-    model.build(input_shape=(None, input_length))
     params = model.count_params()
     print(f"\n  >> {name} ({model_type}, {task}) — {params:,} params")
 

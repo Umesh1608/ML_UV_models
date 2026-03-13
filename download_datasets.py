@@ -53,6 +53,10 @@ NABLACOLORS_FILES = [
     "absorption_test.csv",
 ]
 
+# AqSolDB (Sorkun et al. 2019, Scientific Data) — GitHub (curated dataset)
+AQSOLDB_URL = "https://raw.githubusercontent.com/mcsorkun/AqSolDB/master/results/data_curated.csv"
+AQSOLDB_RAW = os.path.join(RAW_DIR, "aqsoldb_raw.csv")
+
 
 def download_file(url, dest, description="file"):
     """Download a file with progress reporting."""
@@ -315,19 +319,83 @@ def preprocess_nablacolors():
     return out_path
 
 
+# ─── AqSolDB preprocessing ────────────────────────────────────────────────
+
+def preprocess_aqsoldb():
+    """Read raw AqSolDB tab file and produce a cleaned CSV (SMILES + logS)."""
+    from rdkit import Chem
+
+    out_path = os.path.join(DATA_DIR, "aqsoldb_processed.csv")
+
+    print("\n[AqSolDB] Preprocessing...")
+    df = pd.read_csv(AQSOLDB_RAW)
+    print(f"  Raw: {len(df)} rows, columns: {list(df.columns)}")
+
+    # Columns: SMILES, Solubility (logS)
+    df = df[["SMILES", "Solubility"]].copy()
+    df.columns = ["smiles", "exp"]
+
+    # Drop rows with missing values
+    before = len(df)
+    df = df.dropna(subset=["smiles", "exp"])
+    print(f"  After dropna: {len(df)} (dropped {before - len(df)})")
+
+    # Canonicalize SMILES with RDKit
+    canon_smiles = []
+    valid = []
+    for smi in df["smiles"]:
+        mol = Chem.MolFromSmiles(str(smi))
+        if mol is not None:
+            canon_smiles.append(Chem.MolToSmiles(mol))
+            valid.append(True)
+        else:
+            canon_smiles.append(None)
+            valid.append(False)
+
+    n_invalid = sum(not v for v in valid)
+    if n_invalid > 0:
+        print(f"  Dropped {n_invalid} invalid SMILES")
+
+    df["smiles"] = canon_smiles
+    df = df[pd.Series(valid, index=df.index)]
+
+    # Convert solubility to float
+    df["exp"] = pd.to_numeric(df["exp"], errors="coerce")
+    df = df.dropna(subset=["exp"])
+
+    # Deduplicate by SMILES (keep mean solubility for duplicates)
+    n_before_dedup = len(df)
+    df = df.groupby("smiles", as_index=False)["exp"].mean()
+    n_dedup = n_before_dedup - len(df)
+    if n_dedup > 0:
+        print(f"  Deduplicated: {n_dedup} duplicate SMILES (kept mean)")
+
+    # Save
+    df = df.reset_index(drop=True)
+    df.to_csv(out_path, index=False)
+
+    # Stats
+    print(f"\n  [AqSolDB] Saved {len(df)} entries to {out_path}")
+    print(f"  Unique compounds: {df['smiles'].nunique()}")
+    print(f"  logS range: {df['exp'].min():.2f} – {df['exp'].max():.2f}")
+    print(f"  logS mean: {df['exp'].mean():.2f}, std: {df['exp'].std():.2f}")
+
+    return out_path
+
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # MAIN
 # ═══════════════════════════════════════════════════════════════════════════════
 
 def main():
     parser = argparse.ArgumentParser(description="Download + preprocess UV absorption datasets")
-    parser.add_argument("--dataset", choices=["deep4chem", "jung2024", "nablacolors"],
+    parser.add_argument("--dataset", choices=["deep4chem", "jung2024", "nablacolors", "aqsoldb"],
                         help="Process a single dataset (default: all)")
     parser.add_argument("--skip-download", action="store_true",
                         help="Skip download, use cached raw files")
     args = parser.parse_args()
 
-    datasets = [args.dataset] if args.dataset else ["deep4chem", "jung2024", "nablacolors"]
+    datasets = [args.dataset] if args.dataset else ["deep4chem", "jung2024", "nablacolors", "aqsoldb"]
 
     print("\n" + "=" * 60)
     print("  UV Absorption Dataset Download & Preprocessing")
@@ -346,6 +414,8 @@ def main():
                 dest = os.path.join(NABLACOLORS_DIR, fname)
                 download_file(f"{NABLACOLORS_BASE_URL}/{fname}", dest,
                               f"nablaColors {fname}")
+        if "aqsoldb" in datasets:
+            download_file(AQSOLDB_URL, AQSOLDB_RAW, "AqSolDB (Sorkun 2019)")
     else:
         print("\n[1/2] Skipping download (--skip-download)")
 
@@ -369,6 +439,12 @@ def main():
             preprocess_nablacolors()
         else:
             print(f"  [SKIP] nablaColors raw file not found: {all_csv}")
+
+    if "aqsoldb" in datasets:
+        if os.path.exists(AQSOLDB_RAW):
+            preprocess_aqsoldb()
+        else:
+            print(f"  [SKIP] AqSolDB raw file not found: {AQSOLDB_RAW}")
 
     print("\n" + "=" * 60)
     print("  Done.")

@@ -4,80 +4,118 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**Benchmark paper with "complementary strengths" narrative** (March 2026): Systematic benchmark of ML approaches (RF, XGBoost, BiGRU, ChemBERTa) for UV λ_max prediction. Key findings: (1) RF+Morgan FP wins on cross-validated benchmarks (RMSE 31.34), (2) Deep learning (ChemBERTa MAE 26.3, BiGRU 28.6) generalizes better to novel OOD molecules vs RF (38.5), (3) solvent concatenation helps both families (7-8% RMSE reduction), (4) ChemBERTa worst on CV (50.39) but best on wetlab — pretrained representations compensate for architectural mismatch on novel compounds. Model selection depends on task: RF for interpolation/screening, DL for novel compound exploration.
-
-**New LaTeX file**: `benchmark_paper.tex` (benchmark framing). Original `ml_chemistry_template.tex` preserved.
+**Benchmark paper with "complementary strengths" narrative** (March 2026): Systematic benchmark of ML approaches (RF, XGBoost, Chemprop D-MPNN, BiGRU, ChemBERTa) for UV λ_max prediction. Key findings: (1) RF+Morgan FP wins on cross-validated benchmarks (RMSE 31.34), (2) Deep learning (ChemBERTa MAE 26.3, BiGRU 28.6) generalizes better to novel OOD molecules vs RF (38.5), (3) solvent concatenation helps both families (7-8% RMSE reduction), (4) ChemBERTa worst on CV (50.39) but best on wetlab — pretrained representations compensate for architectural mismatch on novel compounds. Model selection depends on task: RF for interpolation/screening, DL for novel compound exploration.
 
 **Target journal**: **J. Chem. Inf. Model. (JCIM)** — ACS, IF ~6.5, achemso format (`benchmark_paper_jcim.tex`).
 Also have `benchmark_paper.tex` (generic article format, Overleaf-synced).
 
 ---
 
-## FULL PROJECT PLAN
+## Phase I: Primary Benchmark ✅ COMPLETE (ready for JCIM submission)
 
-### What's Been Achieved
+5 model families benchmarked on Joung+Beard dataset (18,755 UV λ_max samples).
 
-#### Phase 1 — LaTeX Quick Fixes ✅ COMPLETE
-All grammar, affiliation, and package fixes applied to `ml_chemistry_template.tex`.
+### v2 Cross-Validated Results (StratifiedKFold 64/16/20 — used in paper)
 
-#### Phase 2a — Baseline Experiments on Joung+Beard (18,755 samples)
+| Model | RMSE (nm) | MAE | R² | Status |
+|-------|-----------|-----|-----|--------|
+| RF TUNED (B=1000,mf=0.3) | **31.34 ± 1.82** | **15.16 ± 0.44** | 0.914 | ✅ |
+| Chemprop D-MPNN | 31.69 ± 3.18 | 16.84 ± 1.74 | 0.911 | ✅ |
+| XGBoost MSE | 33.70 ± 1.61 | 20.05 ± 0.48 | 0.900 | ✅ |
+| BiGRU TUNED (3L/256u) | 34.71 ± 1.40 | 18.09 ± 0.59 | 0.894 | ✅ |
+| BiGRU+Solvent (default) | 36.45 ± 1.12 | 20.70 ± 0.51 | 0.884 | ✅ |
+| ChemBERTa | 50.39 ± 2.30 | 24.31 ± 1.04 | 0.777 | ✅ |
 
-**v1 results (KFold 80/20, early stopping on test — has data leakage for DL models):**
+### Cross-Dataset Benchmarking ✅
 
-| Model | Folds | RMSE | MAE | R² | r | Status |
-|-------|-------|------|-----|-----|---|--------|
-| BiGRU + Solvent | 5/5 | 33.48 ± 0.77 | 18.46 ± 0.11 | 0.9017 ± 0.0054 | 0.9497 ± 0.0029 | ✅ Aggregate done |
-| BiGRU no solvent | 5/5 | ~37.85 ± 1.19 | ~20.81 ± 0.56 | ~0.8745 | ~0.9355 | ✅ Folds done, needs `--summary` |
-| BiLSTM + Solvent | 2/5 | fold0: 34.41, fold1: 40.71 | — | — | — | ❌ Folds 2-4 missing |
-| CNN-BiGRU + Solvent | 1/5 | fold0: 33.43 | — | — | — | ❌ Folds 1-4 missing |
-| RF (MSE) | 5/5 | 30.85 ± 0.71 | 14.24 ± 0.27 | 0.9166 ± 0.0040 | 0.9577 ± 0.0019 | ✅ Aggregate done |
-| RF (MAE) | 5/5 | 30.92 ± 0.74 | 14.35 ± 0.14 | 0.9162 ± 0.0035 | 0.9576 ± 0.0016 | ✅ Aggregate done |
-| XGBoost (MSE) | 5/5 | 32.71 ± 1.14 | 19.51 ± 0.43 | 0.9062 ± 0.0052 | 0.9529 ± 0.0025 | ✅ Aggregate done |
-| XGBoost (MAE) | 5/5 | 40.12 ± 2.27 | 21.41 ± 0.77 | 0.8587 ± 0.0148 | 0.9295 ± 0.0074 | ✅ Aggregate done |
+| Dataset | Split | Our Best RMSE | Status |
+|---------|-------|---------------|--------|
+| Deep4Chem | random 80/10/10 | RF 22.70 | ✅ |
+| Jung 2024 | random 72/18/10 | RF 29.82 | ✅ |
+| Jung 2024 | scaffold 80/10/10 | RF 67.56 | ✅ |
+| nablaColors | precomputed scaffold | RF 56.38 | ✅ |
 
-**v2 results (StratifiedKFold 64/16/20 train/val/test, proper early stopping — preferred for paper):**
+### Wetlab Validation ✅ (16 molecules × 2 solvents)
 
-| Model | Folds | RMSE | MAE | R² | r | Status |
-|-------|-------|------|-----|-----|---|--------|
-| BiGRU + Solvent v2 | 5/5 | 36.45 ± 1.12 | 20.70 ± 0.51 | 0.8836 ± 0.0058 | 0.9402 ± 0.0031 | ✅ Aggregate done |
-| BiGRU no solvent v2 | 5/5 | 39.03 ± 1.37 | 22.53 ± 0.32 | 0.870 ± 0.010 | 0.930 ± 0.010 | ✅ Aggregate done |
-| **RF TUNED** (B=1000,mf=0.3) | 5/5 | **31.34 ± 1.82** | **15.16 ± 0.44** | 0.914 ± 0.010 | 0.956 ± 0.005 | ✅ Aggregate done |
-| RF TUNED no solvent | 5/5 | 34.13 ± 1.44 | 16.45 ± 0.33 | 0.900 ± 0.010 | 0.950 ± 0.004 | ✅ Aggregate done |
-| RF v2 (MAE) | 3/5 | fold0: 33.27, fold1: 31.86, fold2: 30.17 | — | — | — | ❌ Folds 3-4 missing |
-| XGBoost v2 (MSE) | 5/5 | 33.70 ± 1.61 | 20.05 ± 0.48 | 0.9003 ± 0.0094 | 0.9496 ± 0.0049 | ✅ Aggregate done |
-| XGBoost v2 (MAE) | 5/5 | 40.75 ± 1.58 | 21.99 ± 0.47 | 0.8544 ± 0.0105 | 0.9272 ± 0.0055 | ✅ Aggregate done |
-| ChemBERTa v2 | 5/5 | 50.39 ± 2.30 | 24.31 ± 1.04 | 0.777 ± 0.019 | 0.899 ± 0.009 | ✅ Aggregate done |
+| Model | MAE | RMSE |
+|-------|-----|------|
+| ChemBERTa | **26.3** | 32.2 |
+| BiGRU (default) | 28.6 | 33.9 |
+| RF | 38.5 | 43.7 |
 
-#### Phase 2b — Cross-Dataset Benchmarking (verified from result files)
-
-Single train/val/test splits matching each paper's published protocol. Val used for early stopping (no data leakage).
-
-| Dataset | Split | Published | Our RMSE | Our MAE | Our R² | Status |
-|---------|-------|-----------|----------|---------|--------|--------|
-| Deep4Chem | random 80/10/10 | GCNN RMSE 26.6 (Joung 2020) | RF 22.70, BiGRU 27.07, CB 35.90 | — | — | ✅ All 3 models done |
-| Jung 2024 | random 72/18/10 | GBFS RMSE 32.2 (Jung 2024) | RF 29.82, BiGRU 36.31, CB 38.27 | — | — | ✅ All 3 models done |
-| Jung 2024 | scaffold 80/10/10 | GBFS RMSE 32.2 (Jung 2024) | 67.56 | 46.77 | 0.5993 | ✅ Done (scaffold is much harder for 1D models) |
-| nablaColors | precomputed scaffold | UniProp RMSE 27.2, MAE 15.97 (3D GNN) | 56.38 | 39.48 | 0.6958 | ✅ Done (3D models have huge advantage) |
-| nablaColors SELFIES | precomputed scaffold | — | 56.57 | 40.42 | 0.6938 | ✅ Done |
-
-#### Phase 2c — Classification Validation (verified from result files)
-
-| Task | Status | Result |
-|------|--------|--------|
-| Mamede classification (from v1 pooled) | ✅ Done | Sens=0.9904, Spec=0.5446, F1=0.9817, AUC=0.9215 (N=3751) |
+### Deliverables ✅
+Cover letter, TOC graphic, reviewer suggestions, all figures in PNG, BiGRU classification, citation verification, SI per-fold tables.
+**Remaining**: commit+push, Overleaf sync, submit to JCIM (ACS Paragon Plus).
 
 ---
 
-### Phase I: Chemprop GNN Baseline ✅ COMPLETE
+## Phase II: Multi-Property Expansion ⏸ PAUSED
 
-**Result**: Chemprop D-MPNN RMSE=31.69±3.18 nm — statistically tied with RF (31.34, p=0.77), 636K params.
-**Script**: `run_chemprop.py` (CLI: `--fold {0-4}`, `--summary`, `--dataset deep4chem`)
-**Paper updates done**: abstract, intro, methods subsection, Table 2, discussion, TikZ figure, conclusion, SI per-fold table, cover letter (both tex files + SI).
-**Remaining**: Optional Chemprop cross-dataset on Deep4Chem, commit+push, Overleaf sync, submit to JCIM.
+Tests locality-of-property hypothesis: local-bias models (RF, Chemprop) should dominate on LOCAL properties while global-attention models (ChemBERTa) compete on GLOBAL properties.
 
-**Previous deliverables** (all complete): cover letter (`cover_letter.tex`), TOC graphic (`results/toc_graphic.tiff`), reviewer suggestions (`reviewer_suggestions.txt`), all figures in PNG format, BiGRU classification done, citation verification done.
+**Script**: `run_multi_property.py` (CLI: `--property {emission,log_mec,lipophilicity,solubility} --model {rf,xgboost,chemprop,bigru,chemberta} --fold {0-4}`)
 
-#### Verified External Facts (from PDF verification — DO NOT change without re-checking source)
+### Completed Results
+
+**Emission (λ_em) — LOCAL, with solvent, 4,232 rows (`data/chemfluor_processed.csv`):**
+
+| Model | RMSE | MAE | R² | Folds |
+|-------|------|-----|-----|-------|
+| Chemprop | **24.03 ± 1.95** | 14.77 ± 0.70 | 0.943 | 5/5 ✅ |
+| XGBoost | 24.57 ± 1.63 | 13.77 ± 0.51 | 0.940 | 5/5 ✅ |
+| RF | 25.28 ± 2.81 | 13.06 ± 1.11 | 0.936 | 5/5 ✅ |
+| BiGRU | 31.87 ± 2.03 | 19.40 ± 0.80 | 0.900 | 5/5 ✅ |
+| ChemBERTa | — | — | — | 0/5 ❌ |
+
+**Lipophilicity (LogP) — GLOBAL, no solvent, 4,200 rows (`data/lipophilicity_processed.csv`):**
+
+| Model | RMSE | MAE | R² | Folds |
+|-------|------|-----|-----|-------|
+| Chemprop | **0.61 ± 0.03** | 0.43 ± 0.02 | 0.745 | 5/5 ✅ |
+| XGBoost | 0.79 ± 0.02 | 0.60 ± 0.02 | 0.568 | 5/5 ✅ |
+| RF | 0.83 ± 0.02 | 0.63 ± 0.01 | 0.528 | 5/5 ✅ |
+| BiGRU | 0.84 ± 0.02 | 0.62 ± 0.01 | 0.517 | 5/5 ✅ |
+| ChemBERTa | — | — | — | 0/5 ❌ |
+
+**Solubility (logS) — GLOBAL, no solvent (`data/aqsoldb_processed.csv`):**
+
+| Model | RMSE | MAE | R² | Folds |
+|-------|------|-----|-----|-------|
+| Chemprop | **1.08 ± 0.03** | 0.73 ± 0.02 | 0.794 | 5/5 ✅ |
+| XGBoost | 1.33 ± 0.03 | 0.97 ± 0.02 | 0.686 | 5/5 ✅ |
+| RF | 1.34 ± 0.02 | 0.95 ± 0.02 | 0.679 | 5/5 ✅ |
+| BiGRU | — | — | — | 1/5 (fold 0 running) |
+| ChemBERTa | — | — | — | 0/5 ❌ |
+
+**log₁₀(MEC) — LOCAL, with solvent, 81,638 rows (`data/mamede_log_mec_processed.csv`):**
+
+| Model | RMSE | MAE | R² | Folds |
+|-------|------|-----|-----|-------|
+| RF | **0.47 ± 0.00** | 0.26 ± 0.00 | 0.461 | 5/5 ✅ |
+| XGBoost | 0.50 ± 0.01 | 0.30 ± 0.00 | 0.387 | 5/5 ✅ |
+
+*(log_mec too large for BiGRU/ChemBERTa — RF/XGBoost only)*
+
+### Key Finding So Far
+RF-to-Chemprop gap is 2-3× larger on GLOBAL properties (lipophilicity, solubility) than LOCAL (emission). Supports locality hypothesis in relative terms. Chemprop dominates everywhere. Still need ChemBERTa results.
+
+### Remaining for Phase II
+1. Solubility BiGRU folds 1-4
+2. Emission ChemBERTa folds 0-4
+3. Lipophilicity ChemBERTa folds 0-4
+4. Solubility ChemBERTa folds 0-4
+5. Run `--summary` aggregation after all jobs complete
+6. Potential: extinction coefficient from Deep4Chem raw (8,280 rows with log₁₀(ε))
+
+### OOM/Crash Prevention (learned the hard way)
+- RF `n_jobs=4` for datasets >20K rows (WSL crashed with `n_jobs=-1` on 81K × 32 cores)
+- XGBoost uses `device="cuda"` for datasets >20K rows
+- BiGRU has checkpoint/resume: `_latest.keras` + `_state.json` saved every 5 epochs
+- ChemBERTa has full checkpoint format (model+optimizer+scheduler+scaler+epoch+history)
+
+---
+
+## Verified External Facts (from PDF verification — DO NOT change without re-checking source)
 
 - **nablaColors** (Potapov 2026): 26,369 pairs, best model = **UniProp** (NOT UniMol+), RMSE=27.2, MAE=15.97, R²=0.929
 - **ChemBERTa**: `seyonec/ChemBERTa-zinc-base-v1` pretrained on **ZINC** (NOT 77M PubChem)
@@ -85,26 +123,6 @@ Single train/val/test splits matching each paper's published protocol. Val used 
 - **Mamede 2021**: Scientific Reports (NOT Chem Res Toxicol), author Florbela (NOT Filipe)
 - **UV-adVISor 2021**: Urbina, Batra, Ekins (NOT Beard et al.), volume 93
 - **Lupo Pasini 2023**: Mehta, Yoo, Irle (NOT Li, Blaiszik), page 546
-
-#### Phase II — Multi-Property Expansion (`benchmark_paper_v2.tex`)
-
-**Script**: `run_multi_property.py` (CLI: `--property {emission,log_mec,lipophilicity} --model {rf,bigru,chemberta} --fold {0-4}`)
-
-**RF results (complete or in progress):**
-
-| Property | Dataset | Rows | RMSE | R² | Status |
-|----------|---------|------|------|----|--------|
-| Emission (λ_em) | `data/chemfluor_processed.csv` | 4,232 | 25.28 ± 2.81 | 0.936 | ✅ 5/5 |
-| Lipophilicity (LogP) | `data/lipophilicity_processed.csv` | 4,200 | 0.83 ± 0.02 | 0.528 | ✅ 5/5 |
-| log₁₀(MEC) | `data/mamede_log_mec_processed.csv` | 81,638 | ~0.47 | ~0.45 | ⏸ 3/5 (resume: `--property log_mec --model rf`) |
-
-**Remaining:** Finish log_mec RF (folds 3-4), then BiGRU + ChemBERTa on emission & lipophilicity (~32h GPU)
-
-#### Priority Execution Order
-```
-Phase I: Chemprop 5-fold CV → paper updates → submit JCIM (ACS Paragon Plus, need ORCIDs)
-Phase II (after submission): log_mec RF ⏸ → BiGRU (GPU) → ChemBERTa (GPU) → paper_v2
-```
 
 ---
 
@@ -120,17 +138,17 @@ ln -sf ~/.local/lib/python3.12/site-packages/triton/backends/nvidia/lib/libdevic
 
 **Before DL training**: kill competing processes, check `nvidia-smi`. `verify_gpu_available()` runs automatically.
 
-**Expected epoch times** (batch_size=32, seq_len=649):
-- v2 (~12K train, 375 steps/epoch): **~70-85 sec/epoch**, ~3-5 hours per fold
-- 18% GPU utilization is NORMAL for RNNs (sequential timestep computation)
+**Expected epoch times**:
+- Primary dataset (~12K train, seq_len=649): ~70-85 sec/epoch per BiGRU fold
+- Phase II datasets (~2.7K train, seq_len~275): ~11-39 sec/epoch per BiGRU fold
 - Tqdm callback prints detailed metrics every 10 epochs automatically
 
 ## Training Config
 
 **BiGRU (default)**: batch_size=32, lr=0.001, mixed_float16, epochs=250, patience=25, RMSprop, loss=MAE
-**BiGRU (tuned, from HPO Trial 25)**: n_units=256, n_layers=3, embed_dim=50, batch_size=128, dropout=0.105, lr=0.00111, val_loss=33.33 (8.6% better than default 36.45)
+**BiGRU (tuned, from HPO Trial 25)**: n_units=256, n_layers=3, embed_dim=50, batch_size=128, dropout=0.105, lr=0.00111
 
-**ChemBERTa** (thermal-safe config): MAX_LEN=256, batch_size=8, grad_accum=4 (effective=32), lr=5e-5, AdamW, fp16, epochs=100, patience=15, num_workers=0, gpu_cooldown=10s between folds. RTX 4090 Laptop idles at 71°C — the old config (batch=32, MAX_LEN=512, 12 worker processes) caused thermal shutdown. First run (50 epochs, patience=10) didn't converge (RMSE=116.79). **Crash-resilient**: full checkpoint format (model+optimizer+scheduler+scaler+epoch+history), periodic saves every 10 epochs to `_latest.pt`, SIGINT/SIGTERM handler saves checkpoint before exit, results saved inside `train_chemberta()` not just caller. Resume auto-detects checkpoint format. ~100-110s/epoch on GPU, ~3h per fold.
+**ChemBERTa** (thermal-safe config): MAX_LEN=256, batch_size=8, grad_accum=4 (effective=32), lr=5e-5, AdamW, fp16, epochs=100, patience=15, num_workers=0, gpu_cooldown=10s between folds. ~100-110s/epoch on GPU, ~3h per fold.
 
 ## Overleaf + Git
 
@@ -150,34 +168,37 @@ Files: `ml_chemistry_template.tex`, `Proposal.bib` (77K tokens — read with off
 - **`eval_classification.py`** — Mamede photosafety classification (CLI: `--model`, `--threshold`)
 - **`eval_wetlab.py`** — Wetlab experimental validation (16 molecules × 2 solvents, RF + BiGRU + ChemBERTa)
 - **`run_chemberta.py`** — ChemBERTa fine-tuning (PyTorch, HuggingFace) for primary + cross-dataset
+- **`run_chemprop.py`** — Chemprop D-MPNN training (Lightning, CLI: `--fold {0-4}`, `--summary`, `--dataset deep4chem`)
+- **`run_multi_property.py`** — Phase II multi-property experiments (emission, log_mec, lipophilicity, solubility)
 - **`download_datasets.py`** — Download external datasets (CLI: `--dataset`)
 - **`convert_reaxys_web_export.py`** — Reaxys TSV → raw CSV
 - **`postprocess_reaxys.py`** — Raw Reaxys → clean regression + classification datasets (CLI: `--solvent`)
 - **`benchmark_paper.tex`** — Benchmark paper (generic article format, Overleaf-synced, includes inline appendix)
 - **`benchmark_paper_jcim.tex`** — JCIM submission version (achemso, journal=jcisd8, main text only)
-- **`supporting_information.tex`** — JCIM Supporting Information (standalone achemso suppinfo: per-fold tables, significance, learning curves, tuning asymmetry, chartype saliency)
-- **`notes_on_paper.tex`** — Revision notes, reviewer Q&A, submission checklist, fallback git hashes
+- **`supporting_information.tex`** — JCIM Supporting Information (standalone achemso suppinfo)
+- **`notes_on_paper.tex`** — Revision notes, reviewer Q&A, submission checklist
 - **`ml_chemistry_template.tex`** — Original DL-focused paper (preserved, Overleaf-synced)
 - **`tune_rf.py`** — RF hyperparameter grid search (432 configs)
 - **`tune_bigru.py`** — BiGRU Optuna HPO (25/30 trials done, SQLite storage, stop/resume safe)
-- **`analyze_bigru_saliency.py`** — BiGRU gradient saliency → atom-level 2D heatmaps (InputxGradient)
+- **`analyze_bigru_saliency.py`** — BiGRU gradient saliency → atom-level 2D heatmaps
 - **`analyze_rf_interpretability.py`** — RF feature importance analysis (Morgan FP bit → substructure)
-- **`run_multi_property.py`** — Phase II multi-property experiments (emission, log_mec, lipophilicity)
+- **`run_phase2_gpu.sh`** — Batch script for Phase II GPU jobs (sequential)
+- **`run_phase2_cpu.sh`** — Batch script for Phase II CPU jobs
 - **`ROADMAP.txt`** — Full execution guide with commands and stop/resume safety
 - **`results/`** — All outputs. **`data/`** — Datasets. **`previous_code/`** — Original work.
 
 ## Datasets
 
 - **Primary**: `previous_code/UV_canonical_full_dataset.csv` — 18,755 rows (smiles, lambda_max, canon, solvents)
-- **Deep4Chem**: `data/deep4chem_processed.csv` — ~20K (Joung 2020, Figshare)
+- **Deep4Chem**: `data/deep4chem_processed.csv` — ~20K (Joung 2020, Figshare). Raw has 14 columns incl. extinction coeff.
 - **Jung 2024**: `data/jung2024_processed.csv` — ~26K (GitHub)
 - **nablaColors**: `data/nablacolors_processed.csv` — 24,567 (Zenodo), splits in `nablacolors_splits.npz`
 - **ChemFluor**: `data/chemfluor_processed.csv` — 4,232 entries (emission wavelength)
 - **Mamede log₁₀(MEC)**: `data/mamede_log_mec_processed.csv` — 81,638 rows (MEC ∈ [1,500000], 88% methanol)
 - **Lipophilicity**: `data/lipophilicity_processed.csv` — 4,200 rows (LogP, MoleculeNet, no solvent)
+- **AqSolDB**: `data/aqsoldb_processed.csv` — aqueous solubility (logS, no solvent)
 - **Mamede/Reaxys classification**: ~74K compounds, binary photosafety labels
 - **Reaxys**: `data/raw/reaxys_uv_raw.csv` — 114,699 records (from 24/75 exports)
-- **Reaxys exports**: `data/raw/reaxys_exports/` — 48/75 TSV files collected
 
 ## Commands
 
