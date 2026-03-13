@@ -869,7 +869,7 @@ In contrast to deep learning models, which are traditionally viewed as less inte
 Since each bit in a Morgan fingerprint corresponds to a specific molecular substructure (a circular neighborhood of radius $\leq 2$ around each atom), high-importance bits can be decoded back to chemically meaningful structural motifs.
 We averaged Gini importances across all five fold models and decoded the top features using RDKit.
 
-\begin{figure}[htbp]
+\begin{figure*}[htbp]
     \centering
     \begin{subfigure}[t]{0.48\textwidth}
         \includegraphics[width=\textwidth]{results/rf_feature_importance.pdf}
@@ -882,7 +882,7 @@ We averaged Gini importances across all five fold models and decoded the top fea
     \end{subfigure}
     \caption{RF feature importance analysis. The model learns chemically meaningful patterns: the top features correspond to known chromophore motifs that produce large bathochromic shifts.}
     \label{fig:rf_interpretability}
-\end{figure}
+\end{figure*}
 
 \begin{figure}[htbp]
     \centering
