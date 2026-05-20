@@ -31,9 +31,9 @@ if [ "$EUID" -ne 0 ]; then
     exit 1
 fi
 
-echo "=== [1/5] System packages: tmux, rsync, curl ==="
+echo "=== [1/5] System packages: tmux, rsync, curl, sudo ==="
 apt update -qq
-apt install -y tmux rsync curl
+apt install -y tmux rsync curl sudo
 
 echo "=== [2/5] Node 20 (Claude Code requires Node 18+) ==="
 apt remove -y nodejs npm libnode-dev libnode72 2>/dev/null || true
