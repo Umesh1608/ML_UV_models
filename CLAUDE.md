@@ -9,6 +9,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 **Target journal**: **J. Chem. Inf. Model. (JCIM)** — ACS, IF ~6.5, achemso format (`benchmark_paper_jcim.tex`).
 Also have `benchmark_paper.tex` (generic article format, Overleaf-synced).
 
+**Current state (May 2026): JCIM revision in progress.** Manuscript ID ci-2026-009433 received "Major Revisions" decision on 20-May-2026, deadline 17-Jun-2026. Resubmission deliverables live as **new files** (`benchmark_paper_jcim_revised.tex`, `benchmark_paper_jcim_revised_marked.tex`, `supporting_information_revised.tex`, `response_to_reviewers.tex`); originals are kept untouched. **Read `revision_status.md` and `reviewer_comments.md` before continuing the revision work** — they capture which reviewer concerns are completed, which is next, and the conventions for marked-copy edits and the response document.
+
 ---
 
 ## Phase I: Primary Benchmark ✅ COMPLETE (ready for JCIM submission)

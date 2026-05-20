@@ -1,0 +1,95 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{soul}
+
+% Reviewer comments shown in indented italics
+\newenvironment{reviewer}{%
+  \begin{quote}\itshape\color{black!70}}{%
+  \end{quote}}
+
+% Author responses shown plain
+\newcommand{\response}[1]{\noindent\textbf{Response:} #1\par\medskip}
+
+% Manuscript changes shown bulleted
+\newenvironment{changes}{%
+  \noindent\textbf{Changes to manuscript:}
+  \begin{itemize}[leftmargin=2em,itemsep=2pt]}{%
+  \end{itemize}\medskip}
+
+\title{Response to Reviewers\\
+\large Manuscript ID: ci-2026-009433\\
+``When Do Simple Models Win? Machine Learning Architectures for UV Absorption Prediction''}
+\author{Umesh Arampath, Bryant Pero, David Stewart, David Demirjian}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+We thank the Associate Editor and both reviewers for their thoughtful and constructive feedback. The reviewers' comments have substantially improved the manuscript, particularly by sharpening the scope of our claims, strengthening the data preprocessing and evaluation protocol, and adding analyses that contextualize our findings.
+
+In the responses below, each reviewer comment is reproduced verbatim in indented italics, followed by our response and a bulleted list of corresponding changes to the manuscript. All page and line numbers refer to the revised manuscript unless stated otherwise.
+
+\section*{Summary of Major Changes}
+\begin{itemize}[leftmargin=2em]
+  \item Retitled the paper and revised the abstract and conclusion to restrict generality claims to UV absorption and closely related local optical properties; removed the ``Insights for General Molecular Property Prediction'' framing.
+  % TODO: fill in as we work through each comment
+\end{itemize}
+
+\clearpage
+
+\section*{Reviewer 1}
+
+\subsection*{Comment R1-1: Generality of conclusions}
+\begin{reviewer}
+The authors make some claims about the conclusions from this work being extensible to molecular property prediction in general (e.g.\ in the title, pg.\ 1 line 35 in abstract, pg.\ 39 line 34 in conclusion). While this work seems to give evidence to the authors' hypothesis regarding the locality of target properties, I think these statements go too far given that the work does not validate this hypothesis in any domains other than optical properties. The work frames UV absorption as ``an ideal benchmarking target'' (pg.\ 3 line 25), and while the stated reasons do indeed make UV absorption a particularly interesting benchmarking task, I'm not sure that it's appropriate to say that it's ``ideal'' in the sense that conclusions that we draw from benchmarking on UV absorption can necessarily be applied more generally in molecular property prediction.
+\end{reviewer}
+
+\response{We agree with the reviewer that our generality claims were not supported by the experiments reported in this manuscript, which evaluate only UV absorption $\lambda_{\max}$. We have removed all references to ``general molecular property prediction'' from the title, abstract, introduction, and conclusion, softened the ``ideal benchmarking target'' framing, and recast the locality argument as a testable hypothesis whose cross-property validation is left as future work.}
+
+\begin{changes}
+  \item \textbf{Title.} Removed the trailing clause ``and Insights for General Molecular Property Prediction.'' The title now reads: ``When Do Simple Models Win? Machine Learning Architectures for UV Absorption Prediction.''
+  \item \textbf{Abstract (closing paragraph).} Replaced the paragraph beginning ``These findings provide general guidance for molecular property prediction\ldots'' with a UV-scoped restatement and an explicit hypothesis sentence: ``Within UV absorption prediction, optimal model choice depends on the relationship between target compounds and available training data: simple fingerprint-based models are an efficient and accurate alternative to deep learning for interpolation within known chemical space, while learned representations from graphs, sequences, or pretraining generalize better to novel scaffolds. We further hypothesize that this pattern\ldots\ may extend to other locally determined molecular properties; validating this across property types is left as future work.''
+  \item \textbf{Introduction (``ideal benchmarking target'').} Softened the framing from ``The UV absorption prediction task presents several distinctive challenges that make it an ideal benchmarking target'' to ``The UV absorption prediction task is well-suited for systematic architecture comparison for several reasons.''
+  \item \textbf{Conclusion (``More broadly'' paragraph).} Removed the three sentences claiming generality to molecular property prediction beyond UV absorption and replaced them with: ``Our results raise a testable hypothesis about model selection: that architectures whose inductive bias matches the locality of the target property will outperform global-attention architectures in-distribution, while pretrained representations confer out-of-distribution advantages regardless of inductive bias. The present work establishes this pattern for UV absorption $\lambda_{\max}$; whether it extends to fluorescence emission, lipophilicity, aqueous solubility, or other molecular endpoints whose locality differs from UV absorption requires dedicated cross-property benchmarking, which we identify as a priority for future work.''
+  \item The existing Future Work section already frames cross-property extension as a hypothesis to validate; it is retained without further change.
+\end{changes}
+
+\subsection*{Comment R1-2: ``RF is optimal'' is hurt by the absence of a statistically significant difference between RF and Chemprop}
+\begin{reviewer}
+The claim that RF is ``optimal'' (pg 1 line 51 in abstract) is hurt by the fact that the difference between RF and Chemprop is not statistically significant.
+\end{reviewer}
+
+\response{We agree. We have removed every instance of ``RF is optimal'' or equivalent language and replaced it with statements that explicitly acknowledge the statistical equivalence between RF and the D-MPNN ($p = 0.77$). The revised text frames RF's advantage as one of compute cost and operational simplicity rather than predictive accuracy, which our data support.}
+
+\begin{changes}
+  \item \textbf{Abstract (line 53).} Replaced ``RF with Morgan fingerprints is optimal: it matches the GNN\ldots'' with ``RF with Morgan fingerprints is competitive with the best deep learning model at a fraction of the compute cost: RF and the D-MPNN are statistically indistinguishable (RMSE = $31.34 \pm 1.82$ vs.\ $31.69 \pm 3.18$~nm, $p = 0.77$), and RF trains in 15 minutes on a CPU with no hyperparameter tuning while outperforming all sequence-based models.''
+  \item \textbf{Introduction contributions bullet.} Replaced ``RF is optimal for in-distribution screening (fast, no GPU, no tuning needed)\ldots'' with ``on in-distribution screening, RF is statistically tied with the best deep learning model (D-MPNN, $p = 0.77$) but trains $\sim$100$\times$ faster with no hyperparameter tuning; on novel compounds, deep learning models generalize better.''
+  \item \textbf{Figure caption (Training time vs.\ performance).} Replaced ``RF achieves the best RMSE in 15~minutes\ldots'' with ``RF attains performance statistically tied with the best deep learning model in 15~minutes\ldots,'' eliminating the implicit optimality claim while preserving the compute-cost comparison the figure is designed to convey.
+\end{changes}
+
+\subsection*{Comment R1-3: ``3D methods offering advantages'' typo}
+\begin{reviewer}
+Pg.\ 3 line 39: ``3D methods offering advantages primarily for structurally diverse datasets (see Cross-Dataset Benchmarking)'' --- Is this a typo referring to 3D methods? This work doesn't use 3D methods, as discussed in the limitations and future work sections.
+\end{reviewer}
+
+\response{The reviewer is correct. The phrase was a leftover from an earlier draft and is inaccurate. We have removed the ``3D methods offering advantages\ldots (see Cross-Dataset Benchmarking)'' clause, corrected ``1D representations'' to ``1D and 2D representations'' to accurately describe the architectures benchmarked (which include the D-MPNN operating on molecular graphs), and explicitly state that 3D methods are not evaluated in this work, with a pointer to the Limitations and Future Work sections.}
+
+\begin{changes}
+  \item \textbf{Introduction bullet (Representation diversity).} The bullet now reads: ``Although absorption fundamentally depends on electronic structure influenced by molecular geometry, our results show that 1D and 2D representations (Morgan fingerprints, SMILES strings, molecular graphs) capture the dominant structure--property relationships for UV absorption without requiring explicit 3D coordinates. Methods that incorporate 3D conformational information are not evaluated in this work and are discussed in the Limitations and Future Work sections.''
+\end{changes}
+
+\subsection*{Comment R1-4: ``Architecture-independent solvent encoding'' mischaracterization}
+\begin{reviewer}
+Pg.\ 4 line 33: I'm not sure if it's appropriate to say ``Architecture-independent solvent encoding'' when some architectures use Morgan fingerprints to represent solvents and others learn the representation. If I understand correctly, the only thing that's architecture independent is that the solvent representation is simply concatenated with the solute representation rather than using some more complicated process to combine them.
+\end{reviewer}
+
+\response{The reviewer is correct. Each architecture uses its native representation for both solute and solvent (Morgan fingerprints for the tree ensembles, character-level SMILES for the sequence models, and separate D-MPNN graph encoders for Chemprop). What is consistent across architectures is the concatenation \emph{strategy}, not the encoding itself. We have rephrased the contribution accordingly. The detailed Solvent Information Encoding section already describes each architecture's native encoding scheme, so no change is needed there.}
+
+\begin{changes}
+  \item \textbf{Introduction contributions bullet.} Replaced ``Architecture-independent solvent encoding: a simple concatenation strategy yields 6--8\% RMSE reductions\ldots'' with ``Concatenation-based solvent encoding generalizes across architectures: the same strategy of concatenating native solute and solvent representations---Morgan fingerprints for the tree ensembles, SMILES strings for the sequence models, and molecular graphs for the D-MPNN---yields 6--8\% RMSE reductions across all three architecture families ($p < 0.02$), without domain-specific descriptor engineering.''
+\end{changes}
+
+\end{document}
