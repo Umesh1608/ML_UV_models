@@ -38,6 +38,7 @@ In the responses below, each reviewer comment is reproduced verbatim in indented
   \item Removed all ``RF is optimal'' language; reframed the RF/D-MPNN comparison as a statistical tie ($p = 0.77$), with RF distinguished by compute cost and operational simplicity rather than predictive accuracy.
   \item Added a new Results subsection (``Performance on Non-Local Subsets'') reporting per-model error metrics on $\lambda_{\max} > 500$~nm, $> 600$~nm, donor--acceptor, D-A-D, azo, and BODIPY subsets, with full SMARTS rules, subset counts, and a complete RMSE/MAE/$R^2$ breakdown added to the Supporting Information.
   \item Added Greenman et al.\ (\textit{Chem.\ Sci.} \textbf{2022}, \textit{13}, 1152) to Related Work and corrected the manuscript's previous overclaim that systematic solvent-encoding evaluations for UV absorption had been ``limited.''
+  \item Quantified the chemical-space overlap between the primary Joung+Beard dataset and the Deep4Chem ``external'' benchmark (77.4\% of D4C solutes / 72.6\% of (solute, solvent) pairs are also in J+B) and reframed Deep4Chem as in-distribution rather than OOD validation, with the more rigorous Jung 2024 benchmark ($\sim$50\% solute overlap) carrying the OOD claim. Added a new SI section with the full overlap analysis and Venn diagram.
   % TODO: fill in as we work through the remaining comments
 \end{itemize}
 
@@ -129,6 +130,41 @@ Page 8 line 41: ``but systematic evaluation of solvent encoding strategies for U
 \begin{changes}
   \item \textbf{Related Work (Solvent effects, pg.\ 8 line 41).} Replaced ``but systematic evaluation of solvent encoding strategies for UV absorption prediction has been limited'' with a new two-sentence anchor that introduces Greenman et al.~\cite{greenman2022multifidelity}, names the four solvent-encoding strategies they benchmarked, and reframes our contribution as a cross-architecture rather than novel-strategy comparison.
   \item \textbf{Bibliography.} Added \texttt{greenman2022multifidelity} (Greenman, Green, G\'omez-Bombarelli, \textit{Chem.\ Sci.} \textbf{2022}, \textit{13}, 1152) to \texttt{Proposal.bib}. Also added \texttt{song2025fluortools} (Song et al., \textit{Digital Discovery} \textbf{2025}, \textit{4}, 3728) in anticipation of our responses to R1-7 and R1-8, where their Table 3 of UV absorption datasets and their duplicate-handling protocol are directly relevant.
+\end{changes}
+
+\subsection*{Comment R1-7: Deep4Chem overlap with Joung; choice of Joung+Beard as primary dataset}
+\begin{reviewer}
+The Deep4Chem dataset isn't a great ``external dataset'' given that it substantially overlaps with the Joung dataset that makes up part of the primary dataset. Why were the Joung and Beard datasets chosen to make the primary dataset as opposed to the many other UV absorption datasets that exist (see Table 3 here: \url{https://doi.org/10.1039/D5DD00402K})?
+\end{reviewer}
+
+\response{The reviewer makes two related points, both of which we accept and address with new analysis and text.
+
+\textbf{(a) On the Deep4Chem overlap.} The reviewer is correct: Deep4Chem was the source dataset for the Joung half of our primary collection, so by construction it shares a very high fraction of records with Joung+Beard. To replace hand-waving with a number, we canonicalised the SMILES of both datasets through RDKit and computed set-intersections at three levels of granularity. The results, now reported in Supporting Information Section~S8 (Table~S15 and Figure~S3), are:
+\begin{itemize}[leftmargin=2em,itemsep=2pt]
+  \item \emph{Unique canonical solute SMILES:} 5{,}018 of Deep4Chem's 6{,}480 unique solutes (77.4\%) also appear in Joung+Beard. Conversely, 63.8\% of Joung+Beard solutes appear in Deep4Chem.
+  \item \emph{Unique (solute, solvent) pairs (both canonicalised):} 12{,}654 of Deep4Chem's 17{,}427 pairs (72.6\%) match a pair in Joung+Beard exactly.
+  \item \emph{Generic Bemis--Murcko scaffolds:} 2{,}467 of Deep4Chem's 2{,}498 scaffolds (98.8\%) are also present in Joung+Beard; the two datasets explore essentially the same scaffold space.
+\end{itemize}
+These numbers vindicate the reviewer's intuition that Deep4Chem is poorly characterised as an OOD external benchmark. We have updated the Methods (Dataset Description and Preparation) to state explicitly that ``Deep4Chem is therefore best characterised as an \emph{in-distribution external} benchmark---useful for reproducing published per-paper baselines under their own splits, but \emph{not} a test of out-of-distribution generalisation.'' We have also added a sentence to the Cross-Dataset Benchmarking subsection noting that the Deep4Chem results should be read as in-distribution validation, and that the Jung 2024 results (which we also report) constitute the more rigorous external test because Jung 2024 has only 48.8\% solute overlap with Joung+Beard, a separate experimental provenance, and distinct chromophore families (notably long-wavelength dyes from the solar-cell and OLED literature).
+
+\textbf{(b) On the choice of Joung+Beard as the primary dataset.} The reviewer rightly points out that Song et al.~\cite{song2025fluortools} survey nine UV/Vis dye datasets in their Table~3 (ChemFluor, Deep4Chem, SMFluo, ChemDataExtractor, Dye aggregation, DSSCDB, Fluor-predictor, Ksenofontov's data, Literature retrieval). We have added a four-part rationale to the Methods section explaining why Joung+Beard was selected as the primary dataset:
+\begin{itemize}[leftmargin=2em,itemsep=2pt]
+  \item It is the largest unified collection of \emph{purely experimental} solute--solvent $\lambda_{\max}$ measurements available without paywall or license restrictions at the time of submission, with each record carrying an experimental wavelength and an explicit solvent label.
+  \item It has \emph{published baselines from independent groups} (Joung et al.\ GCNN on Deep4Chem, Beard et al.\ DR-CNN, Jung et al.\ multifidelity and GBFS) that enable apples-to-apples comparison without training every baseline ourselves.
+  \item Combining the two source collections yields broader chromophore coverage than either alone (Deep4Chem 6{,}480 and ChemFluor 4{,}386 unique solutes vs.\ approximately 7{,}000 in the curated Joung+Beard primary set after our preprocessing).
+  \item The dataset is dominated by drug-like organic chromophores rather than the dye-aggregation or solar-cell-specific compositions of DSSCDB and Dye-aggregation, matching our intended downstream applications (photosafety screening and wetlab UV-absorber discovery).
+\end{itemize}
+We considered but did not include Mamede's MEC dataset in the primary collection because of the Reaxys licence restrictions that prevent direct redistribution (see our response to R1-15); we use it instead as a downstream photosafety-classification benchmark where the labels and not the raw $\lambda_{\max}$ values are the supervision target. Computational datasets (e.g.\ Fluor-predictor's TD-DFT calculations) were excluded so that the primary regression target is purely experimental.
+
+The script that produces the overlap numbers (\texttt{analyze\_deep4chem\_overlap.py}) is distributed with the code, so anyone can re-run the analysis or extend it to other dataset pairings.}
+
+\begin{changes}
+  \item \textbf{Methods (Dataset Description and Preparation, pg.\ 8).} Added a new four-part rationale paragraph immediately after the opening sentence, explaining why Joung+Beard was chosen as the primary dataset and citing Song et al.\ for the dataset-landscape survey.
+  \item \textbf{Methods (Dataset Description and Preparation, pg.\ 8).} Extended the Deep4Chem description to report the measured overlap (77.4\% of solutes, 72.6\% of pairs) and to reframe Deep4Chem explicitly as an in-distribution rather than OOD external benchmark, with a pointer to the new SI overlap analysis (Section~S8, Figure~S3).
+  \item \textbf{Methods (Dataset Description and Preparation, pg.\ 8).} Extended the Jung 2024 description to note the 48.8\% solute overlap and the qualitatively different chromophore coverage that makes it the more rigorous of the two external benchmarks.
+  \item \textbf{Results (Cross-Dataset Benchmarking, pg.\ 30).} Added a caveat sentence at the end of the section noting that the Deep4Chem results reflect in-distribution interpolation rather than OOD generalisation, and that Jung 2024 carries the OOD claim.
+  \item \textbf{Supporting Information---new section.} Added ``Overlap Between Primary and Deep4Chem Datasets'' (Section~S8) containing the per-granularity overlap table (Table~S15) and a side-by-side Venn diagram of solutes and (solute, solvent) pairs (Figure~S3); reproduced exactly by the supplied \texttt{analyze\_deep4chem\_overlap.py} script.
+  \item \textbf{Figure renumbering housekeeping.} Insertion of the new Figure~S3 (Venn diagram) shifts the existing BiGRU character-type saliency figure from S3 to S4; the three main-text references to ``Figure~S3'' that pointed to the saliency analysis have been updated to ``Figure~S4'' accordingly.
 \end{changes}
 
 \end{document}

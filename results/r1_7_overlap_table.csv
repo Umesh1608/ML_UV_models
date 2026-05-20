@@ -1,0 +1,4 @@
+granularity,joung_beard,deep4chem,intersection,frac_d4c_in_jb,frac_jb_in_d4c
+canonical solute SMILES,7863,6480,5018,0.7744,0.6382
+"(solute, solvent) pair (both canonical)",18457,17427,12654,0.7261,0.6856
+generic Bemis-Murcko scaffold,3008,2498,2467,0.9876,0.8201

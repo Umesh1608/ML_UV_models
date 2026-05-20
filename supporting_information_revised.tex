@@ -415,6 +415,39 @@ A few additional observations that did not fit in the main text:
 (iii) ChemBERTa's $R^2 = -4.14$ on the $\lambda > 600$~nm subset reflects the prediction-ceiling artefact discussed in Section~\ref{sec:error_analysis} of the main text---ChemBERTa is essentially predicting a constant in this region, so the variance-explained metric goes strongly negative.
 
 
+\section{Overlap Between Primary and Deep4Chem Datasets}
+\label{si:deep4chem_overlap}
+
+In response to reviewer concern R1-7, we quantified the chemical-space overlap between our primary Joung+Beard dataset and the Deep4Chem external benchmark used in main-text Section~\ref{sec:cross_dataset}. Joung et al.~\cite{joung2021deep} derived Deep4Chem from a similar literature curation effort to the Joung half of our primary collection, so a non-trivial overlap is expected; the open question is how large it actually is. All SMILES strings were canonicalised through RDKit~\cite{landrumRdkitRdkit2020_03_12020} before set intersection, separately for solutes and for solvents.
+
+Table~\ref{tab:si_d4c_overlap} reports the overlap at three granularities. At the level of unique canonical solute SMILES, 77.4\% of Deep4Chem solutes (5{,}018 of 6{,}480) also appear in Joung+Beard; conversely, 63.8\% of Joung+Beard solutes (5{,}018 of 7{,}863) appear in Deep4Chem. The overlap is even more striking at the (solute, solvent) pair level---72.6\% of Deep4Chem records have an exact match in Joung+Beard---and is near-total when measured at the level of generic Bemis--Murcko scaffolds (98.8\%). The scaffold overlap shows that the two datasets explore essentially the same scaffold space, with Deep4Chem providing only modest scaffold-level novelty beyond Joung+Beard.
+
+\begin{table}[htbp]
+\centering
+\caption{Overlap between the primary Joung+Beard dataset and the Deep4Chem external dataset, measured at three granularities after RDKit canonicalisation.}
+\label{tab:si_d4c_overlap}
+\small
+\begin{tabular}{lrrrrr}
+\toprule
+\textbf{Granularity} & \textbf{J+B} & \textbf{D4C} & \textbf{Intersection} & \textbf{\% of D4C} & \textbf{\% of J+B} \\
+\midrule
+Unique canonical solute SMILES       & 7{,}863  & 6{,}480  & 5{,}018  & 77.4 & 63.8 \\
+(Solute, solvent) pairs              & 18{,}457 & 17{,}427 & 12{,}654 & 72.6 & 68.6 \\
+Generic Bemis--Murcko scaffolds      & 3{,}008  & 2{,}498  & 2{,}467  & 98.8 & 82.0 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.95\textwidth]{results/r1_7_overlap_venn.png}
+    \caption{Venn diagrams showing the chemical-space overlap between the Joung+Beard primary dataset and the Deep4Chem external benchmark. Left: unique canonical solute SMILES. Right: unique (solute, solvent) pairs after canonicalising both columns.}
+    \label{fig:si_d4c_venn}
+\end{figure}
+
+The practical consequence for the main-text Cross-Dataset Benchmarking (Section~\ref{sec:cross_dataset}) is that Deep4Chem results characterise \emph{in-distribution} interpolation rather than out-of-distribution extrapolation: roughly three-quarters of the Deep4Chem test set, under the published 80/10/10 random split, will contain chromophores the model has already learned from during training on Joung+Beard. We retain the Deep4Chem evaluation because it reproduces the published baselines of Joung et al.\ (GCNN, RMSE = 26.6~nm) on their own data, but we are explicit in the main text that the more rigorous external test is provided by Jung et al.~\cite{jung2024machine} (48.8\% unique-solute overlap, separate experimental provenance, distinct chromophore families). The scripts used to compute these overlaps are distributed with the code (\texttt{analyze\_deep4chem\_overlap.py}); the numbers above are reproducible from the source CSVs.
+
+
 \section{BiGRU Character-Type Saliency}
 \label{sec:chartype_saliency}
 

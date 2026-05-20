@@ -1,0 +1,13 @@
+{
+  "joung_beard_rows": 18755,
+  "deep4chem_rows": 17683,
+  "joung_beard_unique_solutes": 7863,
+  "deep4chem_unique_solutes": 6480,
+  "solute_intersection": 5018,
+  "joung_beard_unique_pairs": 18457,
+  "deep4chem_unique_pairs": 17427,
+  "pair_intersection": 12654,
+  "joung_beard_unique_scaffolds": 3008,
+  "deep4chem_unique_scaffolds": 2498,
+  "scaffold_intersection": 2467
+}
