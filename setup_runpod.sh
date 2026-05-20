@@ -5,17 +5,31 @@
 #   /workspace                — persistent volume, survives pod stop/restart
 #   /usr/bin/tmux, node, etc. — container filesystem, WIPED on every restart
 #   system Python site-packages — also wiped on restart
+#   the 'work' user account   — gone on restart (rebuilt here)
 #
 # So this script always needs to run after a fresh pod start, but the data
 # in /workspace/paper1_new_cl from a previous session is already there.
 #
-# Usage on a fresh pod:
+# Claude Code refuses --dangerously-skip-permissions when run as root, so we
+# create a non-root user named 'work' with passwordless sudo and start the
+# tmux session as that user.
+#
+# Usage on a fresh pod (MUST be run as root):
 #   curl -O https://raw.githubusercontent.com/Umesh1608/Paper-1_New/main/setup_runpod.sh
 #   bash setup_runpod.sh
 # Or after rsync:
 #   bash /workspace/paper1_new_cl/setup_runpod.sh
+#
+# When done, attach with:
+#   su - work       # switch into work user
+#   tmux attach -t claude
 
 set -e
+
+if [ "$EUID" -ne 0 ]; then
+    echo "Run this script as root (it needs apt + useradd)."
+    exit 1
+fi
 
 echo "=== [1/5] System packages: tmux, rsync, curl ==="
 apt update -qq
@@ -43,18 +57,27 @@ else
     echo "(skip: $WORKDIR not present — rsync data from local first, then re-run)"
 fi
 
-echo "=== [5/5] tmux session 'claude' ==="
-tmux kill-session -t claude 2>/dev/null || true
-tmux new-session -d -s claude -c "${WORKDIR:-/workspace}" "exec bash"
-# Pre-stage the Claude Code launch command in the tmux session.
-# --dangerously-skip-permissions = no per-tool approval prompts (pod is ephemeral,
-# data is replaceable, no production system to break). Press Enter after auth.
-tmux send-keys -t claude "clear && pwd && echo 'Ready. Press Enter to launch Claude Code in auto-accept mode:' && read -p '' && claude --dangerously-skip-permissions" Enter
+echo "=== [5/6] non-root 'work' user (Claude Code refuses --dangerously-skip-permissions as root) ==="
+if ! id -u work >/dev/null 2>&1; then
+    useradd -m -s /bin/bash work
+fi
+echo 'work ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/work
+chmod 0440 /etc/sudoers.d/work
+if [ -d "$WORKDIR" ]; then
+    chown -R work:work "$WORKDIR"
+fi
+
+echo "=== [6/6] tmux session 'claude' (owned by work) ==="
+# Kill any existing tmux server (may be root-owned from a prior run).
+tmux kill-server 2>/dev/null || true
+sudo -u work bash -c "pkill -u work tmux 2>/dev/null; tmux new-session -d -s claude -c '${WORKDIR:-/workspace}' 'exec bash'"
+# Pre-stage the Claude Code launch in the tmux session.
+sudo -u work tmux send-keys -t claude "clear && pwd && echo 'Ready. Press Enter to launch Claude Code in auto-accept mode:' && read -p '' && claude --dangerously-skip-permissions" Enter
 
 echo ""
 echo "=== Setup complete ==="
-echo "Attach with:  tmux attach -t claude"
-echo "Inside tmux:  press Enter to launch Claude in auto-accept mode (--dangerously-skip-permissions)"
+echo "Attach with:  su - work  →  tmux attach -t claude"
+echo "Inside tmux:  press Enter to launch Claude in --dangerously-skip-permissions mode"
 echo ""
 echo "Heavy deps NOT installed (install on demand):"
 echo "  Chemprop:    pip install chemprop torch --extra-index-url https://download.pytorch.org/whl/cu121"
