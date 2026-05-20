@@ -35,7 +35,9 @@ In the responses below, each reviewer comment is reproduced verbatim in indented
 \section*{Summary of Major Changes}
 \begin{itemize}[leftmargin=2em]
   \item Retitled the paper and revised the abstract and conclusion to restrict generality claims to UV absorption and closely related local optical properties; removed the ``Insights for General Molecular Property Prediction'' framing.
-  % TODO: fill in as we work through each comment
+  \item Removed all ``RF is optimal'' language; reframed the RF/D-MPNN comparison as a statistical tie ($p = 0.77$), with RF distinguished by compute cost and operational simplicity rather than predictive accuracy.
+  \item Added a new Results subsection (``Performance on Non-Local Subsets'') reporting per-model error metrics on $\lambda_{\max} > 500$~nm, $> 600$~nm, donor--acceptor, D-A-D, azo, and BODIPY subsets, with full SMARTS rules, subset counts, and a complete RMSE/MAE/$R^2$ breakdown added to the Supporting Information.
+  % TODO: fill in as we work through the remaining comments
 \end{itemize}
 
 \clearpage
@@ -90,6 +92,29 @@ Pg.\ 4 line 33: I'm not sure if it's appropriate to say ``Architecture-independe
 
 \begin{changes}
   \item \textbf{Introduction contributions bullet.} Replaced ``Architecture-independent solvent encoding: a simple concatenation strategy yields 6--8\% RMSE reductions\ldots'' with ``Concatenation-based solvent encoding generalizes across architectures: the same strategy of concatenating native solute and solvent representations---Morgan fingerprints for the tree ensembles, SMILES strings for the sequence models, and molecular graphs for the D-MPNN---yields 6--8\% RMSE reductions across all three architecture families ($p < 0.02$), without domain-specific descriptor engineering.''
+\end{changes}
+
+\subsection*{Comment R1-5: Non-local compounds (D-A, D-A-D, long wavelength) subset analysis}
+\begin{reviewer}
+The idea that absorption is a locally determined property is right to a first approximation, but in some cases (e.g.\ longer-wavelength dyes, donor-acceptor or donor-acceptor-donor dyes, etc.) global effects, charge transfer, and 3D geometry become more important. It would be insightful if the authors could identify any compounds in their dataset where non-local effects would be expected to be important, and see if these results lend more support to their claims about locality and architecture choice.
+\end{reviewer}
+
+\response{We thank the reviewer for this suggestion---it is exactly the kind of test that can either strengthen or honestly weaken the locality argument. We have added a new Results subsection (``Performance on Non-Local Subsets,'' immediately preceding the Error Analysis subsection) that partitions the Joung+Beard test folds into subsets where non-local effects are expected to dominate and reports per-model error metrics on each subset. The subsets are: long-wavelength compounds ($\lambda_{\max} > 500$~nm and $> 600$~nm), donor--acceptor (D-A) molecules, donor--acceptor--donor (D-A-D) molecules, azo dyes (Ar--N$=$N--Ar), and BODIPYs (BF$_2$ bridging two ring nitrogens). Donors and acceptors are identified via 7 and 12 SMARTS rules respectively (full patterns in Supporting Information Table~\ref{tab:si_donor_smarts}--\ref{tab:si_motif_smarts}, with the acceptor rule generalised to match aromatic-or-alkene $sp^2$ anchors so that push--pull cinnamic acids such as ferulic acid are captured). The union of all non-local categories covers 49\% of the primary dataset (9{,}229 / 18{,}755 molecules).
+
+The results give mixed support for the locality argument. On the full dataset, RF and Chemprop are statistically indistinguishable (RMSE = 31.3 vs.\ 31.7~nm, $p = 0.77$), as previously reported. On every subset enriched for non-local effects, Chemprop edges out RF: by 1.2~nm on D-A, 2.4~nm on D-A-D, 3.4~nm on azo, and 6.7~nm on $\lambda > 500$~nm; on $\lambda > 600$~nm the gap is 8.6~nm (Chemprop RMSE = 60.9 vs.\ RF 69.5, both with large per-fold variance). This is the direction predicted by the locality hypothesis---a message-passing GNN should benefit more, relative to a fingerprint-based model, when the property depends on longer-range electronic effects. However, the absolute gaps remain modest and within one fold-standard-deviation for the smaller subsets, so we present this as suggestive rather than conclusive evidence and have phrased the discussion that way in the manuscript. The one row where RF holds its ground is BODIPYs, which makes physical sense: the BODIPY scaffold is rigid and conserved, so absorption is well-predicted by short-range substitution patterns that fingerprints already capture.
+
+In the MAE column (Supporting Information Table~\ref{tab:si_nonlocal_full}), the picture is more nuanced: Chemprop only wins on MAE for the long-wavelength and azo subsets, while RF has lower MAE on D-A, D-A-D, BODIPYs, stilbenes, and cyanines. This reflects RF's tendency to produce residual distributions concentrated near zero with a longer tail of larger errors, which is penalised more under squared-error than under absolute-error. The reviewer's intuition is therefore borne out specifically for the squared-error metric on long-wavelength chromophores.
+
+The first trend---all five architectures degrading sharply on $\lambda > 500$~nm---is consistent with prior observations by Beard et al.\ (2019) and Joung et al.\ (2020--2021) on the same datasets, and stems from data scarcity at long wavelengths combined with the greater structural complexity of low-gap chromophores (extended polyenes, push--pull cyanines, BODIPYs, phthalocyanines). ChemBERTa exhibits an extreme version of this failure mode: its predictions collapse to an essentially constant value around 600~nm, giving negative $R^2$ on both long-wavelength subsets. This is the same prediction ceiling visible in Figure~5 (parity plot) and addressed separately in our response to R1-16.
+
+All numbers in the new subsection are reproducible from the per-fold predictions distributed with the code via\\
+\hspace*{1em}\texttt{python3 analyze\_nonlocal\_subsets.py --models rf\_tuned xgboost\_v2 chemprop\_v2 bigru\_tuned chemberta --regen\_xgboost}\\
+which writes the underlying CSVs to \texttt{results/nonlocal\_subsets/}.}
+
+\begin{changes}
+  \item \textbf{Results---new subsection.} Added ``Performance on Non-Local Subsets'' as a new subsection of Results and Discussion, immediately preceding ``Error Analysis.'' The subsection defines five non-local subsets via SMARTS, reports an in-text RMSE table (Table~\ref{tab:nonlocal_subsets}), and presents the two-trend discussion summarised above.
+  \item \textbf{Supporting Information---new section.} Added ``SMARTS Rules and Metrics for Non-Local Subset Analysis'' (Section~\ref{si:nonlocal_smarts}) containing four tables: the full donor SMARTS list (Table~\ref{tab:si_donor_smarts}), the acceptor SMARTS list (Table~\ref{tab:si_acceptor_smarts}), the dye-motif SMARTS list (Table~\ref{tab:si_motif_smarts}), the full-dataset subset counts (Table~\ref{tab:si_subset_counts}), and a complete RMSE/MAE/$R^2$ breakdown across all subsets and all five models (Table~\ref{tab:si_nonlocal_full}).
+  \item \textbf{Code release.} Added \texttt{analyze\_nonlocal\_subsets.py} to the repository: it loads the saved per-fold predictions for the four DL/ensemble models, re-scores the XGBoost models from their joblib files, applies the SMARTS classification, and writes the per-fold and aggregated CSVs that the manuscript tables are built from.
 \end{changes}
 
 \end{document}

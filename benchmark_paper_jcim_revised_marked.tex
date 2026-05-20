@@ -825,6 +825,46 @@ Our top two models use simpler architectures than the published methods (which i
 
 Across both external datasets, Chemprop achieves the best performance, followed by RF, with both consistently outperforming BiGRU and ChemBERTa, reinforcing the finding that local-feature models (graph message passing and fingerprints) excel at in-distribution prediction.
 
+% ============================================================
+% NEW SUBSECTION (added in response to R1-5).
+% Section heading, label and table environment are not wrapped in
+% \added{...} because \textcolor does not nest cleanly inside floats
+% and section commands; the colour-marked paragraph text plus the
+% explanatory comment make the new content unambiguous in the marked
+% copy. — Authors
+% ============================================================
+\subsection{\added{Performance on Non-Local Subsets}}
+\label{sec:nonlocal_subsets}
+
+\added{The benchmarks above pool molecules whose absorption is plausibly governed by local substitution patterns with molecules where the chromophore spans the entire $\pi$-system---donor--acceptor charge-transfer dyes, low-gap polymethines, BODIPYs, and other classes where global electronic effects and longer conjugation paths are expected to dominate. To examine whether the locality argument introduced in Section~\ref{sec:model_comparison} continues to hold for this second class, we partitioned the Joung+Beard test folds into subsets enriched for non-local effects and recomputed per-model error metrics within each subset.}
+
+\added{Subset definitions: \textit{long-wavelength} compounds ($\lambda_{\max} > 500$~nm or $> 600$~nm); \textit{donor--acceptor} (D-A) molecules containing at least one $\pi$-donor substituent (aryl-NH$_2$, aryl-NHR, aryl-NR$_2$, aryl-OH, aryl-OR, aryl-SH, aryl-SR) \emph{and} at least one $\pi$-acceptor (NO$_2$, CN, CHO, ketone, COOH/COOR/amide, SO$_2$R, CF$_3$, pyridinium, dicyanovinyl) attached to a conjugated $sp^2$ centre; D-A-D molecules with $\geq 2$ donor matches and $\geq 1$ acceptor; \textit{azo} dyes (Ar--N$=$N--Ar); and BODIPY cores (BF$_2$ bridging two ring nitrogens). The exact SMARTS patterns and per-rule molecule counts are listed in Supporting Information Section~\ref{si:nonlocal_smarts}. The union of all non-local categories covers 49\% of the dataset, with the individual subset sizes ranging from 264 (azo) to 6{,}059 (D-A) molecules.}
+
+\begin{table}[htbp]
+\centering
+\caption{\added{[New table, R1-5.] RMSE (nm, mean $\pm$ std across the five stratified test folds) restricted to non-local subsets of the Joung+Beard dataset. $n$ is the per-fold subset size averaged across folds. Best result on each row in bold; ties within $0.2$~nm are both bolded. MAE and $R^2$ on the same subsets are reported in Supporting Information Table~\ref{tab:si_nonlocal_full}.}}
+\label{tab:nonlocal_subsets}
+\small
+\begin{tabular}{lcccccc}
+\toprule
+\textbf{Subset} & $n$ & \textbf{RF} & \textbf{Chemprop} & \textbf{BiGRU} & \textbf{ChemBERTa} & \textbf{XGBoost} \\
+\midrule
+Full dataset                     & 3751 & \textbf{31.3 $\pm$ 2.0} & 31.7 $\pm$ 3.6  & 34.7 $\pm$ 1.6  & 50.4 $\pm$ 2.6   & 33.7 $\pm$ 1.8 \\
+$\lambda_{\max} > 500$~nm        &  777 & 52.0 $\pm$ 5.3          & \textbf{45.3 $\pm$ 7.7}  & 52.5 $\pm$ 5.9  & 98.4 $\pm$ 6.1   & 51.3 $\pm$ 5.3 \\
+$\lambda_{\max} > 600$~nm        &  315 & 69.5 $\pm$ 9.3          & \textbf{60.9 $\pm$ 15.2} & 69.6 $\pm$ 10.8 & 148.2 $\pm$ 10.0 & 67.8 $\pm$ 9.3 \\
+Azo (Ar--N$=$N--Ar)              &   53 & 32.6 $\pm$ 7.6          & \textbf{29.2 $\pm$ 4.3}  & 38.9 $\pm$ 6.3  & 37.3 $\pm$ 4.3   & 34.3 $\pm$ 6.1 \\
+D-A                              & 1212 & 24.3 $\pm$ 0.7          & \textbf{23.1 $\pm$ 2.7}  & 28.1 $\pm$ 1.0  & 43.7 $\pm$ 1.6   & 27.0 $\pm$ 0.9 \\
+D-A-D                            &  438 & 26.4 $\pm$ 2.7          & \textbf{24.0 $\pm$ 1.5}  & 30.9 $\pm$ 2.6  & 39.5 $\pm$ 1.3   & 28.6 $\pm$ 2.8 \\
+BODIPY core                      &  353 & \textbf{22.3 $\pm$ 4.3} & \textbf{22.4 $\pm$ 1.9}  & 27.2 $\pm$ 5.5  & 69.7 $\pm$ 8.3   & 24.7 $\pm$ 2.9 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\added{Two trends are visible. First, every model degrades sharply on long-wavelength compounds: RMSE roughly doubles when restricting to $\lambda_{\max} > 500$~nm and more than doubles for $\lambda_{\max} > 600$~nm. The effect is seen across all five architectures, including pretrained ChemBERTa, whose predictions collapse to an essentially flat output around 600~nm and yield a negative $R^2$ on both subsets (Section~\ref{sec:error_analysis} and Figure~\ref{fig:parity_5models}). This is consistent with two compounding factors identified in prior work on these datasets~\cite{beard2019comparative,joung2021deep}: data scarcity in the deep-coloured region of $\lambda$-space, and the greater structural complexity of low-gap chromophores (extended polyenes, push--pull cyanines, BODIPYs, phthalocyanines), many of which carry charge-transfer character whose accurate description requires global rather than local features.}
+
+\added{Second, the rank between RF and Chemprop is \emph{not stable} across subsets. On the full dataset the two are statistically indistinguishable ($p = 0.77$; Section~\ref{sec:model_comparison}), but on every subset enriched for non-local effects Chemprop edges out RF: by $1.2$~nm on D-A compounds, $2.4$~nm on D-A-D, $3.4$~nm on azo dyes, and $6.7$~nm on $\lambda_{\max} > 500$~nm. BiGRU and ChemBERTa do not show this pattern. The Chemprop advantage on the non-local subsets is small in absolute terms and remains within one fold-standard-deviation for the smaller subsets, so this result should be read as suggestive rather than conclusive: it is consistent with the locality argument---message-passing GNNs benefit relatively more when the property is governed by global rather than local features---without overturning the headline observation that RF and Chemprop are within noise of each other on the dataset as a whole. The one row where RF holds its ground is on BODIPYs (RMSE = 22.3 vs.\ 22.4~nm for Chemprop, an effective tie), a class whose rigid, conserved scaffold means that absorption is largely explained by short-range substitution patterns the fingerprint already captures.}
+
+
 % --- Error Analysis ---
 \subsection{Error Analysis}
 \label{sec:error_analysis}

@@ -263,6 +263,158 @@ BiGRU tuning narrows the gap from 14\% to 10\%, but the remaining difference sug
 ChemBERTa hyperparameters were not tuned due to the prohibitive training cost ($\sim$3 hours per fold for 44.1M parameters).
 
 
+\section{SMARTS Rules and Metrics for Non-Local Subset Analysis}
+\label{si:nonlocal_smarts}
+
+The non-local subset analysis reported in main-text Section~\ref{sec:nonlocal_subsets} and Table~\ref{tab:nonlocal_subsets} uses the SMARTS patterns listed in Tables~\ref{tab:si_donor_smarts}--\ref{tab:si_motif_smarts}.
+
+\textit{Donors} are lone-pair-bearing substituents on an aromatic carbon that push electron density into the $\pi$ system. The amide nitrogen is explicitly excluded (\texttt{!\$(N-C=O)}) because the acyl group converts the nitrogen into a weak acceptor rather than a donor.
+\textit{Acceptors} are strongly electron-withdrawing substituents on a conjugated $sp^2$ centre---aromatic carbon (\texttt{[c]}) or an $sp^2$ alkene carbon (\texttt{[CX3](=[\#6,\#7])[!\#1]}). The alkene branch is included so that push--pull cinnamic acids such as ferulic acid (\texttt{COc1cc(/C=C/C(=O)O)ccc1O}) are correctly captured as donor--acceptor compounds.
+The donor-count column shows the number of distinct atom-set matches per molecule (using RDKit's \texttt{GetSubstructMatches} with \texttt{uniquify=True}); a molecule with two methoxy groups on the same ring contributes a donor count of 2 to the D-A-D rule.
+
+\begin{table}[htbp]
+\centering
+\caption{Donor SMARTS patterns used to identify D-A and D-A-D molecules.}
+\label{tab:si_donor_smarts}
+\small
+\begin{tabular}{lll}
+\toprule
+\textbf{Rule name} & \textbf{SMARTS} & \textbf{Matches} \\
+\midrule
+aryl\_NH2  & \verb|[c]-[NX3;H2;!$(N(C=O));!$(N-N=O)]|                       & primary aryl amine \\
+aryl\_NHR  & \verb|[c]-[NX3;H1;!$(N-C=O);!$(N-N=O);!$(N-S(=O))]|            & secondary aryl amine (non-amide) \\
+aryl\_NR2  & \verb|[c]-[NX3;H0;!$(N-C=O);!$(N-N=O);!$(N-S(=O))]([#6])[#6]|  & tertiary aryl amine \\
+aryl\_OH   & \verb|[c]-[OX2H1]|                                              & aryl hydroxyl \\
+aryl\_OR   & \verb|[c]-[OX2;H0]-[CX4]|                                       & aryl ether/methoxy \\
+aryl\_SH   & \verb|[c]-[SX2H1]|                                              & aryl thiol \\
+aryl\_SR   & \verb|[c]-[SX2;H0]-[CX4]|                                       & aryl sulfide \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{Acceptor SMARTS patterns. The \emph{sp$^2$-anchor} \texttt{[\$([c]),\$([CX3](=[\#6,\#7])[!\#1])]} matches either an aromatic carbon or an alkene/imine sp$^2$ carbon so that push--pull cinnamic-acid-type acceptors are detected.}
+\label{tab:si_acceptor_smarts}
+\small
+\begin{tabular}{lll}
+\toprule
+\textbf{Rule name} & \textbf{SMARTS} & \textbf{Matches} \\
+\midrule
+nitro          & \verb|sp2-[$([NX3+](=O)[O-]),$([NX3](=O)=O)]|  & nitro \\
+CN             & \verb|sp2-[CX2]#[NX1]|                          & cyano / nitrile \\
+CHO            & \verb|sp2-[CX3H1](=O)|                          & aldehyde \\
+ketone         & \verb|sp2-[CX3](=O)[#6]|                        & ketone \\
+COOH           & \verb|sp2-[CX3](=O)[OX2H1]|                     & carboxylic acid \\
+COOR           & \verb|sp2-[CX3](=O)[OX2H0][#6]|                 & ester \\
+amide          & \verb|sp2-[CX3](=O)[NX3]|                       & amide \\
+SO2            & \verb|sp2-[SX4](=O)(=O)|                        & sulfonyl \\
+CF3            & \verb|sp2-[CX4](F)(F)F|                         & trifluoromethyl \\
+aromatic\_N+   & \verb|[c][n+,N+;X3]|                            & pyridinium / acridinium \\
+dicyanovinyl   & \verb|[#6]=C([CX2]#[NX1])[CX2]#[NX1]|           & dicyanovinyl \\
+malononitrile  & \verb|[CX4H1]([CX2]#N)[CX2]#N|                  & malononitrile \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{Specific dye motifs.}
+\label{tab:si_motif_smarts}
+\small
+\begin{tabular}{lll}
+\toprule
+\textbf{Rule name} & \textbf{SMARTS} & \textbf{Matches} \\
+\midrule
+azo       & \verb|[c]-[N;X2]=[N;X2]-[c]|                                                            & aryl azo bridge \\
+bodipy    & \verb|[B](F)(F)([#7;R])[#7;R]|                                                          & BF$_2$ bonded to two ring nitrogens \\
+cyanine   & \verb|[NX3,nX3]-,=[CX3]=,-[CX3]-,=[CX3]=,-[CX3]-,=[NX3+,nX3+]|                          & open-chain polymethine cyanine \\
+squaraine & \verb|C1(=O)C(=*)C(=O)C1=*|                                                             & squaric-acid-derived push--pull \\
+stilbene  & \verb|[c]-[CH]=[CH]-[c]|                                                                & 1,2-diarylethene scaffold \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{Non-local subset sizes in the full Joung+Beard primary dataset ($n_{\text{total}} = 18{,}755$). Subset definitions are unioned with each test fold to obtain the per-fold $n$ values reported in main-text Table~\ref{tab:nonlocal_subsets}.}
+\label{tab:si_subset_counts}
+\small
+\begin{tabular}{lrr}
+\toprule
+\textbf{Subset} & $n$ & \textbf{\% of dataset} \\
+\midrule
+Full dataset                 & 18{,}755 & 100.00 \\
+$\lambda_{\max} > 500$~nm    &  3{,}887 &  20.73 \\
+$\lambda_{\max} > 600$~nm    &  1{,}573 &   8.39 \\
+Azo (Ar--N$=$N--Ar)          &     264  &   1.41 \\
+D-A                          &  6{,}059 &  32.31 \\
+D-A-D                        &  2{,}188 &  11.67 \\
+BODIPY core                  &  1{,}766 &   9.42 \\
+Cyanine                      &      59  &   0.31 \\
+Stilbene                     &  1{,}537 &   8.20 \\
+Squaraine                    &       0  &   0.00 \\
+\midrule
+Union (any non-local)        &  9{,}229 &  49.21 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{Full per-model error breakdown on the non-local subsets (mean $\pm$ std over the five stratified test folds). Best result per metric per subset in bold. The Squaraine subset is empty in the Joung+Beard dataset and is omitted. Reproduced via \texttt{python3 analyze\_nonlocal\_subsets.py --models rf\_tuned xgboost\_v2 chemprop\_v2 bigru\_tuned chemberta --regen\_xgboost}.}
+\label{tab:si_nonlocal_full}
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{lcccccc}
+\toprule
+\textbf{Subset / metric} & $n$ & \textbf{RF} & \textbf{Chemprop} & \textbf{BiGRU} & \textbf{ChemBERTa} & \textbf{XGBoost} \\
+\midrule
+\multicolumn{7}{l}{\textbf{RMSE (nm)}} \\
+Full dataset      & 3751 & \textbf{31.34 $\pm$ 2.04} & 31.69 $\pm$ 3.56  & 34.71 $\pm$ 1.57  & 50.39 $\pm$ 2.57  & 33.72 $\pm$ 1.77 \\
+$\lambda > 500$   &  777 & 51.95 $\pm$ 5.25 & \textbf{45.31 $\pm$ 7.72} & 52.48 $\pm$ 5.90 & 98.42 $\pm$ 6.13 & 51.31 $\pm$ 5.32 \\
+$\lambda > 600$   &  315 & 69.47 $\pm$ 9.26 & \textbf{60.89 $\pm$ 15.20} & 69.64 $\pm$ 10.78 & 148.18 $\pm$ 10.01 & 67.82 $\pm$ 9.33 \\
+Azo               &   53 & 32.63 $\pm$ 7.65 & \textbf{29.18 $\pm$ 4.35} & 38.85 $\pm$ 6.28 & 37.27 $\pm$ 4.33 & 34.29 $\pm$ 6.08 \\
+D-A               & 1212 & 24.31 $\pm$ 0.72 & \textbf{23.05 $\pm$ 2.67} & 28.14 $\pm$ 1.00 & 43.74 $\pm$ 1.61 & 26.96 $\pm$ 0.91 \\
+D-A-D             &  438 & 26.44 $\pm$ 2.71 & \textbf{24.05 $\pm$ 1.54} & 30.85 $\pm$ 2.65 & 39.48 $\pm$ 1.32 & 28.65 $\pm$ 2.77 \\
+BODIPY            &  353 & \textbf{22.25 $\pm$ 4.28} & \textbf{22.36 $\pm$ 1.91} & 27.23 $\pm$ 5.49 & 69.75 $\pm$ 8.28 & 24.70 $\pm$ 2.88 \\
+Cyanine           &   12 & \textbf{16.55 $\pm$ 4.96} & 30.93 $\pm$ 4.35 & 17.87 $\pm$ 7.68 & 33.62 $\pm$ 6.86 & 27.67 $\pm$ 8.75 \\
+Stilbene          &  307 & \textbf{27.76 $\pm$ 3.85} & 28.79 $\pm$ 5.51 & 34.52 $\pm$ 4.35 & 45.77 $\pm$ 5.58 & 32.21 $\pm$ 3.57 \\
+Non-local union   & 1846 & 36.76 $\pm$ 3.03 & \textbf{33.47 $\pm$ 4.75} & 38.96 $\pm$ 3.26 & 66.10 $\pm$ 3.63 & 37.72 $\pm$ 2.90 \\
+\midrule
+\multicolumn{7}{l}{\textbf{MAE (nm)}} \\
+Full dataset      & 3751 & \textbf{15.16 $\pm$ 0.50} & 16.84 $\pm$ 1.94 & 18.09 $\pm$ 0.65 & 24.31 $\pm$ 1.16 & 20.06 $\pm$ 0.53 \\
+$\lambda > 500$   &  777 & 25.16 $\pm$ 1.88 & \textbf{22.26 $\pm$ 3.06} & 26.56 $\pm$ 2.44 & 64.90 $\pm$ 4.81 & 28.34 $\pm$ 2.28 \\
+$\lambda > 600$   &  315 & 35.40 $\pm$ 4.34 & \textbf{29.00 $\pm$ 5.76} & 36.02 $\pm$ 5.16 & 128.49 $\pm$ 9.58 & 37.34 $\pm$ 4.31 \\
+Azo               &   53 & 21.24 $\pm$ 4.47 & \textbf{19.80 $\pm$ 2.07} & 26.44 $\pm$ 3.96 & 23.02 $\pm$ 1.76 & 24.48 $\pm$ 2.20 \\
+D-A               & 1212 & \textbf{12.58 $\pm$ 0.43} & 14.44 $\pm$ 1.94 & 15.38 $\pm$ 0.44 & 21.27 $\pm$ 0.51 & 17.46 $\pm$ 0.33 \\
+D-A-D             &  438 & \textbf{14.47 $\pm$ 0.93} & 15.30 $\pm$ 1.62 & 17.63 $\pm$ 0.69 & 21.10 $\pm$ 1.13 & 18.91 $\pm$ 1.46 \\
+BODIPY            &  353 & \textbf{10.25 $\pm$ 0.97} & 13.53 $\pm$ 1.74 & 15.22 $\pm$ 2.43 & 42.90 $\pm$ 5.07 & 15.48 $\pm$ 1.80 \\
+Cyanine           &   12 & \textbf{13.13 $\pm$ 4.05} & 25.36 $\pm$ 5.09 & 15.06 $\pm$ 6.68 & 25.12 $\pm$ 7.78 & 24.19 $\pm$ 6.98 \\
+Stilbene          &  307 & \textbf{15.53 $\pm$ 1.48} & 18.53 $\pm$ 3.38 & 18.90 $\pm$ 1.42 & 25.25 $\pm$ 2.62 & 21.57 $\pm$ 1.44 \\
+Non-local union   & 1846 & \textbf{16.74 $\pm$ 0.63} & 17.15 $\pm$ 2.15 & 19.33 $\pm$ 0.94 & 34.32 $\pm$ 1.78 & 21.11 $\pm$ 0.73 \\
+\midrule
+\multicolumn{7}{l}{$\boldsymbol{R^2}$} \\
+Full dataset      & 3751 & \textbf{0.914 $\pm$ 0.011} & 0.911 $\pm$ 0.018 & 0.894 $\pm$ 0.010 & 0.777 $\pm$ 0.021 & 0.900 $\pm$ 0.010 \\
+$\lambda > 500$   &  777 & 0.597 $\pm$ 0.072 & \textbf{0.690 $\pm$ 0.092} & 0.588 $\pm$ 0.079 & $-0.439 \pm 0.138$ & 0.607 $\pm$ 0.072 \\
+$\lambda > 600$   &  315 & $-0.134 \pm 0.219$ & \textbf{0.105 $\pm$ 0.362} & $-0.144 \pm 0.276$ & $-4.142 \pm 0.395$ & $-0.082 \pm 0.222$ \\
+Azo               &   53 & 0.702 $\pm$ 0.108 & \textbf{0.763 $\pm$ 0.054} & 0.580 $\pm$ 0.097 & 0.616 $\pm$ 0.046 & 0.674 $\pm$ 0.079 \\
+D-A               & 1212 & 0.938 $\pm$ 0.002 & \textbf{0.944 $\pm$ 0.012} & 0.917 $\pm$ 0.005 & 0.798 $\pm$ 0.018 & 0.923 $\pm$ 0.005 \\
+D-A-D             &  438 & 0.919 $\pm$ 0.019 & \textbf{0.934 $\pm$ 0.005} & 0.890 $\pm$ 0.023 & 0.820 $\pm$ 0.020 & 0.905 $\pm$ 0.021 \\
+BODIPY            &  353 & \textbf{0.936 $\pm$ 0.020} & \textbf{0.936 $\pm$ 0.010} & 0.905 $\pm$ 0.029 & 0.379 $\pm$ 0.079 & 0.922 $\pm$ 0.013 \\
+Cyanine           &   12 & \textbf{0.865 $\pm$ 0.088} & 0.544 $\pm$ 0.180 & 0.848 $\pm$ 0.095 & 0.436 $\pm$ 0.291 & 0.618 $\pm$ 0.284 \\
+Stilbene          &  307 & \textbf{0.916 $\pm$ 0.018} & 0.909 $\pm$ 0.027 & 0.870 $\pm$ 0.023 & 0.771 $\pm$ 0.044 & 0.887 $\pm$ 0.019 \\
+Non-local union   & 1846 & 0.904 $\pm$ 0.014 & \textbf{0.920 $\pm$ 0.020} & 0.892 $\pm$ 0.016 & 0.690 $\pm$ 0.027 & 0.899 $\pm$ 0.014 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+A few additional observations that did not fit in the main text:
+(i) The MAE column reinforces the RMSE story for the long-wavelength subsets ($\lambda > 500$ and $\lambda > 600$~nm: Chemprop best on both metrics) but flips on the local-context subsets (D-A, D-A-D, BODIPY, Stilbene, Cyanine: RF lowest MAE despite being tied or slightly behind on RMSE). This is consistent with RF's residuals being concentrated near zero with a longer tail of larger errors, while Chemprop produces a more uniformly spread residual distribution---squared-error metrics weight the tail more heavily.
+(ii) The cyanine subset contains only $\sim$12 test molecules per fold, so its metrics carry large fold-to-fold variance and should not be read as a reliable model ranking.
+(iii) ChemBERTa's $R^2 = -4.14$ on the $\lambda > 600$~nm subset reflects the prediction-ceiling artefact discussed in Section~\ref{sec:error_analysis} of the main text---ChemBERTa is essentially predicting a constant in this region, so the variance-explained metric goes strongly negative.
+
+
 \section{BiGRU Character-Type Saliency}
 \label{sec:chartype_saliency}
 
