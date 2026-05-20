@@ -46,12 +46,15 @@ fi
 echo "=== [5/5] tmux session 'claude' ==="
 tmux kill-session -t claude 2>/dev/null || true
 tmux new-session -d -s claude -c "${WORKDIR:-/workspace}" "exec bash"
-tmux send-keys -t claude "clear && pwd && echo 'Ready. Run: claude'" Enter
+# Pre-stage the Claude Code launch command in the tmux session.
+# --dangerously-skip-permissions = no per-tool approval prompts (pod is ephemeral,
+# data is replaceable, no production system to break). Press Enter after auth.
+tmux send-keys -t claude "clear && pwd && echo 'Ready. Press Enter to launch Claude Code in auto-accept mode:' && read -p '' && claude --dangerously-skip-permissions" Enter
 
 echo ""
 echo "=== Setup complete ==="
 echo "Attach with:  tmux attach -t claude"
-echo "Inside tmux:  claude  (then authenticate)"
+echo "Inside tmux:  press Enter to launch Claude in auto-accept mode (--dangerously-skip-permissions)"
 echo ""
 echo "Heavy deps NOT installed (install on demand):"
 echo "  Chemprop:    pip install chemprop torch --extra-index-url https://download.pytorch.org/whl/cu121"
