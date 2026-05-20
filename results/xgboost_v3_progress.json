@@ -1,0 +1,53 @@
+{
+  "model_key": "xgboost",
+  "n_folds": 5,
+  "folds": {
+    "0": {
+      "status": "done",
+      "updated": "2026-05-20T19:30:46.417654Z",
+      "RMSE": 33.41,
+      "MAE": 20.27,
+      "R2": 0.9033,
+      "Pearson_r": 0.9519,
+      "wallclock_s": 10.2
+    },
+    "1": {
+      "status": "done",
+      "updated": "2026-05-20T19:30:56.698026Z",
+      "RMSE": 32.07,
+      "MAE": 19.55,
+      "R2": 0.9078,
+      "Pearson_r": 0.9532,
+      "wallclock_s": 10.1
+    },
+    "2": {
+      "status": "done",
+      "updated": "2026-05-20T19:31:05.417798Z",
+      "RMSE": 33.59,
+      "MAE": 20.64,
+      "R2": 0.9002,
+      "Pearson_r": 0.9497,
+      "wallclock_s": 8.6
+    },
+    "3": {
+      "status": "done",
+      "updated": "2026-05-20T19:31:14.501039Z",
+      "RMSE": 34.76,
+      "MAE": 20.15,
+      "R2": 0.8958,
+      "Pearson_r": 0.9474,
+      "wallclock_s": 8.9
+    },
+    "4": {
+      "status": "done",
+      "updated": "2026-05-20T19:31:24.079500Z",
+      "RMSE": 35.77,
+      "MAE": 20.66,
+      "R2": 0.8919,
+      "Pearson_r": 0.945,
+      "wallclock_s": 9.4
+    }
+  },
+  "config": {},
+  "started": "2026-05-20T19:30:36.125503Z"
+}

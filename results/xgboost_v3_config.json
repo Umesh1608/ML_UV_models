@@ -1,0 +1,11 @@
+{
+  "n_estimators": 500,
+  "max_depth": 6,
+  "learning_rate": 0.1,
+  "objective": "reg:squarederror",
+  "tree_method": "hist",
+  "n_bits": 2048,
+  "radius": 2,
+  "data": "UV_canonical_v3_dedup.csv",
+  "seed": 7
+}

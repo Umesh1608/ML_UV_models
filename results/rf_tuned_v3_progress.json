@@ -1,0 +1,53 @@
+{
+  "model_key": "rf_tuned",
+  "n_folds": 5,
+  "folds": {
+    "0": {
+      "status": "done",
+      "updated": "2026-05-20T19:35:27.235629Z",
+      "RMSE": 30.33,
+      "MAE": 15.26,
+      "R2": 0.9204,
+      "Pearson_r": 0.9605,
+      "wallclock_s": 240.3
+    },
+    "1": {
+      "status": "done",
+      "updated": "2026-05-20T19:39:12.549472Z",
+      "RMSE": 30.46,
+      "MAE": 15.25,
+      "R2": 0.9168,
+      "Pearson_r": 0.9578,
+      "wallclock_s": 220.0
+    },
+    "2": {
+      "status": "done",
+      "updated": "2026-05-20T19:42:36.936550Z",
+      "RMSE": 30.24,
+      "MAE": 15.15,
+      "R2": 0.9191,
+      "Pearson_r": 0.9598,
+      "wallclock_s": 199.8
+    },
+    "3": {
+      "status": "done",
+      "updated": "2026-05-20T19:46:37.675386Z",
+      "RMSE": 32.67,
+      "MAE": 15.41,
+      "R2": 0.9079,
+      "Pearson_r": 0.9534,
+      "wallclock_s": 236.0
+    },
+    "4": {
+      "status": "done",
+      "updated": "2026-05-20T19:50:26.911766Z",
+      "RMSE": 33.81,
+      "MAE": 15.79,
+      "R2": 0.9034,
+      "Pearson_r": 0.951,
+      "wallclock_s": 225.8
+    }
+  },
+  "config": {},
+  "started": "2026-05-20T19:31:24.627731Z"
+}

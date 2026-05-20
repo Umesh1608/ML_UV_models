@@ -1,0 +1,47 @@
+{
+  "model_key": "rf_tuned",
+  "data": "UV_canonical_v3_dedup.csv",
+  "n_folds_found": 5,
+  "RMSE_mean": 31.502,
+  "RMSE_std": 1.4658,
+  "RMSE_values": [
+    30.33,
+    30.46,
+    30.24,
+    32.67,
+    33.81
+  ],
+  "MAE_mean": 15.372,
+  "MAE_std": 0.2249,
+  "MAE_values": [
+    15.26,
+    15.25,
+    15.15,
+    15.41,
+    15.79
+  ],
+  "R2_mean": 0.9135,
+  "R2_std": 0.0067,
+  "R2_values": [
+    0.9204,
+    0.9168,
+    0.9191,
+    0.9079,
+    0.9034
+  ],
+  "Pearson_r_mean": 0.9565,
+  "Pearson_r_std": 0.0037,
+  "Pearson_r_values": [
+    0.9605,
+    0.9578,
+    0.9598,
+    0.9534,
+    0.951
+  ],
+  "pooled_metrics": {
+    "RMSE": 31.54,
+    "MAE": 15.37,
+    "R2": 0.9134,
+    "Pearson_r": 0.9564
+  }
+}

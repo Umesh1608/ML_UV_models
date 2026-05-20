@@ -1,0 +1,10 @@
+{
+  "n_estimators": 1000,
+  "max_features": 0.3,
+  "min_samples_leaf": 1,
+  "max_depth": null,
+  "n_bits": 2048,
+  "radius": 2,
+  "data": "UV_canonical_v3_dedup.csv",
+  "seed": 7
+}

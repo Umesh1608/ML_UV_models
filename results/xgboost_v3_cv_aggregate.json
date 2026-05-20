@@ -1,0 +1,47 @@
+{
+  "model_key": "xgboost",
+  "data": "UV_canonical_v3_dedup.csv",
+  "n_folds_found": 5,
+  "RMSE_mean": 33.92,
+  "RMSE_std": 1.2585,
+  "RMSE_values": [
+    33.41,
+    32.07,
+    33.59,
+    34.76,
+    35.77
+  ],
+  "MAE_mean": 20.254,
+  "MAE_std": 0.4051,
+  "MAE_values": [
+    20.27,
+    19.55,
+    20.64,
+    20.15,
+    20.66
+  ],
+  "R2_mean": 0.8998,
+  "R2_std": 0.0056,
+  "R2_values": [
+    0.9033,
+    0.9078,
+    0.9002,
+    0.8958,
+    0.8919
+  ],
+  "Pearson_r_mean": 0.9494,
+  "Pearson_r_std": 0.003,
+  "Pearson_r_values": [
+    0.9519,
+    0.9532,
+    0.9497,
+    0.9474,
+    0.945
+  ],
+  "pooled_metrics": {
+    "RMSE": 33.94,
+    "MAE": 20.25,
+    "R2": 0.8997,
+    "Pearson_r": 0.9494
+  }
+}
