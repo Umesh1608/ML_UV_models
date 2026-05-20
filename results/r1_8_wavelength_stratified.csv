@@ -1,0 +1,6 @@
+wavelength_bin_nm,records_now,groups_total,groups_singleton,groups_duplicate,groups_averaged_le5nm,groups_dropped_gt5nm,records_in_avg_groups,records_in_drop_groups,records_after_protocol,pct_lost
+<300,964,959,955,4,1,3,2,7,956,0.83
+300-400,8807,8673,8540,133,103,30,206,61,8643,1.86
+400-500,5097,4991,4887,104,97,7,196,14,4984,2.22
+500-600,2314,2278,2242,36,35,1,70,2,2277,1.6
+>600,1572,1555,1538,17,17,0,34,0,1555,1.08

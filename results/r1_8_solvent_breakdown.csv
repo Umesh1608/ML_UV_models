@@ -1,0 +1,11 @@
+solvent_canon,records,unique_solutes,duplicate_groups,dropped_gt5nm_groups,drop_rate_within_dup
+ClCCl,2854,2804,50,14,0.28
+CC#N,1781,1742,39,6,0.154
+ClC(Cl)Cl,1466,1432,34,1,0.029
+Cc1ccccc1,1449,1412,37,5,0.135
+C1CCOC1,1364,1342,22,0,0.0
+CO,1322,1300,20,3,0.15
+CCO,1034,1022,11,2,0.182
+CS(C)=O,884,874,10,2,0.2
+C1CCCCC1,658,647,11,2,0.182
+CN(C)C=O,622,617,5,0,0.0
