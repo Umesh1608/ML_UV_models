@@ -1,6 +1,6 @@
 [build-system]
 requires = ["setuptools>=68.0", "wheel"]
-build-backend = "setuptools.backends._legacy:_Backend"
+build-backend = "setuptools.build_meta"
 
 [project]
 name = "paper1_new_cl"
@@ -12,3 +12,7 @@ dependencies = []
 
 [project.optional-dependencies]
 dev = ["pytest", "ruff"]
+
+[tool.setuptools.packages.find]
+include = ["paper1_new_cl*"]
+exclude = ["data*", "results*", "wetlab_uv*", "checkpoints*", "previous_code*", "papers*", "tests*"]
