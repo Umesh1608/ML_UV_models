@@ -1,0 +1,6 @@
+model,leak_rate,rmse_leaked_mean,rmse_leaked_std,rmse_novel_mean,rmse_novel_std,mae_leaked_mean,mae_novel_mean,rmse_all_mean,delta_rmse,delta_mae
+bigru_tuned,0.6926,20.96,1.45,57.16,3.03,11.94,34.27,36.2,36.21,22.32
+chemberta,0.6926,45.13,4.56,70.17,3.68,19.53,43.12,54.09,25.04,23.6
+chemprop,0.6926,19.65,4.1,51.9,4.73,13.04,29.52,33.15,32.26,16.48
+rf_tuned,0.6684,16.36,0.88,49.53,2.9,8.37,29.49,31.5,33.16,21.12
+xgboost,0.6684,21.33,0.29,50.52,2.79,14.23,32.4,33.92,29.19,18.17

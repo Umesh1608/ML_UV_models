@@ -1,0 +1,142 @@
+{
+  "v3_total_records": 18415,
+  "v3_unique_solutes": 7846,
+  "v3_unique_solvents": 726,
+  "n_folds": 5,
+  "overall_leak_rate_train_only": 0.6684,
+  "overall_leak_rate_trainval": 0.6926,
+  "per_fold": [
+    {
+      "fold": 0,
+      "n_test_records": 3683,
+      "n_test_unique_solutes": 2609,
+      "n_leaked_records_train": 2440,
+      "n_novel_records_train": 1243,
+      "leak_rate_train": 0.6625,
+      "n_leaked_records_trainval": 2534,
+      "n_novel_records_trainval": 1149,
+      "leak_rate_trainval": 0.688,
+      "n_leaked_unique_solutes": 1404,
+      "n_novel_unique_solutes": 1205
+    },
+    {
+      "fold": 1,
+      "n_test_records": 3683,
+      "n_test_unique_solutes": 2564,
+      "n_leaked_records_train": 2458,
+      "n_novel_records_train": 1225,
+      "leak_rate_train": 0.6674,
+      "n_leaked_records_trainval": 2554,
+      "n_novel_records_trainval": 1129,
+      "leak_rate_trainval": 0.6935,
+      "n_leaked_unique_solutes": 1398,
+      "n_novel_unique_solutes": 1166
+    },
+    {
+      "fold": 2,
+      "n_test_records": 3683,
+      "n_test_unique_solutes": 2567,
+      "n_leaked_records_train": 2469,
+      "n_novel_records_train": 1214,
+      "leak_rate_train": 0.6704,
+      "n_leaked_records_trainval": 2546,
+      "n_novel_records_trainval": 1137,
+      "leak_rate_trainval": 0.6913,
+      "n_leaked_unique_solutes": 1401,
+      "n_novel_unique_solutes": 1166
+    },
+    {
+      "fold": 3,
+      "n_test_records": 3683,
+      "n_test_unique_solutes": 2547,
+      "n_leaked_records_train": 2490,
+      "n_novel_records_train": 1193,
+      "leak_rate_train": 0.6761,
+      "n_leaked_records_trainval": 2575,
+      "n_novel_records_trainval": 1108,
+      "leak_rate_trainval": 0.6992,
+      "n_leaked_unique_solutes": 1408,
+      "n_novel_unique_solutes": 1139
+    },
+    {
+      "fold": 4,
+      "n_test_records": 3683,
+      "n_test_unique_solutes": 2539,
+      "n_leaked_records_train": 2451,
+      "n_novel_records_train": 1232,
+      "leak_rate_train": 0.6655,
+      "n_leaked_records_trainval": 2545,
+      "n_novel_records_trainval": 1138,
+      "leak_rate_trainval": 0.691,
+      "n_leaked_unique_solutes": 1383,
+      "n_novel_unique_solutes": 1156
+    }
+  ],
+  "per_model": [
+    {
+      "model": "bigru_tuned",
+      "leak_rate": 0.6926,
+      "rmse_leaked_mean": 20.96,
+      "rmse_leaked_std": 1.45,
+      "rmse_novel_mean": 57.16,
+      "rmse_novel_std": 3.03,
+      "mae_leaked_mean": 11.94,
+      "mae_novel_mean": 34.27,
+      "rmse_all_mean": 36.2,
+      "delta_rmse": 36.21,
+      "delta_mae": 22.32
+    },
+    {
+      "model": "chemberta",
+      "leak_rate": 0.6926,
+      "rmse_leaked_mean": 45.13,
+      "rmse_leaked_std": 4.56,
+      "rmse_novel_mean": 70.17,
+      "rmse_novel_std": 3.68,
+      "mae_leaked_mean": 19.53,
+      "mae_novel_mean": 43.12,
+      "rmse_all_mean": 54.09,
+      "delta_rmse": 25.04,
+      "delta_mae": 23.6
+    },
+    {
+      "model": "chemprop",
+      "leak_rate": 0.6926,
+      "rmse_leaked_mean": 19.65,
+      "rmse_leaked_std": 4.1,
+      "rmse_novel_mean": 51.9,
+      "rmse_novel_std": 4.73,
+      "mae_leaked_mean": 13.04,
+      "mae_novel_mean": 29.52,
+      "rmse_all_mean": 33.15,
+      "delta_rmse": 32.26,
+      "delta_mae": 16.48
+    },
+    {
+      "model": "rf_tuned",
+      "leak_rate": 0.6684,
+      "rmse_leaked_mean": 16.36,
+      "rmse_leaked_std": 0.88,
+      "rmse_novel_mean": 49.53,
+      "rmse_novel_std": 2.9,
+      "mae_leaked_mean": 8.37,
+      "mae_novel_mean": 29.49,
+      "rmse_all_mean": 31.5,
+      "delta_rmse": 33.16,
+      "delta_mae": 21.12
+    },
+    {
+      "model": "xgboost",
+      "leak_rate": 0.6684,
+      "rmse_leaked_mean": 21.33,
+      "rmse_leaked_std": 0.29,
+      "rmse_novel_mean": 50.52,
+      "rmse_novel_std": 2.79,
+      "mae_leaked_mean": 14.23,
+      "mae_novel_mean": 32.4,
+      "rmse_all_mean": 33.92,
+      "delta_rmse": 29.19,
+      "delta_mae": 18.17
+    }
+  ]
+}
