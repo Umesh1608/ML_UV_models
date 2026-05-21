@@ -1,0 +1,53 @@
+{
+  "model_key": "chemberta",
+  "n_folds": 5,
+  "folds": {
+    "0": {
+      "status": "done",
+      "updated": "2026-05-21T06:17:39.624520Z",
+      "RMSE": 50.03,
+      "MAE": 23.98,
+      "R2": 0.7832,
+      "Pearson_r": 0.9047,
+      "wallclock_s": 6054.1
+    },
+    "1": {
+      "status": "done",
+      "updated": "2026-05-21T08:08:53.327625Z",
+      "RMSE": 51.69,
+      "MAE": 26.05,
+      "R2": 0.7604,
+      "Pearson_r": 0.8881,
+      "wallclock_s": 6673.7
+    },
+    "2": {
+      "status": "done",
+      "updated": "2026-05-21T09:45:16.631301Z",
+      "RMSE": 56.09,
+      "MAE": 28.29,
+      "R2": 0.7218,
+      "Pearson_r": 0.8751,
+      "wallclock_s": 5783.3
+    },
+    "3": {
+      "status": "done",
+      "updated": "2026-05-21T10:53:40.818575Z",
+      "RMSE": 52.61,
+      "MAE": 25.06,
+      "R2": 0.7612,
+      "Pearson_r": 0.8898,
+      "wallclock_s": 4104.2
+    },
+    "4": {
+      "status": "done",
+      "updated": "2026-05-21T12:02:27.211884Z",
+      "RMSE": 60.02,
+      "MAE": 30.52,
+      "R2": 0.6956,
+      "Pearson_r": 0.8679,
+      "wallclock_s": 4126.4
+    }
+  },
+  "config": {},
+  "started": "2026-05-21T04:36:45.513233Z"
+}

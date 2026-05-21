@@ -1,0 +1,47 @@
+{
+  "model_key": "chemprop",
+  "data": "UV_canonical_v3_dedup.csv",
+  "n_folds_found": 5,
+  "RMSE_mean": 33.15,
+  "RMSE_std": 3.2652,
+  "RMSE_values": [
+    30.62,
+    30.53,
+    31.49,
+    33.9,
+    39.21
+  ],
+  "MAE_mean": 18.108,
+  "MAE_std": 3.0195,
+  "MAE_values": [
+    16.22,
+    16.72,
+    15.75,
+    17.87,
+    23.98
+  ],
+  "R2_mean": 0.9037,
+  "R2_std": 0.0179,
+  "R2_values": [
+    0.9188,
+    0.9165,
+    0.9123,
+    0.9009,
+    0.8701
+  ],
+  "Pearson_r_mean": 0.9513,
+  "Pearson_r_std": 0.0095,
+  "Pearson_r_values": [
+    0.9597,
+    0.9576,
+    0.9557,
+    0.95,
+    0.9335
+  ],
+  "pooled_metrics": {
+    "RMSE": 33.31,
+    "MAE": 18.11,
+    "R2": 0.9034,
+    "Pearson_r": 0.9509
+  }
+}

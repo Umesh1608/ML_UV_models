@@ -1,0 +1,53 @@
+{
+  "model_key": "chemprop",
+  "n_folds": 5,
+  "folds": {
+    "0": {
+      "status": "done",
+      "updated": "2026-05-21T03:09:41.188033Z",
+      "RMSE": 30.62,
+      "MAE": 16.22,
+      "R2": 0.9188,
+      "Pearson_r": 0.9597,
+      "wallclock_s": 1494.9
+    },
+    "1": {
+      "status": "done",
+      "updated": "2026-05-21T03:31:39.393841Z",
+      "RMSE": 30.53,
+      "MAE": 16.72,
+      "R2": 0.9165,
+      "Pearson_r": 0.9576,
+      "wallclock_s": 1318.2
+    },
+    "2": {
+      "status": "done",
+      "updated": "2026-05-21T04:01:04.841977Z",
+      "RMSE": 31.49,
+      "MAE": 15.75,
+      "R2": 0.9123,
+      "Pearson_r": 0.9557,
+      "wallclock_s": 1765.4
+    },
+    "3": {
+      "status": "done",
+      "updated": "2026-05-21T04:22:42.863908Z",
+      "RMSE": 33.9,
+      "MAE": 17.87,
+      "R2": 0.9009,
+      "Pearson_r": 0.95,
+      "wallclock_s": 1298.0
+    },
+    "4": {
+      "status": "done",
+      "updated": "2026-05-21T04:34:52.877743Z",
+      "RMSE": 39.21,
+      "MAE": 23.98,
+      "R2": 0.8701,
+      "Pearson_r": 0.9335,
+      "wallclock_s": 730.0
+    }
+  },
+  "config": {},
+  "started": "2026-05-21T02:44:46.222809Z"
+}

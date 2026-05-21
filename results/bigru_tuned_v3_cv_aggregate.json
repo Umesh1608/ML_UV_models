@@ -1,0 +1,47 @@
+{
+  "model_key": "bigru_tuned",
+  "data": "UV_canonical_v3_dedup.csv",
+  "n_folds_found": 5,
+  "RMSE_mean": 36.196,
+  "RMSE_std": 1.1964,
+  "RMSE_values": [
+    35.42,
+    35.74,
+    34.77,
+    36.9,
+    38.15
+  ],
+  "MAE_mean": 18.806,
+  "MAE_std": 0.577,
+  "MAE_values": [
+    18.14,
+    18.95,
+    18.54,
+    18.56,
+    19.84
+  ],
+  "R2_mean": 0.8859,
+  "R2_std": 0.0058,
+  "R2_values": [
+    0.8913,
+    0.8855,
+    0.8931,
+    0.8825,
+    0.8771
+  ],
+  "Pearson_r_mean": 0.9415,
+  "Pearson_r_std": 0.0031,
+  "Pearson_r_values": [
+    0.9444,
+    0.9416,
+    0.9451,
+    0.9399,
+    0.9366
+  ],
+  "pooled_metrics": {
+    "RMSE": 36.22,
+    "MAE": 18.81,
+    "R2": 0.8858,
+    "Pearson_r": 0.9412
+  }
+}

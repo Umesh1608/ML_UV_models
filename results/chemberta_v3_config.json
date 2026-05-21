@@ -1,0 +1,8 @@
+{
+  "data": "UV_canonical_v3_dedup.csv",
+  "seed": 7,
+  "fold_indices": "cv_fold_indices_v3.npz",
+  "script": "run_chemberta.py",
+  "hyperparams": "MAX_LEN=256 batch=8 grad_accum=4 lr=5e-5 epochs=100 patience=15",
+  "PREFIX_OVERRIDE": "chemberta_v3"
+}

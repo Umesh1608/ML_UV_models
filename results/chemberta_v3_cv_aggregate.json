@@ -1,0 +1,47 @@
+{
+  "model_key": "chemberta",
+  "data": "UV_canonical_v3_dedup.csv",
+  "n_folds_found": 5,
+  "RMSE_mean": 54.088,
+  "RMSE_std": 3.5665,
+  "RMSE_values": [
+    50.03,
+    51.69,
+    56.09,
+    52.61,
+    60.02
+  ],
+  "MAE_mean": 26.78,
+  "MAE_std": 2.3494,
+  "MAE_values": [
+    23.98,
+    26.05,
+    28.29,
+    25.06,
+    30.52
+  ],
+  "R2_mean": 0.7444,
+  "R2_std": 0.0314,
+  "R2_values": [
+    0.7832,
+    0.7604,
+    0.7218,
+    0.7612,
+    0.6956
+  ],
+  "Pearson_r_mean": 0.8851,
+  "Pearson_r_std": 0.0127,
+  "Pearson_r_values": [
+    0.9047,
+    0.8881,
+    0.8751,
+    0.8898,
+    0.8679
+  ],
+  "pooled_metrics": {
+    "RMSE": 54.21,
+    "MAE": 26.78,
+    "R2": 0.7443,
+    "Pearson_r": 0.8845
+  }
+}

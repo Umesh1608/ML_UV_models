@@ -1,0 +1,53 @@
+{
+  "model_key": "bigru_tuned",
+  "n_folds": 5,
+  "folds": {
+    "0": {
+      "status": "done",
+      "updated": "2026-05-20T22:06:52.543243Z",
+      "RMSE": 35.42,
+      "MAE": 18.14,
+      "R2": 0.8913,
+      "Pearson_r": 0.9444,
+      "wallclock_s": 4284.1
+    },
+    "1": {
+      "status": "done",
+      "updated": "2026-05-20T23:19:26.857307Z",
+      "RMSE": 35.74,
+      "MAE": 18.95,
+      "R2": 0.8855,
+      "Pearson_r": 0.9416,
+      "wallclock_s": 4341.5
+    },
+    "2": {
+      "status": "done",
+      "updated": "2026-05-21T00:17:49.923999Z",
+      "RMSE": 34.77,
+      "MAE": 18.54,
+      "R2": 0.8931,
+      "Pearson_r": 0.9451,
+      "wallclock_s": 3492.6
+    },
+    "3": {
+      "status": "done",
+      "updated": "2026-05-21T01:58:30.050737Z",
+      "RMSE": 36.9,
+      "MAE": 18.56,
+      "R2": 0.8825,
+      "Pearson_r": 0.9399,
+      "wallclock_s": 6029.7
+    },
+    "4": {
+      "status": "done",
+      "updated": "2026-05-21T02:44:45.460937Z",
+      "RMSE": 38.15,
+      "MAE": 19.84,
+      "R2": 0.8771,
+      "Pearson_r": 0.9366,
+      "wallclock_s": 2760.7
+    }
+  },
+  "config": {},
+  "started": "2026-05-20T20:55:17.160501Z"
+}
