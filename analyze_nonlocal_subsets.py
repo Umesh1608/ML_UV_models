@@ -52,10 +52,11 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 RDLogger.DisableLog("rdApp.*")  # silence parse warnings
 
 SCRIPT_DIR = Path(__file__).resolve().parent
-DATA_PATH = SCRIPT_DIR / "previous_code" / "UV_canonical_full_dataset.csv"
 RESULTS_DIR = SCRIPT_DIR / "results"
+# DATA_PATH and OUT_DIR are set at runtime from the CLI --v3 flag.
+DATA_PATH = SCRIPT_DIR / "previous_code" / "UV_canonical_full_dataset.csv"
 OUT_DIR = RESULTS_DIR / "nonlocal_subsets"
-OUT_DIR.mkdir(exist_ok=True)
+SUFFIX = ""  # "" → v2 filenames (rf_tuned_fold0_*), "_v3" → v3 filenames
 
 SEED = 7
 N_FOLDS = 5
@@ -276,12 +277,15 @@ def compute_subset_metrics(model_key, fold_predictions, subset_member):
 
 def load_fold_predictions(model_key, results_dir=RESULTS_DIR):
     """Load per-fold .npy files for a model. Returns list of (test_idx, y_test, y_pred)
-    or None if any fold file is missing."""
+    or None if any fold file is missing.
+
+    SUFFIX (module-level) controls the file pattern: "" for v2 or "_v3" for v3.
+    """
     out = []
     for i in range(N_FOLDS):
-        p_pred = results_dir / f"{model_key}_fold{i}_predictions.npy"
-        p_yt = results_dir / f"{model_key}_fold{i}_y_test.npy"
-        p_idx = results_dir / f"{model_key}_fold{i}_test_indices.npy"
+        p_pred = results_dir / f"{model_key}{SUFFIX}_fold{i}_predictions.npy"
+        p_yt = results_dir / f"{model_key}{SUFFIX}_fold{i}_y_test.npy"
+        p_idx = results_dir / f"{model_key}{SUFFIX}_fold{i}_test_indices.npy"
         if not (p_pred.exists() and p_yt.exists() and p_idx.exists()):
             print(f"  [SKIP] {model_key}: missing fold {i} files")
             return None
@@ -294,7 +298,9 @@ def load_fold_predictions(model_key, results_dir=RESULTS_DIR):
 # ──────────────────────────────────────────────────────────────────────────────
 
 def regen_xgboost_predictions(global_data, folds, variant="xgboost_v2"):
-    """Score the saved {variant}_fold{i}_model.joblib on each test fold."""
+    """Score the saved {variant}_fold{i}_model.joblib on each test fold.
+
+    For v3, pass variant='xgboost_v3' (files are xgboost_v3_fold{i}_model.joblib)."""
     import joblib
     from paper1_new_cl.models import compute_morgan_fps
 
@@ -342,14 +348,27 @@ def load_global_data():
 
 
 def main():
+    global DATA_PATH, OUT_DIR, SUFFIX
     ap = argparse.ArgumentParser()
-    ap.add_argument("--models", nargs="+", default=[
-        "rf_tuned", "xgboost_v2",
-        "chemprop_v2", "bigru_tuned", "chemberta",
-    ])
+    ap.add_argument("--v3", action="store_true",
+                    help="Use the v3 cleaned dataset and v3 prediction files")
+    ap.add_argument("--models", nargs="+", default=None,
+                    help="Model keys to score (defaults differ per --v3 flag)")
     ap.add_argument("--regen_xgboost", action="store_true",
                     help="Run XGBoost inference from saved joblibs")
     args = ap.parse_args()
+
+    if args.v3:
+        DATA_PATH = SCRIPT_DIR / "previous_code" / "UV_canonical_v3_dedup.csv"
+        OUT_DIR = RESULTS_DIR / "nonlocal_subsets_v3"
+        SUFFIX = "_v3"
+        default_models = ["rf_tuned", "xgboost", "chemprop", "bigru_tuned", "chemberta"]
+        xgb_variant = "xgboost_v3"
+    else:
+        default_models = ["rf_tuned", "xgboost_v2", "chemprop_v2", "bigru_tuned", "chemberta"]
+        xgb_variant = "xgboost_v2"
+    OUT_DIR.mkdir(exist_ok=True)
+    args.models = args.models or default_models
 
     global_data = load_global_data()
 
@@ -379,7 +398,7 @@ def main():
     for model_key in args.models:
         print(f"\n[MODEL] {model_key}")
         if model_key.startswith("xgboost") and args.regen_xgboost:
-            preds = regen_xgboost_predictions(global_data, folds, variant=model_key)
+            preds = regen_xgboost_predictions(global_data, folds, variant=xgb_variant)
         else:
             preds = load_fold_predictions(model_key)
         if preds is None:

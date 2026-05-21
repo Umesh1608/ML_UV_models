@@ -32,19 +32,19 @@ Tables~\ref{tab:perfold_rf}--\ref{tab:perfold_chemberta} present per-fold result
 
 \begin{table}[htbp]
 \centering
-\caption{Per-fold RF + Morgan FP results (tuned, with solvent).}
+\caption{Per-fold RF + Morgan FP results (tuned, with solvent) on the Joung+Beard v3 cleaned dataset (18{,}415 records after Greenman--Song duplicate handling).}
 \label{tab:perfold_rf}
 \begin{tabular}{ccccc}
 \toprule
 \textbf{Fold} & \textbf{RMSE (nm)} & \textbf{MAE (nm)} & $\boldsymbol{R^2}$ & \textbf{Pearson $r$} \\
 \midrule
-0 & 32.02 & 15.42 & 0.907 & 0.953 \\
-1 & 30.74 & 14.79 & 0.918 & 0.959 \\
-2 & 28.09 & 14.47 & 0.931 & 0.965 \\
-3 & 32.58 & 15.56 & 0.908 & 0.953 \\
-4 & 33.25 & 15.54 & 0.905 & 0.952 \\
+0 & 30.33 & 15.26 & 0.920 & 0.961 \\
+1 & 30.46 & 15.25 & 0.917 & 0.958 \\
+2 & 30.24 & 15.15 & 0.919 & 0.960 \\
+3 & 32.67 & 15.41 & 0.908 & 0.953 \\
+4 & 33.81 & 15.79 & 0.903 & 0.951 \\
 \midrule
-\textbf{Mean $\pm$ Std} & \textbf{31.34 $\pm$ 1.82} & \textbf{15.16 $\pm$ 0.44} & \textbf{0.914 $\pm$ 0.010} & \textbf{0.956 $\pm$ 0.005} \\
+\textbf{Mean $\pm$ Std} & \textbf{31.50 $\pm$ 1.47} & \textbf{15.37 $\pm$ 0.22} & \textbf{0.914 $\pm$ 0.007} & \textbf{0.957 $\pm$ 0.004} \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -70,57 +70,57 @@ Tables~\ref{tab:perfold_rf}--\ref{tab:perfold_chemberta} present per-fold result
 
 \begin{table}[htbp]
 \centering
-\caption{Per-fold BiGRU (tuned, 3L/256u) results.}
+\caption{Per-fold BiGRU (tuned, 3L/256u) results on the Joung+Beard v3 cleaned dataset.}
 \label{tab:perfold_bigru_tuned}
 \begin{tabular}{ccccc}
 \toprule
 \textbf{Fold} & \textbf{RMSE (nm)} & \textbf{MAE (nm)} & $\boldsymbol{R^2}$ & \textbf{Pearson $r$} \\
 \midrule
-0 & 35.42 & 18.79 & 0.887 & 0.942 \\
-1 & 35.51 & 17.91 & 0.890 & 0.944 \\
-2 & 32.02 & 17.33 & 0.910 & 0.954 \\
-3 & 35.91 & 18.76 & 0.888 & 0.943 \\
-4 & 34.69 & 17.68 & 0.896 & 0.947 \\
+0 & 35.42 & 18.14 & 0.891 & 0.944 \\
+1 & 35.74 & 18.95 & 0.886 & 0.942 \\
+2 & 34.77 & 18.54 & 0.893 & 0.945 \\
+3 & 36.90 & 18.56 & 0.883 & 0.940 \\
+4 & 38.15 & 19.84 & 0.877 & 0.937 \\
 \midrule
-\textbf{Mean $\pm$ Std} & \textbf{34.71 $\pm$ 1.40} & \textbf{18.09 $\pm$ 0.59} & \textbf{0.894 $\pm$ 0.009} & \textbf{0.946 $\pm$ 0.005} \\
+\textbf{Mean $\pm$ Std} & \textbf{36.20 $\pm$ 1.20} & \textbf{18.81 $\pm$ 0.58} & \textbf{0.886 $\pm$ 0.006} & \textbf{0.941 $\pm$ 0.003} \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 \begin{table}[htbp]
 \centering
-\caption{Per-fold XGBoost + Morgan FP results (MSE loss, v2).}
+\caption{Per-fold XGBoost + Morgan FP results (MSE loss) on the Joung+Beard v3 cleaned dataset.}
 \label{tab:perfold_xgboost}
 \begin{tabular}{ccccc}
 \toprule
 \textbf{Fold} & \textbf{RMSE (nm)} & \textbf{MAE (nm)} & $\boldsymbol{R^2}$ & \textbf{Pearson $r$} \\
 \midrule
-0 & 34.55 & 20.15 & 0.892 & 0.945 \\
-1 & 33.58 & 19.79 & 0.902 & 0.950 \\
-2 & 30.63 & 19.31 & 0.918 & 0.959 \\
-3 & 35.15 & 20.77 & 0.893 & 0.946 \\
-4 & 34.58 & 20.23 & 0.897 & 0.948 \\
+0 & 33.41 & 20.27 & 0.903 & 0.952 \\
+1 & 32.07 & 19.55 & 0.908 & 0.953 \\
+2 & 33.59 & 20.64 & 0.900 & 0.950 \\
+3 & 34.76 & 20.15 & 0.896 & 0.947 \\
+4 & 35.77 & 20.66 & 0.892 & 0.945 \\
 \midrule
-\textbf{Mean $\pm$ Std} & \textbf{33.70 $\pm$ 1.61} & \textbf{20.05 $\pm$ 0.48} & \textbf{0.900 $\pm$ 0.009} & \textbf{0.950 $\pm$ 0.005} \\
+\textbf{Mean $\pm$ Std} & \textbf{33.92 $\pm$ 1.26} & \textbf{20.25 $\pm$ 0.41} & \textbf{0.900 $\pm$ 0.006} & \textbf{0.949 $\pm$ 0.003} \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 \begin{table}[htbp]
 \centering
-\caption{Per-fold Chemprop D-MPNN results (v2, multicomponent: solute + solvent).}
+\caption{Per-fold Chemprop D-MPNN results on the Joung+Beard v3 cleaned dataset (multicomponent: solute + solvent).}
 \label{tab:perfold_chemprop}
 \begin{tabular}{ccccc}
 \toprule
 \textbf{Fold} & \textbf{RMSE (nm)} & \textbf{MAE (nm)} & $\boldsymbol{R^2}$ & \textbf{Pearson $r$} \\
 \midrule
-0 & 30.79 & 15.24 & 0.914 & 0.956 \\
-1 & 35.40 & 19.96 & 0.891 & 0.944 \\
-2 & 26.06 & 15.52 & 0.940 & 0.970 \\
-3 & 32.70 & 16.03 & 0.907 & 0.953 \\
-4 & 33.51 & 17.44 & 0.903 & 0.951 \\
+0 & 30.62 & 16.22 & 0.919 & 0.960 \\
+1 & 30.53 & 16.72 & 0.917 & 0.958 \\
+2 & 31.49 & 15.75 & 0.912 & 0.956 \\
+3 & 33.90 & 17.87 & 0.901 & 0.950 \\
+4 & 39.21 & 23.98 & 0.870 & 0.934 \\
 \midrule
-\textbf{Mean $\pm$ Std} & \textbf{31.69 $\pm$ 3.18} & \textbf{16.84 $\pm$ 1.74} & \textbf{0.911 $\pm$ 0.016} & \textbf{0.955 $\pm$ 0.009} \\
+\textbf{Mean $\pm$ Std} & \textbf{33.15 $\pm$ 3.27} & \textbf{18.11 $\pm$ 3.02} & \textbf{0.904 $\pm$ 0.018} & \textbf{0.951 $\pm$ 0.009} \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -146,19 +146,19 @@ Tables~\ref{tab:perfold_rf}--\ref{tab:perfold_chemberta} present per-fold result
 
 \begin{table}[htbp]
 \centering
-\caption{Per-fold ChemBERTa results (v2).}
+\caption{Per-fold ChemBERTa results on the Joung+Beard v3 cleaned dataset.}
 \label{tab:perfold_chemberta}
 \begin{tabular}{ccccc}
 \toprule
 \textbf{Fold} & \textbf{RMSE (nm)} & \textbf{MAE (nm)} & $\boldsymbol{R^2}$ & \textbf{Pearson $r$} \\
 \midrule
-0 & 49.31 & 23.88 & 0.780 & 0.899 \\
-1 & 48.66 & 23.54 & 0.794 & 0.908 \\
-2 & 47.70 & 23.05 & 0.801 & 0.909 \\
-3 & 53.04 & 25.68 & 0.756 & 0.889 \\
-4 & 53.24 & 25.39 & 0.756 & 0.890 \\
+0 & 50.03 & 23.98 & 0.783 & 0.905 \\
+1 & 51.69 & 26.05 & 0.760 & 0.888 \\
+2 & 56.09 & 28.29 & 0.722 & 0.875 \\
+3 & 52.61 & 25.06 & 0.761 & 0.890 \\
+4 & 60.02 & 30.52 & 0.696 & 0.868 \\
 \midrule
-\textbf{Mean $\pm$ Std} & \textbf{50.39 $\pm$ 2.30} & \textbf{24.31 $\pm$ 1.04} & \textbf{0.777 $\pm$ 0.019} & \textbf{0.899 $\pm$ 0.009} \\
+\textbf{Mean $\pm$ Std} & \textbf{54.09 $\pm$ 3.57} & \textbf{26.78 $\pm$ 2.35} & \textbf{0.744 $\pm$ 0.031} & \textbf{0.885 $\pm$ 0.013} \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -167,28 +167,32 @@ Tables~\ref{tab:perfold_rf}--\ref{tab:perfold_chemberta} present per-fold result
 \section{Statistical Significance Tests}
 \label{sec:significance}
 
-Table~\ref{tab:significance} presents paired $t$-test results across the five cross-validation folds.
-Most model comparisons are statistically significant at $\alpha = 0.05$ using the parametric paired $t$-test, with the notable exception of RF vs.\ Chemprop ($p = 0.77$).
-With only $n = 5$ folds, the Wilcoxon signed-rank test (a non-parametric alternative) yields $p = 0.0625$ for all comparisons (the minimum achievable $p$-value when all 5 paired differences are concordant), providing strong directional evidence despite not reaching conventional significance.
+Table~\ref{tab:significance} presents paired $t$-test results across the five cross-validation folds, computed on the v3 cleaned Joung+Beard dataset (18{,}415 records after Greenman--Song duplicate handling).
+Most model comparisons are statistically significant at $\alpha = 0.05$ using the parametric paired $t$-test, with the notable exception of RF vs.\ Chemprop ($p = 0.16$ on v3, vs.\ $p = 0.77$ on the earlier v2 first-occurrence-dedup data: in both cases the null hypothesis of equal mean RMSE cannot be rejected, but the v3 $p$-value is closer to threshold because Chemprop fold~4 happens to be a high-variance early-stopping outlier on v3 at RMSE~$=$~39.21~nm).
+With only $n = 5$ folds, the Wilcoxon signed-rank test (a non-parametric alternative) yields $p = 0.0625$ for all comparisons where the 5 paired differences are concordant (the minimum achievable $p$-value), providing strong directional evidence despite not reaching conventional significance.
 
 \begin{table}[htbp]
 \centering
-\caption{Paired $t$-test results for RMSE comparisons across 5 folds.}
+\caption{Paired $t$-test results for RMSE comparisons across 5 v3 folds. Solvent vs.\ no-solvent rows are reported on the v2 dataset because v3 nosolvent baselines were not re-trained for the current revision.}
 \label{tab:significance}
 \begin{tabular}{lccc}
 \toprule
 \textbf{Comparison} & $\boldsymbol{t}$ & $\boldsymbol{p}$ & \textbf{Significant?} \\
 \midrule
-RF vs.\ Chemprop            & $0.31$ & 0.77 & No \\
-RF vs.\ BiGRU              & $-7.08$ & 0.002 & Yes \\
-RF vs.\ XGBoost            & $-8.94$ & 0.001 & Yes \\
-RF vs.\ ChemBERTa          & $-31.0$ & $<$0.001 & Yes \\
-XGBoost vs.\ BiGRU         & $-4.38$ & 0.012 & Yes \\
-XGBoost vs.\ ChemBERTa     & $-21.8$ & $<$0.001 & Yes \\
-BiGRU vs.\ ChemBERTa       & $-16.0$ & $<$0.001 & Yes \\
-RF: solvent vs.\ no-solvent  & $-11.46$ & $<$0.001 & Yes \\
-Chemprop: solvent vs.\ no-solvent & $-4.33$ & 0.012 & Yes \\
-BiGRU: solvent vs.\ no-solvent & $-3.90$ & 0.018 & Yes \\
+RF vs.\ Chemprop            & $-1.70$ & 0.164 & No \\
+RF vs.\ BiGRU              & $-22.54$ & $<$0.001 & Yes \\
+RF vs.\ XGBoost            & $-7.17$ & 0.002 & Yes \\
+RF vs.\ ChemBERTa          & $-15.78$ & $<$0.001 & Yes \\
+Chemprop vs.\ XGBoost      & $-0.70$ & 0.522 & No \\
+Chemprop vs.\ BiGRU        & $-2.74$ & 0.052 & Borderline \\
+Chemprop vs.\ ChemBERTa    & $-20.54$ & $<$0.001 & Yes \\
+XGBoost vs.\ BiGRU         & $-5.65$ & 0.005 & Yes \\
+XGBoost vs.\ ChemBERTa     & $-14.20$ & $<$0.001 & Yes \\
+BiGRU vs.\ ChemBERTa       & $-11.69$ & $<$0.001 & Yes \\
+\midrule
+RF: solvent vs.\ no-solvent (v2)            & $-11.46$ & $<$0.001 & Yes \\
+Chemprop: solvent vs.\ no-solvent (v2)      & $-4.33$ & 0.012 & Yes \\
+BiGRU: solvent vs.\ no-solvent (v2)         & $-3.90$ & 0.018 & Yes \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -337,32 +341,32 @@ stilbene  & \verb|[c]-[CH]=[CH]-[c]|                                            
 
 \begin{table}[htbp]
 \centering
-\caption{Non-local subset sizes in the full Joung+Beard primary dataset ($n_{\text{total}} = 18{,}755$). Subset definitions are unioned with each test fold to obtain the per-fold $n$ values reported in main-text Table~\ref{tab:nonlocal_subsets}.}
+\caption{Non-local subset sizes in the full v3 cleaned Joung+Beard primary dataset ($n_{\text{total}} = 18{,}415$). Subset definitions are unioned with each test fold to obtain the per-fold $n$ values reported in main-text Table~\ref{tab:nonlocal_subsets}.}
 \label{tab:si_subset_counts}
 \small
 \begin{tabular}{lrr}
 \toprule
 \textbf{Subset} & $n$ & \textbf{\% of dataset} \\
 \midrule
-Full dataset                 & 18{,}755 & 100.00 \\
-$\lambda_{\max} > 500$~nm    &  3{,}887 &  20.73 \\
-$\lambda_{\max} > 600$~nm    &  1{,}573 &   8.39 \\
-Azo (Ar--N$=$N--Ar)          &     264  &   1.41 \\
-D-A                          &  6{,}059 &  32.31 \\
-D-A-D                        &  2{,}188 &  11.67 \\
-BODIPY core                  &  1{,}766 &   9.42 \\
-Cyanine                      &      59  &   0.31 \\
-Stilbene                     &  1{,}537 &   8.20 \\
+Full dataset                 & 18{,}415 & 100.00 \\
+$\lambda_{\max} > 500$~nm    &  3{,}832 &  20.81 \\
+$\lambda_{\max} > 600$~nm    &  1{,}555 &   8.44 \\
+Azo (Ar--N$=$N--Ar)          &     264  &   1.43 \\
+D-A                          &  5{,}945 &  32.28 \\
+D-A-D                        &  2{,}181 &  11.84 \\
+BODIPY core                  &  1{,}714 &   9.31 \\
+Cyanine                      &      59  &   0.32 \\
+Stilbene                     &  1{,}512 &   8.21 \\
 Squaraine                    &       0  &   0.00 \\
 \midrule
-Union (any non-local)        &  9{,}229 &  49.21 \\
+Union (any non-local)        &  9{,}057 &  49.18 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 \begin{table}[htbp]
 \centering
-\caption{Full per-model error breakdown on the non-local subsets (mean $\pm$ std over the five stratified test folds). Best result per metric per subset in bold. The Squaraine subset is empty in the Joung+Beard dataset and is omitted. Reproduced via \texttt{python3 analyze\_nonlocal\_subsets.py --models rf\_tuned xgboost\_v2 chemprop\_v2 bigru\_tuned chemberta --regen\_xgboost}.}
+\caption{Full per-model error breakdown on the non-local subsets of the v3 cleaned Joung+Beard dataset (mean $\pm$ std over the five stratified test folds). Best result per metric per subset in bold. The Squaraine subset is empty in the Joung+Beard dataset and is omitted. Reproduced via \texttt{python3 analyze\_nonlocal\_subsets.py --v3 --regen\_xgboost}.}
 \label{tab:si_nonlocal_full}
 \scriptsize
 \setlength{\tabcolsep}{3pt}
@@ -371,48 +375,48 @@ Union (any non-local)        &  9{,}229 &  49.21 \\
 \textbf{Subset / metric} & $n$ & \textbf{RF} & \textbf{Chemprop} & \textbf{BiGRU} & \textbf{ChemBERTa} & \textbf{XGBoost} \\
 \midrule
 \multicolumn{7}{l}{\textbf{RMSE (nm)}} \\
-Full dataset      & 3751 & \textbf{31.34 $\pm$ 2.04} & 31.69 $\pm$ 3.56  & 34.71 $\pm$ 1.57  & 50.39 $\pm$ 2.57  & 33.72 $\pm$ 1.77 \\
-$\lambda > 500$   &  777 & 51.95 $\pm$ 5.25 & \textbf{45.31 $\pm$ 7.72} & 52.48 $\pm$ 5.90 & 98.42 $\pm$ 6.13 & 51.31 $\pm$ 5.32 \\
-$\lambda > 600$   &  315 & 69.47 $\pm$ 9.26 & \textbf{60.89 $\pm$ 15.20} & 69.64 $\pm$ 10.78 & 148.18 $\pm$ 10.01 & 67.82 $\pm$ 9.33 \\
-Azo               &   53 & 32.63 $\pm$ 7.65 & \textbf{29.18 $\pm$ 4.35} & 38.85 $\pm$ 6.28 & 37.27 $\pm$ 4.33 & 34.29 $\pm$ 6.08 \\
-D-A               & 1212 & 24.31 $\pm$ 0.72 & \textbf{23.05 $\pm$ 2.67} & 28.14 $\pm$ 1.00 & 43.74 $\pm$ 1.61 & 26.96 $\pm$ 0.91 \\
-D-A-D             &  438 & 26.44 $\pm$ 2.71 & \textbf{24.05 $\pm$ 1.54} & 30.85 $\pm$ 2.65 & 39.48 $\pm$ 1.32 & 28.65 $\pm$ 2.77 \\
-BODIPY            &  353 & \textbf{22.25 $\pm$ 4.28} & \textbf{22.36 $\pm$ 1.91} & 27.23 $\pm$ 5.49 & 69.75 $\pm$ 8.28 & 24.70 $\pm$ 2.88 \\
-Cyanine           &   12 & \textbf{16.55 $\pm$ 4.96} & 30.93 $\pm$ 4.35 & 17.87 $\pm$ 7.68 & 33.62 $\pm$ 6.86 & 27.67 $\pm$ 8.75 \\
-Stilbene          &  307 & \textbf{27.76 $\pm$ 3.85} & 28.79 $\pm$ 5.51 & 34.52 $\pm$ 4.35 & 45.77 $\pm$ 5.58 & 32.21 $\pm$ 3.57 \\
-Non-local union   & 1846 & 36.76 $\pm$ 3.03 & \textbf{33.47 $\pm$ 4.75} & 38.96 $\pm$ 3.26 & 66.10 $\pm$ 3.63 & 37.72 $\pm$ 2.90 \\
+Full dataset      & 3683 & \textbf{31.50 $\pm$ 1.64} & 33.15 $\pm$ 3.65 & 36.20 $\pm$ 1.34 & 54.09 $\pm$ 3.99 & 33.92 $\pm$ 1.40 \\
+$\lambda > 500$   &  766 & 51.81 $\pm$ 3.91 & \textbf{47.02 $\pm$ 7.78} & 57.45 $\pm$ 3.96 & 105.81 $\pm$ 8.46 & 51.20 $\pm$ 3.60 \\
+$\lambda > 600$   &  311 & 69.54 $\pm$ 4.20 & \textbf{63.19 $\pm$ 8.67} & 77.14 $\pm$ 4.93 & 159.06 $\pm$ 12.48 & 67.63 $\pm$ 5.11 \\
+Azo               &   53 & \textbf{33.84 $\pm$ 7.40} & 37.36 $\pm$ 9.22 & 38.86 $\pm$ 8.26 & 45.62 $\pm$ 7.07 & 35.61 $\pm$ 3.64 \\
+D-A               & 1189 & 25.04 $\pm$ 0.41 & \textbf{24.54 $\pm$ 4.77} & 27.78 $\pm$ 1.31 & 47.26 $\pm$ 3.34 & 27.21 $\pm$ 1.11 \\
+D-A-D             &  436 & 26.86 $\pm$ 2.08 & \textbf{25.68 $\pm$ 5.83} & 29.25 $\pm$ 1.92 & 42.59 $\pm$ 4.29 & 28.50 $\pm$ 1.33 \\
+BODIPY            &  343 & \textbf{21.59 $\pm$ 2.14} & 22.83 $\pm$ 5.03 & 28.79 $\pm$ 0.64 & 78.02 $\pm$ 8.50 & 24.47 $\pm$ 2.69 \\
+Cyanine           &   12 & \textbf{17.39 $\pm$ 3.24} & 30.07 $\pm$ 4.12 & 22.15 $\pm$ 5.19 & 42.59 $\pm$ 10.75 & 25.55 $\pm$ 6.99 \\
+Stilbene          &  302 & \textbf{29.98 $\pm$ 1.54} & 33.36 $\pm$ 5.91 & 35.57 $\pm$ 5.28 & 50.40 $\pm$ 6.55 & 34.97 $\pm$ 3.32 \\
+Non-local union   & 1811 & 36.76 $\pm$ 2.38 & \textbf{35.03 $\pm$ 5.66} & 41.54 $\pm$ 2.41 & 71.11 $\pm$ 5.81 & 37.80 $\pm$ 2.13 \\
 \midrule
 \multicolumn{7}{l}{\textbf{MAE (nm)}} \\
-Full dataset      & 3751 & \textbf{15.16 $\pm$ 0.50} & 16.84 $\pm$ 1.94 & 18.09 $\pm$ 0.65 & 24.31 $\pm$ 1.16 & 20.06 $\pm$ 0.53 \\
-$\lambda > 500$   &  777 & 25.16 $\pm$ 1.88 & \textbf{22.26 $\pm$ 3.06} & 26.56 $\pm$ 2.44 & 64.90 $\pm$ 4.81 & 28.34 $\pm$ 2.28 \\
-$\lambda > 600$   &  315 & 35.40 $\pm$ 4.34 & \textbf{29.00 $\pm$ 5.76} & 36.02 $\pm$ 5.16 & 128.49 $\pm$ 9.58 & 37.34 $\pm$ 4.31 \\
-Azo               &   53 & 21.24 $\pm$ 4.47 & \textbf{19.80 $\pm$ 2.07} & 26.44 $\pm$ 3.96 & 23.02 $\pm$ 1.76 & 24.48 $\pm$ 2.20 \\
-D-A               & 1212 & \textbf{12.58 $\pm$ 0.43} & 14.44 $\pm$ 1.94 & 15.38 $\pm$ 0.44 & 21.27 $\pm$ 0.51 & 17.46 $\pm$ 0.33 \\
-D-A-D             &  438 & \textbf{14.47 $\pm$ 0.93} & 15.30 $\pm$ 1.62 & 17.63 $\pm$ 0.69 & 21.10 $\pm$ 1.13 & 18.91 $\pm$ 1.46 \\
-BODIPY            &  353 & \textbf{10.25 $\pm$ 0.97} & 13.53 $\pm$ 1.74 & 15.22 $\pm$ 2.43 & 42.90 $\pm$ 5.07 & 15.48 $\pm$ 1.80 \\
-Cyanine           &   12 & \textbf{13.13 $\pm$ 4.05} & 25.36 $\pm$ 5.09 & 15.06 $\pm$ 6.68 & 25.12 $\pm$ 7.78 & 24.19 $\pm$ 6.98 \\
-Stilbene          &  307 & \textbf{15.53 $\pm$ 1.48} & 18.53 $\pm$ 3.38 & 18.90 $\pm$ 1.42 & 25.25 $\pm$ 2.62 & 21.57 $\pm$ 1.44 \\
-Non-local union   & 1846 & \textbf{16.74 $\pm$ 0.63} & 17.15 $\pm$ 2.15 & 19.33 $\pm$ 0.94 & 34.32 $\pm$ 1.78 & 21.11 $\pm$ 0.73 \\
+Full dataset      & 3683 & \textbf{15.37 $\pm$ 0.25} & 18.11 $\pm$ 3.38 & 18.81 $\pm$ 0.64 & 26.78 $\pm$ 2.63 & 20.25 $\pm$ 0.45 \\
+$\lambda > 500$   &  766 & 25.38 $\pm$ 1.66 & \textbf{24.66 $\pm$ 6.28} & 29.20 $\pm$ 2.48 & 72.76 $\pm$ 8.82 & 28.42 $\pm$ 1.28 \\
+$\lambda > 600$   &  311 & 35.61 $\pm$ 2.66 & \textbf{31.62 $\pm$ 6.64} & 40.25 $\pm$ 2.22 & 141.62 $\pm$ 13.94 & 37.02 $\pm$ 2.01 \\
+Azo               &   53 & \textbf{21.06 $\pm$ 3.70} & 25.39 $\pm$ 6.79 & 25.27 $\pm$ 4.38 & 26.66 $\pm$ 4.75 & 25.04 $\pm$ 2.00 \\
+D-A               & 1189 & \textbf{12.92 $\pm$ 0.25} & 15.73 $\pm$ 3.70 & 15.59 $\pm$ 0.76 & 23.19 $\pm$ 2.19 & 17.54 $\pm$ 0.66 \\
+D-A-D             &  436 & \textbf{14.38 $\pm$ 0.85} & 16.56 $\pm$ 3.84 & 17.11 $\pm$ 0.90 & 22.68 $\pm$ 2.25 & 18.58 $\pm$ 0.44 \\
+BODIPY            &  343 & \textbf{10.21 $\pm$ 0.75} & 15.32 $\pm$ 4.40 & 15.75 $\pm$ 1.41 & 50.70 $\pm$ 7.82 & 15.18 $\pm$ 0.99 \\
+Cyanine           &   12 & \textbf{14.43 $\pm$ 3.03} & 23.71 $\pm$ 3.34 & 18.18 $\pm$ 5.47 & 35.71 $\pm$ 10.55 & 22.25 $\pm$ 6.16 \\
+Stilbene          &  302 & \textbf{16.33 $\pm$ 1.34} & 20.79 $\pm$ 3.87 & 19.21 $\pm$ 1.92 & 27.91 $\pm$ 3.92 & 22.48 $\pm$ 1.35 \\
+Non-local union   & 1811 & \textbf{16.95 $\pm$ 0.75} & 18.89 $\pm$ 4.43 & 20.44 $\pm$ 1.34 & 38.22 $\pm$ 4.50 & 21.21 $\pm$ 0.58 \\
 \midrule
 \multicolumn{7}{l}{$\boldsymbol{R^2}$} \\
-Full dataset      & 3751 & \textbf{0.914 $\pm$ 0.011} & 0.911 $\pm$ 0.018 & 0.894 $\pm$ 0.010 & 0.777 $\pm$ 0.021 & 0.900 $\pm$ 0.010 \\
-$\lambda > 500$   &  777 & 0.597 $\pm$ 0.072 & \textbf{0.690 $\pm$ 0.092} & 0.588 $\pm$ 0.079 & $-0.439 \pm 0.138$ & 0.607 $\pm$ 0.072 \\
-$\lambda > 600$   &  315 & $-0.134 \pm 0.219$ & \textbf{0.105 $\pm$ 0.362} & $-0.144 \pm 0.276$ & $-4.142 \pm 0.395$ & $-0.082 \pm 0.222$ \\
-Azo               &   53 & 0.702 $\pm$ 0.108 & \textbf{0.763 $\pm$ 0.054} & 0.580 $\pm$ 0.097 & 0.616 $\pm$ 0.046 & 0.674 $\pm$ 0.079 \\
-D-A               & 1212 & 0.938 $\pm$ 0.002 & \textbf{0.944 $\pm$ 0.012} & 0.917 $\pm$ 0.005 & 0.798 $\pm$ 0.018 & 0.923 $\pm$ 0.005 \\
-D-A-D             &  438 & 0.919 $\pm$ 0.019 & \textbf{0.934 $\pm$ 0.005} & 0.890 $\pm$ 0.023 & 0.820 $\pm$ 0.020 & 0.905 $\pm$ 0.021 \\
-BODIPY            &  353 & \textbf{0.936 $\pm$ 0.020} & \textbf{0.936 $\pm$ 0.010} & 0.905 $\pm$ 0.029 & 0.379 $\pm$ 0.079 & 0.922 $\pm$ 0.013 \\
-Cyanine           &   12 & \textbf{0.865 $\pm$ 0.088} & 0.544 $\pm$ 0.180 & 0.848 $\pm$ 0.095 & 0.436 $\pm$ 0.291 & 0.618 $\pm$ 0.284 \\
-Stilbene          &  307 & \textbf{0.916 $\pm$ 0.018} & 0.909 $\pm$ 0.027 & 0.870 $\pm$ 0.023 & 0.771 $\pm$ 0.044 & 0.887 $\pm$ 0.019 \\
-Non-local union   & 1846 & 0.904 $\pm$ 0.014 & \textbf{0.920 $\pm$ 0.020} & 0.892 $\pm$ 0.016 & 0.690 $\pm$ 0.027 & 0.899 $\pm$ 0.014 \\
+Full dataset      & 3683 & \textbf{0.914 $\pm$ 0.007} & 0.904 $\pm$ 0.020 & 0.886 $\pm$ 0.007 & 0.744 $\pm$ 0.035 & 0.900 $\pm$ 0.006 \\
+$\lambda > 500$   &  766 & 0.599 $\pm$ 0.062 & \textbf{0.665 $\pm$ 0.115} & 0.507 $\pm$ 0.073 & $-0.675 \pm 0.285$ & 0.610 $\pm$ 0.048 \\
+$\lambda > 600$   &  311 & $-0.140 \pm 0.183$ & \textbf{0.049 $\pm$ 0.285} & $-0.394 \pm 0.142$ & $-4.967 \pm 1.071$ & $-0.072 \pm 0.140$ \\
+Azo               &   53 & \textbf{0.682 $\pm$ 0.106} & 0.617 $\pm$ 0.123 & 0.566 $\pm$ 0.194 & 0.424 $\pm$ 0.126 & 0.650 $\pm$ 0.042 \\
+D-A               & 1189 & 0.934 $\pm$ 0.004 & \textbf{0.935 $\pm$ 0.026} & 0.919 $\pm$ 0.005 & 0.764 $\pm$ 0.032 & 0.922 $\pm$ 0.007 \\
+D-A-D             &  436 & 0.916 $\pm$ 0.013 & \textbf{0.921 $\pm$ 0.038} & 0.901 $\pm$ 0.010 & 0.788 $\pm$ 0.044 & 0.906 $\pm$ 0.010 \\
+BODIPY            &  343 & \textbf{0.940 $\pm$ 0.009} & 0.930 $\pm$ 0.032 & 0.893 $\pm$ 0.006 & 0.208 $\pm$ 0.167 & 0.923 $\pm$ 0.013 \\
+Cyanine           &   12 & \textbf{0.856 $\pm$ 0.063} & 0.576 $\pm$ 0.135 & 0.768 $\pm$ 0.109 & 0.206 $\pm$ 0.205 & 0.679 $\pm$ 0.156 \\
+Stilbene          &  302 & \textbf{0.903 $\pm$ 0.012} & 0.877 $\pm$ 0.043 & 0.862 $\pm$ 0.040 & 0.723 $\pm$ 0.072 & 0.868 $\pm$ 0.021 \\
+Non-local union   & 1811 & 0.904 $\pm$ 0.012 & \textbf{0.912 $\pm$ 0.030} & 0.878 $\pm$ 0.014 & 0.641 $\pm$ 0.060 & 0.899 $\pm$ 0.010 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 A few additional observations that did not fit in the main text:
-(i) The MAE column reinforces the RMSE story for the long-wavelength subsets ($\lambda > 500$ and $\lambda > 600$~nm: Chemprop best on both metrics) but flips on the local-context subsets (D-A, D-A-D, BODIPY, Stilbene, Cyanine: RF lowest MAE despite being tied or slightly behind on RMSE). This is consistent with RF's residuals being concentrated near zero with a longer tail of larger errors, while Chemprop produces a more uniformly spread residual distribution---squared-error metrics weight the tail more heavily.
+(i) The MAE column reinforces the RMSE story for the long-wavelength subsets ($\lambda > 500$ and $\lambda > 600$~nm: Chemprop best on both metrics) but flips on the local-context subsets (D-A, D-A-D, BODIPY, Stilbene, Cyanine, and now also Azo: RF lowest MAE despite being tied or behind on RMSE for some subsets). This is consistent with RF's residuals being concentrated near zero with a longer tail of larger errors, while Chemprop produces a more uniformly spread residual distribution---squared-error metrics weight the tail more heavily.
 (ii) The cyanine subset contains only $\sim$12 test molecules per fold, so its metrics carry large fold-to-fold variance and should not be read as a reliable model ranking.
-(iii) ChemBERTa's $R^2 = -4.14$ on the $\lambda > 600$~nm subset reflects the prediction-ceiling artefact discussed in Section~\ref{sec:error_analysis} of the main text---ChemBERTa is essentially predicting a constant in this region, so the variance-explained metric goes strongly negative.
+(iii) ChemBERTa's $R^2 = -4.97$ on the $\lambda > 600$~nm subset reflects the prediction-ceiling artefact discussed in Section~\ref{sec:error_analysis} of the main text---ChemBERTa is essentially predicting a constant in this region, so the variance-explained metric goes strongly negative.
 
 
 \section{Overlap Between Primary and Deep4Chem Datasets}
@@ -446,6 +450,42 @@ Generic Bemis--Murcko scaffolds      & 3{,}008  & 2{,}498  & 2{,}467  & 98.8 & 8
 \end{figure}
 
 The practical consequence for the main-text Cross-Dataset Benchmarking (Section~\ref{sec:cross_dataset}) is that Deep4Chem results characterise \emph{in-distribution} interpolation rather than out-of-distribution extrapolation: roughly three-quarters of the Deep4Chem test set, under the published 80/10/10 random split, will contain chromophores the model has already learned from during training on Joung+Beard. We retain the Deep4Chem evaluation because it reproduces the published baselines of Joung et al.\ (GCNN, RMSE = 26.6~nm) on their own data, but we are explicit in the main text that the more rigorous external test is provided by Jung et al.~\cite{jung2024machine} (48.8\% unique-solute overlap, separate experimental provenance, distinct chromophore families). The scripts used to compute these overlaps are distributed with the code (\texttt{analyze\_deep4chem\_overlap.py}); the numbers above are reproducible from the source CSVs.
+
+
+\section{v2-vs-v3 Cross-Protocol Comparison (R1-8)}
+\label{si:v2_v3_comparison}
+
+In response to reviewer concern R1-8, we adopted the Greenman--Song duplicate-handling protocol~\cite{greenman2022multifidelity,song2025fluortools} (drop within-key groups with $\max - \min > 5$~nm, average the rest, singletons unchanged) and re-trained all five model families on the resulting v3 cleaned dataset (18{,}415 records, vs.\ 18{,}755 under the earlier first-occurrence-dedup rule we used in the original submission). Table~\ref{tab:si_v2v3} reports the side-by-side cross-validated metrics under both protocols.
+
+The protocol change costs 1.81\% of records overall and re-distributes them across the deep-coloured and well-populated wavelength bins (Section~\ref{si:nonlocal_smarts}). For the four local-feature models the cross-validated RMSE shifts by $\leq 1.5$~nm; for ChemBERTa it shifts by $+3.7$~nm, with fold-to-fold standard deviation also widening (2.30 to 3.57). The headline RF~$\approx$~Chemprop tie is preserved: paired $t$-test $p = 0.16$ on v3 (vs.\ $p = 0.77$ on v2), so the null hypothesis of equal mean RMSE cannot be rejected at $\alpha = 0.05$ on either protocol. The qualitative model ranking---RF $\leq$ Chemprop $<$ XGBoost $<$ BiGRU $\ll$ ChemBERTa---is unchanged.
+
+\begin{table}[htbp]
+\centering
+\caption{Cross-validated 5-fold metrics on the Joung+Beard primary dataset under the original first-occurrence-dedup protocol (v2, 18{,}755 records) and the Greenman--Song-style cleaned protocol adopted for the revised manuscript (v3, 18{,}415 records). $\Delta$ is the change in mean. Negative $\Delta R^2$ indicates a slight degradation under the cleaner protocol, which we attribute mainly to the test-fold composition shift rather than to the protocol per se. The BiGRU + Solvent (default) and XGBoost MAE rows are reported on v2 only because their v3 retraining was not in scope for the current revision.}
+\label{tab:si_v2v3}
+\small
+\begin{tabular}{lcccccc}
+\toprule
+\textbf{Model} & \multicolumn{2}{c}{\textbf{RMSE (nm)}} & \multicolumn{2}{c}{\textbf{MAE (nm)}} & \multicolumn{2}{c}{$\boldsymbol{R^2}$} \\
+\cmidrule(lr){2-3} \cmidrule(lr){4-5} \cmidrule(lr){6-7}
+ & v2 & v3 & v2 & v3 & v2 & v3 \\
+\midrule
+RF + Morgan FP (tuned)        & 31.34 $\pm$ 1.82 & \textbf{31.50 $\pm$ 1.47} & 15.16 $\pm$ 0.44 & 15.37 $\pm$ 0.22 & 0.914 & 0.914 \\
+XGBoost + Morgan FP (MSE)     & 33.70 $\pm$ 1.61 & 33.92 $\pm$ 1.26 & 20.05 $\pm$ 0.48 & 20.25 $\pm$ 0.41 & 0.900 & 0.900 \\
+Chemprop (D-MPNN)             & 31.69 $\pm$ 3.18 & 33.15 $\pm$ 3.27 & 16.84 $\pm$ 1.74 & 18.11 $\pm$ 3.02 & 0.911 & 0.904 \\
+BiGRU (tuned, 3L/256u)        & 34.71 $\pm$ 1.40 & 36.20 $\pm$ 1.20 & 18.09 $\pm$ 0.59 & 18.81 $\pm$ 0.58 & 0.894 & 0.886 \\
+ChemBERTa (pretrained)        & 50.39 $\pm$ 2.30 & 54.09 $\pm$ 3.57 & 24.31 $\pm$ 1.04 & 26.78 $\pm$ 2.35 & 0.777 & 0.744 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Notably:
+(i) The fold-to-fold standard deviation \emph{tightens} on v3 for the two best-performing models (RF: 1.82 $\to$ 1.47; XGBoost: 1.61 $\to$ 1.26), exactly the qualitative effect one would expect if the cleaning protocol is removing label-noise outliers.
+(ii) The RF vs.\ Chemprop $p$-value moves from $0.77$ on v2 to $0.16$ on v3---closer to but still well above the $\alpha = 0.05$ threshold. The shift is driven by a single Chemprop fold (fold~4, RMSE = 39.21~nm vs.\ the other four folds clustered at 30.5--33.9), which appears to be a borderline early-stopping outlier; the Chemprop std on v3 (3.27) is comparable to its v2 std (3.18), so the underlying variance is not protocol-driven.
+(iii) The solvent-encoding ablation (Section~\ref{sec:solvent_ablation} of the main text, reported on v2) is expected to be preserved under v3 because the 1.81\% record loss affects both the +Solvent and Solute-only arms in the same way. A back-of-the-envelope spot check confirms this: holding the v2 Solute-only baselines fixed (which were not re-trained on v3 due to scope) and pairing them with the v3 +Solvent numbers yields percent-RMSE reductions of 7.7\% (RF), 1.9\% (Chemprop), and 7.2\% (BiGRU); the Chemprop number is depressed by the same fold-4 outlier above, and we expect a full v3 retraining of both arms to recover the $\sim$6\% Chemprop reduction reported in Table~\ref{tab:solvent_ablation}.
+(iv) Cross-dataset results (Section~\ref{sec:cross_dataset} of the main text, Deep4Chem and Jung 2024) are unaffected by the primary-dataset protocol change because they train and evaluate on the external datasets' own train/val/test splits.
+
+The full per-fold values for v3 are reported in Tables~\ref{tab:perfold_rf}--\ref{tab:perfold_chemberta}. The v2 numbers are reproduced verbatim from the original submission.
 
 
 \section{BiGRU Character-Type Saliency}

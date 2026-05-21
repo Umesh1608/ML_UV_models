@@ -48,9 +48,9 @@
 % ===== Abstract =====
 \begin{abstract}
 What determines which machine learning architecture wins for molecular property prediction?
-We address this question through a controlled comparison of five models spanning four architecture families: fingerprint-based ensembles (Random Forest, XGBoost), a directed message-passing graph neural network (GNN), a bidirectional gated recurrent network (BiGRU), and a pretrained Transformer, using UV absorption wavelength ($\lambda_{\max}$) prediction as a testbed across 18,755 solute--solvent pairs with stratified 5-fold cross-validation and two external datasets totaling over 40,000 molecules.
+We address this question through a controlled comparison of five models spanning four architecture families: fingerprint-based ensembles (Random Forest, XGBoost), a directed message-passing graph neural network (GNN), a bidirectional gated recurrent network (BiGRU), and a pretrained Transformer, using UV absorption wavelength ($\lambda_{\max}$) prediction as a testbed across 18,415 solute--solvent pairs (after applying the Greenman/Song duplicate-handling protocol; see Methods) with stratified 5-fold cross-validation and two external datasets totaling over 40,000 molecules.
 The answer depends on the task.
-For screening within known chemical space, RF with Morgan fingerprints is competitive with the best deep learning model at a fraction of the compute cost: RF and the D-MPNN are statistically indistinguishable (RMSE = $31.34 \pm 1.82$ vs.\ $31.69 \pm 3.18$~nm, $p = 0.77$), and RF trains in 15 minutes on a CPU with no hyperparameter tuning while outperforming all sequence-based models.
+For screening within known chemical space, RF with Morgan fingerprints is competitive with the best deep learning model at a fraction of the compute cost: RF and the D-MPNN are statistically indistinguishable (RMSE = $31.50 \pm 1.47$ vs.\ $33.15 \pm 3.27$~nm, $p = 0.16$), and RF trains in 15 minutes on a CPU with no hyperparameter tuning while outperforming all sequence-based models.
 For exploring novel scaffolds, deep learning is superior: experimental validation on 16 novel UV-absorbing compounds shows that the GNN (MAE = 26.2~nm), Transformer (26.3~nm), and BiGRU (28.6~nm) all outperform RF (38.5~nm), as learned representations generalize where fixed fingerprints cannot.
 In either case, encoding solvent identity improves all models: a simple SMILES/fingerprint concatenation strategy yields 6--8\% RMSE reductions across fingerprint, graph, and recurrent architectures ($p < 0.02$), without domain-specific descriptor engineering.
 Interpretability analysis confirms that both RF feature importance and BiGRU gradient saliency independently highlight the same chromophore motifs, and that architectures with local inductive bias systematically outperform global-attention Transformers on this locally determined property.
@@ -80,7 +80,7 @@ The UV absorption prediction task is well-suited for systematic architecture com
 In this work, we present a study comparing five ML models spanning four architecture families---fingerprint-based ensembles (Random Forest, XGBoost), a directed message-passing graph neural network (D-MPNN), a bidirectional gated recurrent network (BiGRU), and a pretrained Transformer---for $\lambda_{\max}$ prediction.
 Our key contributions are:
 \begin{itemize}
-    \item \textbf{Practical model selection guidance:} on in-distribution screening, RF is statistically tied with the best deep learning model (D-MPNN, $p = 0.77$) but trains $\sim$100$\times$ faster with no hyperparameter tuning; on novel compounds, deep learning models generalize better. We validate this on 16 experimentally measured UV-absorbing molecules.
+    \item \textbf{Practical model selection guidance:} on in-distribution screening, RF is statistically tied with the best deep learning model (D-MPNN, $p = 0.16$) but trains $\sim$100$\times$ faster with no hyperparameter tuning; on novel compounds, deep learning models generalize better. We validate this on 16 experimentally measured UV-absorbing molecules.
     \item \textbf{Controlled multi-architecture comparison} across three datasets using published evaluation protocols. The D-MPNN with default hyperparameters sets new state-of-the-art results on both external datasets, while RF and D-MPNN are statistically tied on primary cross-validation.
     \item \textbf{Optimized BiGRU architecture} via Bayesian hyperparameter search (3-layer, 256-unit, 4.8\% RMSE improvement), demonstrating that a sequence-based approach operating on raw SMILES can match graph and fingerprint methods without compromising prediction accuracy.
     \item \textbf{Concatenation-based solvent encoding generalizes across architectures:} the same strategy of concatenating native solute and solvent representations---Morgan fingerprints for the tree ensembles, SMILES strings for the sequence models, and molecular graphs for the D-MPNN---yields 6--8\% RMSE reductions across all three architecture families ($p < 0.02$), without domain-specific descriptor engineering.
@@ -284,10 +284,10 @@ Our study extends this perspective specifically to UV absorption prediction, pro
 Our primary dataset combines the Joung et al.\ Experimental Database of Optical Properties~\cite{joung2020experimental} and the Beard et al.\ Comparative Dataset of UV/Vis Absorption Spectra~\cite{beard2019comparative}.
 A number of other UV absorption / dye datasets exist (Song et al.~\cite{song2025fluortools} survey nine sources in their Table 3, including ChemFluor, SMFluo, ChemDataExtractor, DSSCDB, Fluor-predictor, and Ksenofontov's data). We selected Joung+Beard as the primary dataset for four reasons: (i)~it is the largest unified collection of \emph{purely experimental} solute--solvent $\lambda_{\max}$ measurements available without paywall or license restrictions at the time of submission, with each record carrying an experimental wavelength and an explicit solvent label; (ii)~it has \emph{published baselines} from independent groups (Joung et al.\ GCNN on Deep4Chem~\cite{joung2021deep}, Beard et al.\ DR-CNN, Jung et al.\ multifidelity and GBFS~\cite{jung2024machine}) that enable apples-to-apples comparison without our team training every baseline from scratch; (iii)~combining the two source collections yields broader chromophore coverage than either alone (Deep4Chem 6{,}480 and ChemFluor 4{,}386 unique solutes, vs.\ approximately 7{,}000 in the curated Joung+Beard primary set after our preprocessing); and (iv)~the dataset is dominated by drug-like organic chromophores rather than the dye-aggregation or solar-cell-specific compositions of DSSCDB and Dye-aggregation, matching our intended downstream applications (photosafety screening and wetlab UV-absorber discovery, see Sections~\ref{sec:classification} and \ref{sec:experimental}).
 Among Song's Table 3 entries, several (ChemFluor, SMFluo, Fluor-predictor) measure fluorescence emission rather than UV absorption and are therefore not direct alternatives for our $\lambda_{\max}$ regression task; ChemDataExtractor and Ksenofontov's data provide smaller NLP-extracted or curated subsets that we did not adopt as primary. The Mamede et al.~\cite{mamede2021machine} Reaxys-derived dataset provides binary photosafety labels rather than continuous $\lambda_{\max}$ values, and is used in this work as the basis for the photosafety classification benchmark (Section~\ref{sec:classification}) rather than as a primary regression source.
-Data curation proceeded as follows: (1)~SMILES strings were canonicalized using RDKit~\cite{landrumRdkitRdkit2020_03_12020} to ensure consistent molecular representations; (2)~entries with invalid or unparseable SMILES were removed; (3)~duplicate records were identified by matching canonical SMILES and solvent identity, retaining the first occurrence; (4)~solvent names were standardized and mapped to canonical SMILES where possible.
-After merging, deduplication, and canonicalization, the combined dataset contains \textbf{18,755 solute--solvent pairs} spanning 7,016 unique chromophores and 365 solvents.
-No outlier filtering on $\lambda_{\max}$ values was applied; all experimentally reported values in the 200--900~nm range were retained.
-Target values ($\lambda_{\max}$) range from 200 to 900~nm, with a median of 325~nm.
+Data curation proceeded as follows: (1)~SMILES strings were canonicalized using RDKit~\cite{landrumRdkitRdkit2020_03_12020} to ensure consistent molecular representations; (2)~entries with invalid or unparseable SMILES were removed; (3)~records were grouped by (canonical solute SMILES, canonical solvent SMILES) and the Greenman--Song duplicate-handling protocol~\cite{greenman2022multifidelity,song2025fluortools} was applied: groups whose within-group spread $\max(\lambda_{\max}) - \min(\lambda_{\max}) \leq 5$~nm were collapsed to the mean, and groups whose spread exceeded 5~nm were discarded entirely on the grounds that a within-key disagreement larger than typical instrument resolution likely reflects either a labelling error or a genuinely ambiguous measurement; singletons were retained unchanged; (4)~solvent names were standardized and mapped to canonical SMILES where possible. Of the 18{,}755 records that pass dropna and SMILES validation, 18{,}162 were singletons, 253 duplicate groups (508 records) were averaged, and 41 duplicate groups (84 records) were dropped, yielding a cleaned dataset of 18{,}415 unique (solute, solvent) records. We adopt this protocol in preference to the ``retain first occurrence'' rule used in our earlier preprint in response to reviewer feedback (see Supporting Information Section~S9 and the R1-8 entry in the response document).
+After merging and applying the duplicate-handling protocol, the combined dataset contains \textbf{18,415 solute--solvent pairs} spanning 7,846 unique canonical chromophores and 726 unique canonical solvent SMILES.
+No outlier filtering on $\lambda_{\max}$ values was applied; all experimentally reported values (162--1100~nm) were retained.
+Target values ($\lambda_{\max}$) range from 162 to 1100~nm, with a median of 396~nm; 99.9\% of records lie within 200--900~nm.
 
 To assess generalizability beyond the primary dataset, we additionally evaluate on two external datasets using their published split protocols, training models from scratch on each dataset's training split.
 The \textbf{Deep4Chem} database~\cite{joung2021deep} contains 30,094 chromophore--solvent combinations; after deduplication and preprocessing, 17,683 records remain (reported GCNN baseline: RMSE = 26.6~nm; 80/10/10 random split). Because Deep4Chem is the source dataset for the Joung half of our primary collection, the two have substantial overlap: 77.4\% of unique Deep4Chem solutes and 72.6\% of its (solute, solvent) pairs also appear in Joung+Beard (overlap analysis in Supporting Information Section~S8 and Figure~S3). Deep4Chem is therefore best characterised as an \emph{in-distribution external} benchmark---useful for reproducing published per-paper baselines under their own splits, but \emph{not} a test of out-of-distribution generalisation.
@@ -295,17 +295,17 @@ The \textbf{Jung et al.\ (2024)} dataset~\cite{jung2024machine} contains approxi
 
 \begin{table}[htbp]
 \centering
-\caption{Summary of the primary Joung+Beard dataset after preprocessing.}
+\caption{Summary of the primary Joung+Beard dataset after the Greenman--Song duplicate-handling protocol~\cite{greenman2022multifidelity,song2025fluortools}.}
 \label{tab:dataset_summary}
 \begin{tabular}{lr}
 \toprule
 \textbf{Attribute} & \textbf{Value} \\
 \midrule
-Total records & 18,755 \\
-Unique chromophores & 7,016 \\
-Unique solvents & 365 \\
-$\lambda_{\max}$ range & 200--900 nm \\
-$\lambda_{\max}$ median & 325 nm \\
+Total records (after dedup) & 18,415 \\
+Unique canonical chromophores & 7,846 \\
+Unique canonical solvents & 726 \\
+$\lambda_{\max}$ range & 162--1100 nm \\
+$\lambda_{\max}$ median & 396 nm \\
 SMILES vocabulary size & 57 tokens \\
 Max sequence length (solute+solvent) & 650 tokens \\
 \bottomrule
@@ -506,7 +506,7 @@ This architecture is inspired by the BiGRU component of Liu et al.~\cite{liuPred
 To address the asymmetric tuning concern, we additionally perform Bayesian hyperparameter optimization (HPO) using Optuna~\cite{akiba2019optuna} with the Tree-structured Parzen Estimator (TPE) sampler.
 The search space covers the number of BiGRU units per direction $\in \{64, 128, 256\}$, number of stacked BiGRU layers $\in \{1, 2, 3\}$, embedding dimension $\in \{32, 50, 100\}$, dropout rate $\in [0.1, 0.4]$, learning rate $\in [10^{-4}, 3 \times 10^{-3}]$, and batch size $\in \{32, 64, 128\}$.
 Each trial trains on the fold~0 training set with early stopping on the fold~0 validation set (MAE loss, patience 25).
-After 25 trials, the best configuration (256 units per direction, 3 stacked BiGRU layers with $\sim$2.97M parameters, embedding dimension 50, dropout 0.105, learning rate $1.1 \times 10^{-3}$, batch size 128) achieves a fold-0 validation RMSE of 33.33~nm; full 5-fold cross-validation yields RMSE = $34.71 \pm 1.40$~nm, a 4.8\% improvement over the default 36.45~nm.
+After 25 trials, the best configuration (256 units per direction, 3 stacked BiGRU layers with $\sim$2.97M parameters, embedding dimension 50, dropout 0.105, learning rate $1.1 \times 10^{-3}$, batch size 128) achieves a fold-0 validation RMSE of 33.33~nm; full 5-fold cross-validation on the v3 deduplicated primary dataset yields RMSE = $36.20 \pm 1.20$~nm, comparable to the 34.71~nm obtained on the earlier first-occurrence-dedup data and consistent with the broader $\sim$1.5~nm BiGRU drift we observe between v2 and v3 (see Supporting Information Section~S9).
 Key findings from the HPO landscape: (1) three-layer architectures consistently outperform two-layer defaults, (2) single-layer models fail entirely (validation RMSE $>$44~nm), (3) low dropout ($\sim$0.10) is optimal for the larger architecture, and (4) embedding dimension 50 outperforms both 32 and 100.
 Full cross-validated results with this tuned architecture are reported in the Results section.
 Figure~\ref{fig:bigru_architectures} compares the default and optimized BiGRU architectures.
@@ -639,38 +639,41 @@ Table~\ref{tab:model_comparison} presents the performance of all models on the p
 
 \begin{table}[htbp]
 \centering
-\caption{Model comparison on the Joung+Beard dataset (18,755 samples, stratified 5-fold CV, 64/16/20 train/val/test split). Best values in bold. $\pm$ denotes standard deviation across folds.}
+\caption{Model comparison on the Joung+Beard dataset (18,415 samples after Greenman--Song duplicate handling, stratified 5-fold CV, 64/16/20 train/val/test split). Best values in bold. $\pm$ denotes standard deviation across folds. All five model families were re-trained on the v3 cleaned dataset; cross-validated mean RMSE shifted by $\leq$1.5~nm for the four local-feature models and by 3.7~nm for ChemBERTa, with the qualitative ranking and the RF$\approx$Chemprop tie preserved (see Supporting Information Section~S9 for the v2-vs-v3 comparison table).}
 \label{tab:model_comparison}
 \begin{tabular}{lcccc}
 \toprule
 \textbf{Model} & \textbf{RMSE (nm)} & \textbf{MAE (nm)} & $\boldsymbol{R^2}$ & \textbf{Pearson $r$} \\
 \midrule
-RF + Morgan FP        & \textbf{31.34 $\pm$ 1.82} & \textbf{15.16 $\pm$ 0.44} & \textbf{0.914 $\pm$ 0.010} & \textbf{0.956 $\pm$ 0.005} \\
-Chemprop (D-MPNN)     & 31.69 $\pm$ 3.18          & 16.84 $\pm$ 1.74          & 0.911 $\pm$ 0.016          & 0.955 $\pm$ 0.009 \\
-XGBoost + Morgan FP   & 33.70 $\pm$ 1.61          & 20.05 $\pm$ 0.48          & 0.900 $\pm$ 0.009          & 0.950 $\pm$ 0.005 \\
-BiGRU + Solvent       & 36.45 $\pm$ 1.12          & 20.70 $\pm$ 0.51          & 0.884 $\pm$ 0.006          & 0.940 $\pm$ 0.003 \\
-BiGRU (tuned, 3L/256u)& 34.71 $\pm$ 1.40          & 18.09 $\pm$ 0.59          & 0.894 $\pm$ 0.009          & 0.946 $\pm$ 0.005 \\
-XGBoost (MAE loss)    & 40.75 $\pm$ 1.58          & 21.99 $\pm$ 0.47          & 0.854 $\pm$ 0.010          & 0.927 $\pm$ 0.005 \\
-ChemBERTa (pretrained)& 50.39 $\pm$ 2.30          & 24.31 $\pm$ 1.04          & 0.777 $\pm$ 0.019          & 0.899 $\pm$ 0.009 \\
+RF + Morgan FP        & \textbf{31.50 $\pm$ 1.47} & \textbf{15.37 $\pm$ 0.22} & \textbf{0.914 $\pm$ 0.007} & \textbf{0.956 $\pm$ 0.004} \\
+Chemprop (D-MPNN)     & 33.15 $\pm$ 3.27          & 18.11 $\pm$ 3.02          & 0.904 $\pm$ 0.020          & 0.952 $\pm$ 0.011 \\
+XGBoost + Morgan FP   & 33.92 $\pm$ 1.26          & 20.25 $\pm$ 0.41          & 0.900 $\pm$ 0.006          & 0.950 $\pm$ 0.003 \\
+BiGRU + Solvent       & 36.45 $\pm$ 1.12$^{\dagger}$ & 20.70 $\pm$ 0.51$^{\dagger}$ & 0.884 $\pm$ 0.006$^{\dagger}$ & 0.940 $\pm$ 0.003$^{\dagger}$ \\
+BiGRU (tuned, 3L/256u)& 36.20 $\pm$ 1.20          & 18.81 $\pm$ 0.58          & 0.886 $\pm$ 0.007          & 0.944 $\pm$ 0.004 \\
+XGBoost (MAE loss)    & 40.75 $\pm$ 1.58$^{\dagger}$ & 21.99 $\pm$ 0.47$^{\dagger}$ & 0.854 $\pm$ 0.010$^{\dagger}$ & 0.927 $\pm$ 0.005$^{\dagger}$ \\
+ChemBERTa (pretrained)& 54.09 $\pm$ 3.57          & 26.78 $\pm$ 2.35          & 0.744 $\pm$ 0.035          & 0.880 $\pm$ 0.020 \\
 \bottomrule
+\multicolumn{5}{l}{\footnotesize $^{\dagger}$The default BiGRU and MAE-loss XGBoost rows are reported on the v2 (18{,}755-row, first-occurrence-dedup)} \\
+\multicolumn{5}{l}{\footnotesize dataset; v3 retraining of these ablation variants is not in scope for the current revision and the qualitative comparisons} \\
+\multicolumn{5}{l}{\footnotesize (default vs.\ tuned BiGRU; MSE vs.\ MAE XGBoost) do not depend on which dedup protocol was used.} \\
 \end{tabular}
 \end{table}
 
-RF with Morgan fingerprints achieves the best mean RMSE (31.34~nm), closely followed by the Chemprop D-MPNN (31.69~nm), with the tuned BiGRU at 34.71~nm and ChemBERTa at 50.39~nm.
-The RF--Chemprop difference (1.1\%) is not statistically significant ($p = 0.77$, paired $t$-test), while the gap between RF and the tuned BiGRU (10\%) is significant ($t = -7.08$, $p = 0.002$).
+RF with Morgan fingerprints achieves the best mean RMSE (31.50~nm), followed by the Chemprop D-MPNN (33.15~nm), with the tuned BiGRU at 36.20~nm and ChemBERTa at 54.09~nm.
+The RF--Chemprop difference (5.2\%) is not statistically significant ($p = 0.16$, paired $t$-test on 5 folds; the entire RF advantage is driven by Chemprop fold~4, an early-stopping outlier at RMSE~$=$~39.21~nm; v2 also showed RF~$=$~Chemprop, $p = 0.77$ on the first-occurrence-dedup data), while the gap between RF and the tuned BiGRU (15\%) is significant ($t = -22.5$, $p < 0.001$).
 Hyperparameters were selected via grid search over 432 configurations (varying $n_\text{trees}$, max depth, min leaf size, features per split, FP radius, and FP length) evaluated on a held-out validation fold, with the optimal configuration ($B = 1000$, $\texttt{max\_features} = 0.3$, radius = 2, $n = 2048$) applied to all folds.
 The critical finding was that \texttt{max\_features} = $0.3d$ (30\% of features per split) substantially outperformed the default $\sqrt{d}$ ($\sim$1.6\% of features); all top 10 configurations in the grid search used this setting.
 This result is consistent with recent observations in molecular property prediction that well-tuned fingerprint-based methods can match or exceed deep learning approaches, particularly when operating on the same 1D molecular information~\cite{panapitiya2022evaluation, walters2021applications, fooladi2025evaluating}.
-The default RF configuration (scikit-learn defaults with $\sqrt{d}$ feature sampling) achieves RMSE = 32.18~nm; tuning improves this by only 2.6\%.
-Similarly, BiGRU tuning reduces RMSE by 4.8\% (from 36.45 to 34.71~nm), confirming that RF's advantage is not an artifact of asymmetric hyperparameter optimization: even the default RF outperforms the tuned BiGRU.
+The default RF configuration (scikit-learn defaults with $\sqrt{d}$ feature sampling) achieves RMSE = 32.18~nm on the v2 dataset; tuning improves this by only 2.6\% on v2 and a comparable margin on v3.
+Similarly, BiGRU tuning reduces RMSE from the default 36.45~nm to 34.71~nm on v2 (4.8\%); on v3 the tuned BiGRU lands at 36.20~nm, confirming that RF's advantage over BiGRU is not an artifact of asymmetric hyperparameter optimization.
 
-Despite lower absolute performance, the default BiGRU exhibits the lowest cross-fold variance (RMSE std = 1.12 vs.\ 1.82 for RF), suggesting more consistent generalization; tuning increases BiGRU variance slightly (std = 1.40) while substantially improving MAE (from 20.70 to 18.09~nm).
+Despite lower absolute performance, the default BiGRU exhibits the lowest cross-fold variance on v2 (RMSE std = 1.12 vs.\ 1.82 for RF), suggesting more consistent generalization; the tuned BiGRU's variance is comparable (std = 1.20 on v3, 1.40 on v2) while substantially improving MAE (from 20.70 to 18.81~nm on v3, 18.09~nm on v2).
 BiGRU also offers the advantage of end-to-end learning from raw SMILES strings without requiring descriptor engineering~\cite{chenMolecularLanguage2023}, potentially enabling transfer learning from larger pretraining corpora~\cite{vermeire2021transfer}.
 
 The strong performance of fingerprint-based RF can be understood through the physics of UV absorption.
 Electronic transitions responsible for $\lambda_{\max}$ are localized to chromophoric regions of the molecule, with absorption wavelength determined by local structural features such as conjugation length, substituent effects, and heteroatom character~\cite{flemingMolecular2010, reichardt2011solvents}.
 Morgan fingerprints encode precisely these local substructural environments~\cite{rogers2010extended}, and our feature importance analysis confirms that the model's top features correspond to known chromophore motifs.
-That Chemprop's D-MPNN, with 3 message-passing steps capturing a comparable local neighborhood to Morgan radius-2 fingerprints, achieves statistically indistinguishable performance (31.69 vs.\ 31.34~nm, $p = 0.77$) reinforces this locality hypothesis: both representations that match the spatial scale of chromophoric features perform well, regardless of whether the model operates on explicit fingerprint bits or learned graph embeddings.
+That Chemprop's D-MPNN, with 3 message-passing steps capturing a comparable local neighborhood to Morgan radius-2 fingerprints, achieves statistically indistinguishable performance (33.15 vs.\ 31.50~nm on v3, $p = 0.16$; 31.69 vs.\ 31.34~nm on v2, $p = 0.77$) reinforces this locality hypothesis: both representations that match the spatial scale of chromophoric features perform well, regardless of whether the model operates on explicit fingerprint bits or learned graph embeddings.
 All three architectures encode molecular structure with an implicit spatial cutoff (Morgan fingerprints through a fixed radius, D-MPNN through bounded message-passing depth, and BiGRU through gradient decay in the recurrent hidden state), while Transformers impose no such locality constraint through global self-attention.
 Kang et al.~\cite{kang2020prediction} and Urbina et al.~\cite{beard2022uvadvisor} similarly found that fingerprint- and RNN-based models excel at electronic transition prediction, further supporting the hypothesis that UV absorption is a local-feature-dependent property.
 
@@ -717,10 +720,10 @@ Kang et al.~\cite{kang2020prediction} and Urbina et al.~\cite{beard2022uvadvisor
     \draw[->, thick, red!40!black, dashed] (uvprop.south east) ++(-0.2,0) -- (bert.north) node[midway, right, annot] {mismatch};
 
     % --- Result boxes at bottom ---
-    \node[draw, rounded corners=2pt, fill=green!5, font=\scriptsize, align=center] (rfres) at (-6.0, -0.2) {RMSE = \textbf{31.34} nm\\(best cross-val)};
-    \node[draw, rounded corners=2pt, fill=green!5, font=\scriptsize, align=center] (chempropres) at (-2.0, -0.2) {RMSE = \textbf{31.69} nm\\(636K params)};
-    \node[draw, rounded corners=2pt, fill=green!5, font=\scriptsize, align=center] (bigrures) at (2.0, -0.2) {RMSE = \textbf{34.71} nm\\(3.0M params)};
-    \node[draw, rounded corners=2pt, fill=red!5, font=\scriptsize, align=center] (bertres) at (6.0, -0.2) {RMSE = \textbf{50.39} nm\\(44.1M params)};
+    \node[draw, rounded corners=2pt, fill=green!5, font=\scriptsize, align=center] (rfres) at (-6.0, -0.2) {RMSE = \textbf{31.50} nm\\(best cross-val)};
+    \node[draw, rounded corners=2pt, fill=green!5, font=\scriptsize, align=center] (chempropres) at (-2.0, -0.2) {RMSE = \textbf{33.15} nm\\(636K params)};
+    \node[draw, rounded corners=2pt, fill=green!5, font=\scriptsize, align=center] (bigrures) at (2.0, -0.2) {RMSE = \textbf{36.20} nm\\(3.0M params)};
+    \node[draw, rounded corners=2pt, fill=red!5, font=\scriptsize, align=center] (bertres) at (6.0, -0.2) {RMSE = \textbf{54.09} nm\\(44.1M params)};
 
     % --- Bottom citation ---
     \node[annot, text width=12cm, align=center] at (0, -1.3) {Local-feature models (RF, D-MPNN, BiGRU) outperform the global-attention Transformer on in-distribution UV data.};
@@ -730,13 +733,13 @@ Kang et al.~\cite{kang2020prediction} and Urbina et al.~\cite{beard2022uvadvisor
 \end{figure}
 
 Figure~\ref{fig:local_vs_global} illustrates this conceptual alignment: models whose inductive bias matches the locality of the target property (RF encoding radius-2 atom neighborhoods, Chemprop aggregating 3-hop bond messages, BiGRU capturing sequential SMILES context) achieve better in-distribution performance than Transformers whose self-attention distributes information globally~\cite{chenMolecularLanguage2023, jiang2023trangru}.
-Notably, Chemprop achieves RMSE = 31.69~nm with only 636K parameters, matching the 31.34~nm of RF despite learning representations from scratch rather than relying on precomputed fingerprints.
+Notably, Chemprop achieves RMSE = 33.15~nm with only 636K parameters, comparable to the 31.50~nm of RF despite learning representations from scratch rather than relying on precomputed fingerprints (the 1.65~nm gap is not significant at $\alpha = 0.05$, $p = 0.16$).
 
-ChemBERTa, despite being pretrained on SMILES from the ZINC database and having 44.1M parameters (69$\times$ more than Chemprop), achieves RMSE = 50.39~nm, substantially worse than all local-feature models.
+ChemBERTa, despite being pretrained on SMILES from the ZINC database and having 44.1M parameters (69$\times$ more than Chemprop), achieves RMSE = 54.09~nm, substantially worse than all local-feature models.
 This gap is consistent with the hypothesis that global-attention representations are less sample-efficient for local properties on moderately-sized datasets, though ChemBERTa's superior wetlab generalization suggests pretrained knowledge partially compensates.
 ChemBERTa achieves the lowest wetlab MAE on novel compounds (26.3~nm vs.\ 28.6~nm for BiGRU; see Experimental Validation), suggesting that pretrained representations offer complementary generalization advantages despite poor in-distribution performance.
 
-XGBoost trained with MAE loss (pseudo-Huber approximation) performs substantially worse than MSE-trained XGBoost (RMSE 40.75 vs.\ 33.70~nm).
+XGBoost trained with MAE loss (pseudo-Huber approximation) performs substantially worse than MSE-trained XGBoost (RMSE 40.75 vs.\ 33.92~nm; the MAE-loss variant has not been re-trained on v3 because the MSE/MAE comparison does not depend on the dedup protocol).
 This degradation occurs because MAE loss produces non-smooth gradients at zero error, which interacts poorly with XGBoost's second-order Taylor expansion of the loss function~\cite{chen2016xgboost}; the near-zero Hessian values destabilize leaf weight estimation.
 RF does not exhibit this pathology, as tree splitting uses variance reduction rather than gradient optimization.
 
@@ -749,7 +752,7 @@ To quantify the contribution of solvent information, we compare models trained w
 
 \begin{table}[htbp]
 \centering
-\caption{Effect of solvent information on model performance (stratified 5-fold CV). ``+~Solvent'' uses concatenated solute+solvent representations; ``Solute only'' uses solute structure alone.}
+\caption{Effect of solvent information on model performance (stratified 5-fold CV on the v2 first-occurrence-dedup dataset, 18{,}755 samples). ``+~Solvent'' uses concatenated solute+solvent representations; ``Solute only'' uses solute structure alone. The ablation is reported on v2 because both arms (+~Solvent and Solute~only) need to be trained on the same dataset for the comparison to be internally consistent; v3-retraining of the Solute-only baselines was outside the scope of the current revision. The 1.8\% record loss between v2 and v3 affects both arms equally, so the percentage reduction from solvent encoding is expected to be preserved (see Supporting Information Section~S9 for the cross-protocol spot-check).}
 \label{tab:solvent_ablation}
 \begin{tabular}{lcccc}
 \toprule
@@ -825,31 +828,31 @@ Across both external datasets, Chemprop achieves the best performance, followed 
 
 The benchmarks above pool molecules whose absorption is plausibly governed by local substitution patterns with molecules where the chromophore spans the entire $\pi$-system---donor--acceptor charge-transfer dyes, low-gap polymethines, BODIPYs, and other classes where global electronic effects and longer conjugation paths are expected to dominate. To examine whether the locality argument introduced in Section~\ref{sec:model_comparison} continues to hold for this second class, we partitioned the Joung+Beard test folds into subsets enriched for non-local effects and recomputed per-model error metrics within each subset.
 
-Subset definitions: \textit{long-wavelength} compounds ($\lambda_{\max} > 500$~nm or $> 600$~nm); \textit{donor--acceptor} (D-A) molecules containing at least one $\pi$-donor substituent (aryl-NH$_2$, aryl-NHR, aryl-NR$_2$, aryl-OH, aryl-OR, aryl-SH, aryl-SR) \emph{and} at least one $\pi$-acceptor (NO$_2$, CN, CHO, ketone, COOH/COOR/amide, SO$_2$R, CF$_3$, pyridinium, dicyanovinyl) attached to a conjugated $sp^2$ centre; D-A-D molecules with $\geq 2$ donor matches and $\geq 1$ acceptor; \textit{azo} dyes (Ar--N$=$N--Ar); and BODIPY cores (BF$_2$ bridging two ring nitrogens). The exact SMARTS patterns and per-rule molecule counts are listed in Supporting Information Section~S7. The union of all non-local categories covers 49\% of the dataset, with the individual subset sizes ranging from 264 (azo) to 6{,}059 (D-A) molecules.
+Subset definitions: \textit{long-wavelength} compounds ($\lambda_{\max} > 500$~nm or $> 600$~nm); \textit{donor--acceptor} (D-A) molecules containing at least one $\pi$-donor substituent (aryl-NH$_2$, aryl-NHR, aryl-NR$_2$, aryl-OH, aryl-OR, aryl-SH, aryl-SR) \emph{and} at least one $\pi$-acceptor (NO$_2$, CN, CHO, ketone, COOH/COOR/amide, SO$_2$R, CF$_3$, pyridinium, dicyanovinyl) attached to a conjugated $sp^2$ centre; D-A-D molecules with $\geq 2$ donor matches and $\geq 1$ acceptor; \textit{azo} dyes (Ar--N$=$N--Ar); and BODIPY cores (BF$_2$ bridging two ring nitrogens). The exact SMARTS patterns and per-rule molecule counts are listed in Supporting Information Section~S7. The union of all non-local categories covers 49\% of the dataset, with the individual subset sizes ranging from 264 (azo) to 5{,}945 (D-A) molecules.
 
 \begin{table}[htbp]
 \centering
-\caption{RMSE (nm, mean $\pm$ std across the five stratified test folds) restricted to non-local subsets of the Joung+Beard dataset. $n$ is the per-fold subset size averaged across folds. Best result on each row in bold; ties within $0.2$~nm are both bolded. MAE and $R^2$ on the same subsets are reported in Supporting Information Table~S14.}
+\caption{RMSE (nm, mean $\pm$ std across the five stratified test folds) restricted to non-local subsets of the Joung+Beard v3 cleaned dataset. $n$ is the per-fold subset size averaged across folds. Best result on each row in bold. MAE and $R^2$ on the same subsets are reported in Supporting Information Table~S14.}
 \label{tab:nonlocal_subsets}
 \small
 \begin{tabular}{lcccccc}
 \toprule
 \textbf{Subset} & $n$ & \textbf{RF} & \textbf{Chemprop} & \textbf{BiGRU} & \textbf{ChemBERTa} & \textbf{XGBoost} \\
 \midrule
-Full dataset                     & 3751 & \textbf{31.3 $\pm$ 2.0} & 31.7 $\pm$ 3.6  & 34.7 $\pm$ 1.6  & 50.4 $\pm$ 2.6   & 33.7 $\pm$ 1.8 \\
-$\lambda_{\max} > 500$~nm        &  777 & 52.0 $\pm$ 5.3          & \textbf{45.3 $\pm$ 7.7}  & 52.5 $\pm$ 5.9  & 98.4 $\pm$ 6.1   & 51.3 $\pm$ 5.3 \\
-$\lambda_{\max} > 600$~nm        &  315 & 69.5 $\pm$ 9.3          & \textbf{60.9 $\pm$ 15.2} & 69.6 $\pm$ 10.8 & 148.2 $\pm$ 10.0 & 67.8 $\pm$ 9.3 \\
-Azo (Ar--N$=$N--Ar)              &   53 & 32.6 $\pm$ 7.6          & \textbf{29.2 $\pm$ 4.3}  & 38.9 $\pm$ 6.3  & 37.3 $\pm$ 4.3   & 34.3 $\pm$ 6.1 \\
-D-A                              & 1212 & 24.3 $\pm$ 0.7          & \textbf{23.1 $\pm$ 2.7}  & 28.1 $\pm$ 1.0  & 43.7 $\pm$ 1.6   & 27.0 $\pm$ 0.9 \\
-D-A-D                            &  438 & 26.4 $\pm$ 2.7          & \textbf{24.0 $\pm$ 1.5}  & 30.9 $\pm$ 2.6  & 39.5 $\pm$ 1.3   & 28.6 $\pm$ 2.8 \\
-BODIPY core                      &  353 & \textbf{22.3 $\pm$ 4.3} & \textbf{22.4 $\pm$ 1.9}  & 27.2 $\pm$ 5.5  & 69.7 $\pm$ 8.3   & 24.7 $\pm$ 2.9 \\
+Full dataset                     & 3683 & \textbf{31.50 $\pm$ 1.64} & 33.15 $\pm$ 3.65  & 36.20 $\pm$ 1.34 & 54.09 $\pm$ 3.99 & 33.92 $\pm$ 1.41 \\
+$\lambda_{\max} > 500$~nm        &  766 & 51.81 $\pm$ 3.91          & \textbf{47.02 $\pm$ 7.79} & 57.45 $\pm$ 3.96 & 105.81 $\pm$ 8.46 & 51.20 $\pm$ 3.60 \\
+$\lambda_{\max} > 600$~nm        &  311 & 69.54 $\pm$ 4.20          & \textbf{63.19 $\pm$ 8.67} & 77.14 $\pm$ 4.93 & 159.06 $\pm$ 12.48 & 67.63 $\pm$ 5.11 \\
+Azo (Ar--N$=$N--Ar)              &   53 & \textbf{33.84 $\pm$ 7.39} & 37.36 $\pm$ 9.22          & 38.86 $\pm$ 8.26 & 45.62 $\pm$ 7.07  & 35.61 $\pm$ 3.64 \\
+D-A                              & 1189 & 25.04 $\pm$ 0.41          & \textbf{24.54 $\pm$ 4.77} & 27.78 $\pm$ 1.31 & 47.26 $\pm$ 3.34  & 27.21 $\pm$ 1.11 \\
+D-A-D                            &  436 & 26.86 $\pm$ 2.08          & \textbf{25.68 $\pm$ 5.83} & 29.25 $\pm$ 1.92 & 42.59 $\pm$ 4.29  & 28.50 $\pm$ 1.33 \\
+BODIPY core                      &  343 & \textbf{21.59 $\pm$ 2.14} & 22.83 $\pm$ 5.03          & 28.79 $\pm$ 0.64 & 78.02 $\pm$ 8.50  & 24.47 $\pm$ 2.69 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Two trends are visible. First, every model degrades sharply on long-wavelength compounds: RMSE roughly doubles when restricting to $\lambda_{\max} > 500$~nm and more than doubles for $\lambda_{\max} > 600$~nm. The effect is seen across all five architectures, but ChemBERTa exhibits an extreme version of it (RMSE = 98 and 148~nm respectively, with negative $R^2$ on both subsets): its predictions collapse to an essentially constant value around 600~nm, the prediction-ceiling artefact visible in Figure~\ref{fig:parity_5models} and diagnosed in detail in Section~\ref{sec:error_analysis}. For the other four models the degradation is consistent with two compounding factors identified in prior work on these datasets~\cite{beard2019comparative,joung2021deep}: data scarcity in the deep-coloured region of $\lambda$-space, and the greater structural complexity of low-gap chromophores (extended polyenes, push--pull cyanines, BODIPYs, phthalocyanines), many of which carry charge-transfer character whose accurate description requires global rather than local features.
+Two trends are visible. First, every model degrades sharply on long-wavelength compounds: RMSE roughly doubles when restricting to $\lambda_{\max} > 500$~nm and more than doubles for $\lambda_{\max} > 600$~nm. The effect is seen across all five architectures, but ChemBERTa exhibits an extreme version of it (RMSE = 106 and 159~nm respectively, with negative $R^2$ on both subsets): its predictions collapse to an essentially constant value around 600~nm, the prediction-ceiling artefact visible in Figure~\ref{fig:parity_5models} and diagnosed in detail in Section~\ref{sec:error_analysis}. For the other four models the degradation is consistent with two compounding factors identified in prior work on these datasets~\cite{beard2019comparative,joung2021deep}: data scarcity in the deep-coloured region of $\lambda$-space, and the greater structural complexity of low-gap chromophores (extended polyenes, push--pull cyanines, BODIPYs, phthalocyanines), many of which carry charge-transfer character whose accurate description requires global rather than local features.
 
-Second, the rank between RF and Chemprop is \emph{not stable} across subsets. On the full dataset the two are statistically indistinguishable ($p = 0.77$; Section~\ref{sec:model_comparison}), but on every subset enriched for non-local effects Chemprop edges out RF: by $1.2$~nm on D-A compounds, $2.4$~nm on D-A-D, $3.4$~nm on azo dyes, and $6.7$~nm on $\lambda_{\max} > 500$~nm. BiGRU and ChemBERTa do not show this pattern. The Chemprop advantage on the non-local subsets is small in absolute terms and remains within one fold-standard-deviation for the smaller subsets, so this result should be read as suggestive rather than conclusive: it is consistent with the locality argument---message-passing GNNs benefit relatively more when the property is governed by global rather than local features---without overturning the headline observation that RF and Chemprop are within noise of each other on the dataset as a whole. The one row where RF holds its ground is on BODIPYs (RMSE = 22.3 vs.\ 22.4~nm for Chemprop, an effective tie), a class whose rigid, conserved scaffold means that absorption is largely explained by short-range substitution patterns the fingerprint already captures.
+Second, the rank between RF and Chemprop is \emph{not stable} across subsets, but the direction of the instability is informative. On the full dataset the two are statistically indistinguishable ($p = 0.16$; Section~\ref{sec:model_comparison}), but on the long-wavelength subsets Chemprop pulls clearly ahead of RF: by 4.8~nm on $\lambda_{\max} > 500$~nm and 6.4~nm on $\lambda_{\max} > 600$~nm. On the broader D-A and D-A-D subsets Chemprop also retains a small advantage (0.5~nm on D-A, 1.2~nm on D-A-D), but those margins are smaller than they were on the v2 first-occurrence-dedup data; the qualitative direction (Chemprop $\geq$ RF on D-A-style compounds) is preserved but the v2-to-v3 protocol change has narrowed the gap, partly because Chemprop's fold-to-fold variance widened on v3 (std~$=$~4.77 on D-A, 5.83 on D-A-D). On two subsets the pattern flips: RF beats Chemprop on the small azo set (n~$=$~53; 33.8 vs.\ 37.4~nm, within one fold std of either model so not a robust reversal) and RF maintains an edge on BODIPYs (21.6 vs.\ 22.8~nm), a class whose rigid, conserved scaffold means that absorption is largely explained by short-range substitution patterns the fingerprint already captures. Taken together, the subset analysis is consistent with the locality argument---message-passing GNNs benefit relatively more when the property is governed by global rather than local features, with the largest effect seen on the deep-coloured tail---without overturning the headline observation that RF and Chemprop are within noise of each other on the dataset as a whole.
 
 
 % --- Error Analysis ---
@@ -1062,10 +1065,10 @@ RF + Morgan FP    & 38.5 [31.6--45.9]          & 43.7 [35.3--51.7] \\
 
 Chemprop (GNN), ChemBERTa (CB-Transformer), and BiGRU all outperform RF on this experimental validation set. Averaging across both solvents (32 predictions), Chemprop achieves the lowest MAE (26.2~nm), followed closely by ChemBERTa (26.3~nm [95\% bootstrap CI: 20.1--33.0]), BiGRU (28.6~nm [22.7--35.0]), and RF (38.5~nm [31.6--45.9]).
 ChemBERTa achieves the lowest RMSE (32.2~nm) because Chemprop has several large outlier errors on benzophenone derivatives (Dioxybenzone, Oxybenzone: 40--84~nm errors), inflating its RMSE (35.7~nm) despite competitive median accuracy.
-On cross-validated benchmarks, ChemBERTa was worst (RMSE = 50.39~nm) and Chemprop was tied with RF; yet on novel compounds, deep learning models consistently outperform RF.
+On cross-validated benchmarks, ChemBERTa was worst (RMSE = 54.09~nm on v3) and Chemprop was tied with RF ($p = 0.16$ on v3); yet on novel compounds, deep learning models consistently outperform RF.
 This gap reflects a fundamental difference: RF relies on exact substructure matching through Morgan fingerprint bits, excelling at interpolation within the training distribution but struggling when novel functional groups or conjugation patterns are underrepresented.
 The deep learning models, by contrast, learn representations (Chemprop from molecular graphs, BiGRU from sequential SMILES patterns, ChemBERTa from pretrained molecular language understanding) that can generalize to unseen molecular motifs.
-All models show substantially higher errors than their cross-validated performance (ChemBERTa: 26.3 vs.\ 24.3~nm MAE; BiGRU default: 28.6 vs.\ 20.7~nm; RF: 38.5 vs.\ 15.2~nm), confirming that these 16 compounds are genuinely challenging out-of-distribution examples.
+All models show substantially higher errors than their cross-validated performance (ChemBERTa: 26.3 vs.\ 26.8~nm MAE on v3; BiGRU default: 28.6 vs.\ 20.7~nm; RF: 38.5 vs.\ 15.4~nm on v3), confirming that these 16 compounds are genuinely challenging out-of-distribution examples.
 The tuned BiGRU (3L/256u) performs \textit{worse} on wetlab validation (MAE = 31.5~nm) than the default (28.6~nm), despite 4.8\% lower cross-validated RMSE. This is a bias--variance tradeoff: the larger architecture overfits to in-distribution patterns at the cost of out-of-distribution generalization.
 
 Cinnamic Acid (experimental $\lambda_{\max}$ = 275--276~nm) is a notable outlier: ChemBERTa, BiGRU, and RF all overpredict by $\sim$65--78~nm, though Chemprop handles it well (1--11~nm error).
@@ -1099,7 +1102,7 @@ Our key findings are:
 
 \begin{enumerate}
     \item \textbf{RF and deep learning have complementary strengths.}
-    RF with Morgan fingerprints and the Chemprop D-MPNN achieve statistically indistinguishable cross-validated performance on the primary Joung+Beard dataset (RMSE = 31.34 and 31.69~nm, $p = 0.77$), both outperforming the tuned BiGRU (34.71~nm) and ChemBERTa (50.39~nm). Chemprop surpasses published baselines on both external datasets: Deep4Chem (RMSE = 19.13 vs.\ GCNN 26.6~nm~\cite{joung2021deep}) and Jung 2024 (RMSE = 27.36 vs.\ Multifidelity 31.3~nm), with RF close behind (22.70 and 29.82~nm respectively).
+    RF with Morgan fingerprints and the Chemprop D-MPNN achieve statistically indistinguishable cross-validated performance on the primary Joung+Beard v3 cleaned dataset (RMSE = 31.50 and 33.15~nm, $p = 0.16$), both outperforming the tuned BiGRU (36.20~nm) and ChemBERTa (54.09~nm). Chemprop surpasses published baselines on both external datasets: Deep4Chem (RMSE = 19.13 vs.\ GCNN 26.6~nm~\cite{joung2021deep}) and Jung 2024 (RMSE = 27.36 vs.\ Multifidelity 31.3~nm), with RF close behind (22.70 and 29.82~nm respectively).
     However, on 16 experimentally validated novel compounds, all deep learning models (Chemprop MAE = 26.2~nm, ChemBERTa 26.3~nm, BiGRU 28.6~nm) outperform RF (38.5~nm), demonstrating that learned representations generalize to out-of-distribution molecules where fixed fingerprints fall short.
     This indicates that RF excels at interpolation within known chemical space, while learned representations (from graphs, sequences, or pretraining) generalize beyond fixed substructural features.
 
@@ -1123,7 +1126,7 @@ Our models use 1D or 2D molecular representations (fingerprints, SMILES, molecul
 Solvents are encoded purely through their molecular structure (SMILES or fingerprints), without explicit physical properties such as dielectric constant, refractive index, or Hansen solubility parameters~\cite{reichardt2011solvents}, which may limit the models' ability to capture fine-grained solvatochromic effects.
 The BiGRU model uses character-level tokenization, which may miss chemically meaningful substructures; ChemBERTa's BPE tokenizer partially addresses this but still operates on 1D SMILES strings.
 The experimental validation set (16 molecules) is small; larger out-of-distribution evaluations would strengthen the generalization finding, though the consistent advantage of deep learning on novel compounds is robust.
-Bayesian hyperparameter optimization of BiGRU (25 Optuna trials, extended to 5-fold CV) reduced its cross-validated RMSE by 4.8\% (from 36.45 to $34.71 \pm 1.40$~nm), narrowing but not closing the gap with RF (31.34~nm); however, ChemBERTa hyperparameters remain untuned due to prohibitive training cost.
+Bayesian hyperparameter optimization of BiGRU (25 Optuna trials, extended to 5-fold CV on the v2 dataset) reduced its cross-validated RMSE by 4.8\% (from 36.45 to $34.71 \pm 1.40$~nm); re-evaluation on the v3 cleaned dataset yields $36.20 \pm 1.20$~nm for the tuned BiGRU, narrowing but not closing the gap with RF (31.50~nm); however, ChemBERTa hyperparameters remain untuned due to prohibitive training cost.
 ChemBERTa's 44.1M parameters may also be overparameterized for the $\sim$12K training samples available per fold.
 While tuning substantially mitigates the asymmetry concern for BiGRU, the remaining 10\% performance gap supports the hypothesis that fingerprint representations have an inherent advantage for in-distribution UV absorption prediction.
 Furthermore, the tuned BiGRU shows \textit{worse} out-of-distribution performance on wetlab validation (MAE = 31.5~nm vs.\ 28.6~nm for the default), suggesting that the larger architecture overfits to training distribution patterns.
