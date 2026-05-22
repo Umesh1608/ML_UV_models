@@ -7,6 +7,11 @@
 \usepackage{siunitx}
 \usepackage[dvipsnames]{xcolor}
 
+% Mirror the vector/matrix shorthand from the main paper (needed for the
+% moved equation blocks in the new Detailed Model Architectures section).
+\newcommand{\vect}[1]{\mathbf{#1}}
+\newcommand{\matr}[1]{\mathbf{#1}}
+
 \title{Supporting Information: When Do Simple Models Win? Machine Learning Architectures for UV Absorption Prediction}
 
 \author{Umesh Arampath}
@@ -556,5 +561,78 @@ Heteroatoms (N, O, S) rank second, consistent with their role as electron donors
     \caption{Mean BiGRU gradient saliency by SMILES character type, averaged over all wetlab validation molecules. Bond symbols (\texttt{=}, \texttt{\#}) and heteroatoms receive the highest saliency, consistent with the role of conjugated $\pi$-systems and electron-donating/withdrawing groups in determining UV absorption.}
     \label{fig:bigru_chartype}
 \end{figure}
+
+
+\section{Detailed Model Architectures}
+\label{si:architectures}
+
+This section collects the mathematical definitions and component-level explanations of the five model families benchmarked in the main text. The content was moved from the main-text Methods section to the Supporting Information in response to reviewer concern R1-10, on the grounds that the underlying architectures are documented in detail by their original publications (cited per subsection) and that the core findings of the manuscript---the locality argument, the RF$\approx$Chemprop tie, and the complementary OOD strengths of deep learning---do not depend on the equation-level details below.
+
+\subsection*{Random Forest (RF)}
+
+Random Forest~\cite{breiman2001random} is an ensemble method that constructs $B$ decision trees, each trained on a bootstrap sample of the data, and averages their predictions to reduce variance. For a regression task, the ensemble prediction is:
+\begin{equation}
+    \hat{y}(\vect{x}) = \frac{1}{B} \sum_{b=1}^{B} T_b(\vect{x})
+    \label{eq:si_rf_predict}
+\end{equation}
+where $T_b$ denotes the $b$-th decision tree. Each tree partitions the feature space by recursively selecting the feature $j$ and threshold $s$ that minimise the mean squared error (MSE) within each resulting partition:
+\begin{equation}
+    (j^*, s^*) = \arg\min_{j, s} \left[ \sum_{x_i \in R_1(j,s)} (y_i - \bar{y}_{R_1})^2 + \sum_{x_i \in R_2(j,s)} (y_i - \bar{y}_{R_2})^2 \right]
+    \label{eq:si_rf_split}
+\end{equation}
+where $R_1$ and $R_2$ are the two regions defined by the split and $\bar{y}_{R_k}$ is the mean target in region $R_k$. At each split, only a random subset of features (out of $d$ total) is considered, decorrelating the trees and improving generalisation.
+
+The input representation for RF in this work is the Morgan circular fingerprint~\cite{rogers2010extended}, which encodes local chemical environments by enumerating all atom-centred circular substructures up to a specified radius $r$. Each substructure is hashed to a fixed-length binary vector of $n$ bits:
+\begin{equation}
+    \vect{x} = \text{MorganFP}(\text{mol},\, r=2,\, n=2048) \in \{0, 1\}^{2048}
+    \label{eq:si_morgan_fp}
+\end{equation}
+
+\subsection*{XGBoost}
+
+XGBoost~\cite{chen2016xgboost} constructs an additive ensemble of decision trees trained sequentially, where each new tree $f_t$ fits the residual errors of the current ensemble. The prediction after $T$ boosting rounds is:
+\begin{equation}
+    \hat{y}(\vect{x}) = \sum_{t=1}^{T} \eta \cdot f_t(\vect{x})
+    \label{eq:si_xgb_predict}
+\end{equation}
+where $\eta$ is the learning rate (shrinkage parameter) that controls the contribution of each tree. Each tree $f_t$ is trained to minimise a regularised objective combining the loss on residuals and a penalty on tree complexity:
+\begin{equation}
+    \mathcal{L}^{(t)} = \sum_{i=1}^{n} l\!\left(y_i,\; \hat{y}_i^{(t-1)} + f_t(\vect{x}_i)\right) + \Omega(f_t)
+    \label{eq:si_xgb_loss}
+\end{equation}
+where $\Omega(f_t) = \gamma \cdot |\text{leaves}| + \tfrac{1}{2}\lambda \sum_j w_j^2$ penalises the number of leaves and the magnitude of leaf weights $w_j$.
+
+\subsection*{Recurrent Neural Networks and BiGRU}
+
+Recurrent neural networks (RNNs)~\cite{elman1990finding} process sequential input by maintaining a hidden state $\vect{h}_t$ that is updated at each time step $t$:
+\begin{equation}
+    \vect{h}_t = \sigma(\matr{W}_h \vect{h}_{t-1} + \matr{W}_x \vect{x}_t + \vect{b})
+    \label{eq:si_rnn}
+\end{equation}
+where $\vect{x}_t$ is the input at step $t$, $\matr{W}_h$ and $\matr{W}_x$ are weight matrices, and $\sigma$ is a nonlinear activation. Standard RNNs suffer from vanishing gradients over long sequences, motivating gated architectures.
+
+The Gated Recurrent Unit (GRU)~\cite{cho2014learning} addresses this through two gating mechanisms, an update gate $\vect{z}_t$ and a reset gate $\vect{r}_t$, that control information flow:
+\begin{align}
+    \vect{z}_t &= \sigma(\matr{W}_z \vect{x}_t + \matr{U}_z \vect{h}_{t-1} + \vect{b}_z) \label{eq:si_gru_update} \\
+    \vect{r}_t &= \sigma(\matr{W}_r \vect{x}_t + \matr{U}_r \vect{h}_{t-1} + \vect{b}_r) \label{eq:si_gru_reset} \\
+    \tilde{\vect{h}}_t &= \tanh(\matr{W}_h \vect{x}_t + \matr{U}_h (\vect{r}_t \odot \vect{h}_{t-1}) + \vect{b}_h) \label{eq:si_gru_candidate} \\
+    \vect{h}_t &= (1 - \vect{z}_t) \odot \vect{h}_{t-1} + \vect{z}_t \odot \tilde{\vect{h}}_t \label{eq:si_gru_output}
+\end{align}
+where $\sigma$ is the sigmoid function and $\odot$ denotes element-wise multiplication. The update gate $\vect{z}_t$ determines how much of the previous state to retain versus replace with the candidate $\tilde{\vect{h}}_t$, while the reset gate $\vect{r}_t$ controls how much past information is used to compute the candidate. This gating mechanism enables GRUs to capture long-range dependencies without the vanishing-gradient problem.
+
+A Bidirectional GRU (BiGRU)~\cite{schuster1997bidirectional} processes the sequence in both directions, concatenating the forward and backward hidden states to capture context from both ends of the molecular string:
+\begin{equation}
+    \vect{h}_t^{\text{bi}} = [\overrightarrow{\vect{h}_t} \,\|\, \overleftarrow{\vect{h}_t}]
+    \label{eq:si_bigru_concat}
+\end{equation}
+
+\subsection*{Graph Neural Network (D-MPNN)}
+
+The Directed Message Passing Neural Network (D-MPNN)~\cite{yangAnalyzingLearnedMolecular2019} operates on the molecular graph by passing messages along directed bonds rather than atoms, avoiding redundant information flow to the source atom at each step. Given a molecular graph with atom features $\vect{x}_v$ and bond features $\vect{e}_{vw}$, directed bond hidden states $\vect{h}_{vw}^{(t)}$ are updated over $T$ steps:
+\begin{equation}
+    \vect{h}_{vw}^{(t)} = \tau\!\left(\vect{h}_{vw}^{(0)} + \matr{W}_t \sum_{u \in N(v) \setminus w} \vect{h}_{uv}^{(t-1)}\right)
+    \label{eq:si_dmpnn}
+\end{equation}
+where $\tau$ is ReLU, $N(v) \setminus w$ denotes neighbours of $v$ excluding $w$, and $\vect{h}_{vw}^{(0)} = \tau(\matr{W}_0 \, [\vect{x}_v \,\|\, \vect{e}_{vw}])$ is initialised from concatenated atom and bond features. After $T$ message-passing steps, atom-level representations are obtained by summing incoming bond messages and passed through mean pooling to produce a fixed-length molecular vector.
 
 \end{document}

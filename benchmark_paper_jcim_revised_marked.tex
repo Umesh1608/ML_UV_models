@@ -441,7 +441,7 @@ Figure~\ref{fig:model_overview} provides a high-level comparison of the three mo
 \subsection{Random Forest with Morgan Fingerprints}
 \label{sec:rf}
 
-Random Forest (RF)~\cite{breiman2001random} is an ensemble method that constructs $B$ decision trees, each trained on a bootstrap sample of the data, and averages their predictions to reduce variance.
+\removed{Random Forest (RF)~\cite{breiman2001random} is an ensemble method that constructs $B$ decision trees, each trained on a bootstrap sample of the data, and averages their predictions to reduce variance.
 For a regression task, the ensemble prediction is:
 \begin{equation}
     \hat{y}(\vect{x}) = \frac{1}{B} \sum_{b=1}^{B} T_b(\vect{x})
@@ -460,13 +460,15 @@ Each substructure is hashed to a fixed-length binary vector of $n$ bits:
     \vect{x} = \text{MorganFP}(\text{mol}, r=2, n=2048) \in \{0, 1\}^{2048}
 \end{equation}
 Hyperparameters were selected via grid search over 432 configurations (varying $B$, max depth, min leaf size, features per split, FP radius, and FP length) evaluated on a held-out validation fold.
-The optimal configuration uses $B = 1000$ trees, no maximum depth constraint, and $\lfloor 0.3d \rfloor$ features considered per split (scikit-learn \texttt{RandomForestRegressor}).
+The optimal configuration uses $B = 1000$ trees, no maximum depth constraint, and $\lfloor 0.3d \rfloor$ features considered per split (scikit-learn \texttt{RandomForestRegressor}).}
+
+\added{Random Forest (RF)~\cite{breiman2001random} is an ensemble of decision trees averaging predictions over bootstrap-sampled subsets, with random feature subsetting at each split to decorrelate the trees. We use scikit-learn's \texttt{RandomForestRegressor} with hyperparameters selected via grid search over 432 configurations: $n_\text{trees} = 1000$, $\text{max\_features} = 0.3$, $\text{min\_samples\_leaf} = 1$, no maximum depth constraint (full RF hyperparameter sensitivity analysis in Supporting Information Section~S3). The input representation is a Morgan circular fingerprint~\cite{rogers2010extended} of radius 2 and length 2048 computed separately for the solute and the solvent and concatenated into a 4096-bit feature vector (Section~\ref{sec:solvent}). The full mathematical formulation of the ensemble estimator, the MSE-minimising split criterion, and the Morgan fingerprint hashing is given in Supporting Information Section~S12.}
 
 
 \subsection{Gradient Boosting (XGBoost)}
 \label{sec:xgboost}
 
-XGBoost~\cite{chen2016xgboost} constructs an additive ensemble of decision trees trained sequentially, where each new tree $f_t$ fits the residual errors of the current ensemble.
+\removed{XGBoost~\cite{chen2016xgboost} constructs an additive ensemble of decision trees trained sequentially, where each new tree $f_t$ fits the residual errors of the current ensemble.
 The prediction after $T$ boosting rounds is:
 \begin{equation}
     \hat{y}(\vect{x}) = \sum_{t=1}^{T} \eta \cdot f_t(\vect{x})
@@ -478,13 +480,15 @@ Each tree $f_t$ is trained to minimize a regularized objective combining the los
 \end{equation}
 where $\Omega(f_t) = \gamma \cdot |\text{leaves}| + \tfrac{1}{2}\lambda \sum_j w_j^2$ penalizes the number of leaves and the magnitude of leaf weights $w_j$.
 We use $T = 500$ rounds, max depth 6, $\eta = 0.1$, and histogram-based tree construction.
-The same Morgan fingerprint input (concatenated solute + solvent, 4096 bits total) is used as for RF.
+The same Morgan fingerprint input (concatenated solute + solvent, 4096 bits total) is used as for RF.}
+
+\added{XGBoost~\cite{chen2016xgboost} is a gradient-boosted decision-tree ensemble trained to sequentially fit residual errors of the running prediction, with a regularised objective that penalises both the number of leaves and the magnitude of leaf weights. We use $T = 500$ boosting rounds, max depth 6, learning rate $\eta = 0.1$, and histogram-based tree construction on the same 4096-bit Morgan fingerprint input as RF. Full boosting prediction formula and regularised objective in Supporting Information Section~S12.}
 
 
 \subsection{Recurrent Neural Networks and BiGRU}
 \label{sec:bigru}
 
-Recurrent neural networks (RNNs)~\cite{elman1990finding} process sequential input by maintaining a hidden state $\vect{h}_t$ that is updated at each time step $t$:
+\removed{Recurrent neural networks (RNNs)~\cite{elman1990finding} process sequential input by maintaining a hidden state $\vect{h}_t$ that is updated at each time step $t$:
 \begin{equation}
     \vect{h}_t = \sigma(\matr{W}_h \vect{h}_{t-1} + \matr{W}_x \vect{x}_t + \vect{b})
 \end{equation}
@@ -511,7 +515,9 @@ Our BiGRU model operates on character-level tokenized SMILES using a 57-token vo
 An embedding layer maps each token to a 50-dimensional dense vector, followed by two stacked BiGRU layers (128 units per direction), a dense layer (128 units, ReLU), dropout (0.2), and a linear output.
 The model has approximately 470K trainable parameters and is trained with RMSprop (lr = 0.001), MAE loss, batch size 32, for up to 250 epochs with early stopping on validation MAE (patience 25).
 Mixed-precision (float16) training is used on an NVIDIA RTX 4090 GPU.
-This architecture is inspired by the BiGRU component of Liu et al.~\cite{liuPredictionMolecularToxicity2023}, who combined BiGRU with GraphSAGE for SMILES-based molecular toxicity prediction on the Tox21 dataset; we use only the BiGRU branch for regression.
+This architecture is inspired by the BiGRU component of Liu et al.~\cite{liuPredictionMolecularToxicity2023}, who combined BiGRU with GraphSAGE for SMILES-based molecular toxicity prediction on the Tox21 dataset; we use only the BiGRU branch for regression.}
+
+\added{The Bidirectional Gated Recurrent Unit (BiGRU)~\cite{schuster1997bidirectional,cho2014learning} processes a SMILES sequence in both forward and backward directions and concatenates the per-step hidden states to produce a context-aware representation at each token; the architecture in this work is inspired by the BiGRU component of Liu et al.~\cite{liuPredictionMolecularToxicity2023}, who combined a BiGRU branch with a GraphSAGE branch for SMILES-based molecular toxicity prediction on Tox21---we use only the BiGRU branch for regression. Our default model operates on a 57-token character-level SMILES vocabulary with a 50-dimensional embedding, two stacked BiGRU layers (128 units per direction), a 128-unit dense layer with ReLU, dropout 0.2, and a linear scalar output ($\sim$470K trainable parameters). Training uses RMSprop (lr $= 10^{-3}$), MAE loss, batch size 32, mixed-precision (float16) on an NVIDIA RTX 4090 GPU, with up to 250 epochs and early stopping on validation MAE (patience 25). Full vanilla-RNN update, GRU gating equations (update, reset, candidate, output gates), and the BiGRU forward/backward concatenation are given in Supporting Information Section~S12.}
 
 To address the asymmetric tuning concern, we additionally perform Bayesian hyperparameter optimization (HPO) using Optuna~\cite{akiba2019optuna} with the Tree-structured Parzen Estimator (TPE) sampler.
 The search space covers the number of BiGRU units per direction $\in \{64, 128, 256\}$, number of stacked BiGRU layers $\in \{1, 2, 3\}$, embedding dimension $\in \{32, 50, 100\}$, dropout rate $\in [0.1, 0.4]$, learning rate $\in [10^{-4}, 3 \times 10^{-3}]$, and batch size $\in \{32, 64, 128\}$.
@@ -606,7 +612,7 @@ Mixed-precision (float16) training is used on the same NVIDIA RTX 4090 GPU.
 \subsection{Graph Neural Network (D-MPNN)}
 \label{sec:chemprop}
 
-To include a 2D graph-based representation, we adopt the Directed Message Passing Neural Network (D-MPNN) architecture via Chemprop~\cite{yangAnalyzingLearnedMolecular2019}, selected for its established performance across diverse molecular property benchmarks and its native support for multicomponent (solute--solvent) inputs.
+\removed{To include a 2D graph-based representation, we adopt the Directed Message Passing Neural Network (D-MPNN) architecture via Chemprop~\cite{yangAnalyzingLearnedMolecular2019}, selected for its established performance across diverse molecular property benchmarks and its native support for multicomponent (solute--solvent) inputs.
 The D-MPNN operates on the molecular graph by passing messages along directed bonds rather than atoms, avoiding redundant information flow to the source atom at each step.
 Given a molecular graph with atom features $\vect{x}_v$ and bond features $\vect{e}_{vw}$, directed bond hidden states $\vect{h}_{vw}^{(t)}$ are updated over $T$ steps:
 \begin{equation}
@@ -619,7 +625,9 @@ We adapt the D-MPNN for solute--solvent prediction using a multicomponent config
 All D-MPNN hyperparameters are kept at their published defaults~\cite{yangAnalyzingLearnedMolecular2019}; no architecture or hyperparameter tuning was performed.
 This yields 636K trainable parameters.
 Target values are normalized to zero mean and unit variance during training.
-We use the Noam learning rate schedule (warmup from $10^{-4}$ to $10^{-3}$ over 2 epochs, then exponential decay to $10^{-4}$), batch size 64, and early stopping on validation loss (patience 15, maximum 100 epochs).
+We use the Noam learning rate schedule (warmup from $10^{-4}$ to $10^{-3}$ over 2 epochs, then exponential decay to $10^{-4}$), batch size 64, and early stopping on validation loss (patience 15, maximum 100 epochs).}
+
+\added{The Directed Message Passing Neural Network (D-MPNN) implemented in Chemprop~\cite{yangAnalyzingLearnedMolecular2019} operates on the molecular graph by passing messages along directed bonds (rather than atoms), avoiding redundant information flow to the source atom at each step. We use Chemprop's built-in multicomponent configuration for solute--solvent prediction: separate D-MPNN encoders process the solute and solvent molecular graphs independently (hidden dimension $d_h = 300$ each, $T = 3$ message-passing steps, mean-pool readout), and their pooled representations are concatenated before a feed-forward regression head. All D-MPNN hyperparameters are kept at Chemprop's published defaults~\cite{yangAnalyzingLearnedMolecular2019}; no architecture or hyperparameter tuning was performed. This yields 636K trainable parameters. Target values are normalised to zero mean and unit variance during training. We use the Noam learning-rate schedule (warmup from $10^{-4}$ to $10^{-3}$ over 2 epochs, then exponential decay to $10^{-4}$), batch size 64, and early stopping on validation loss (patience 15, maximum 100 epochs). Full message-passing recurrence and the initialisation of bond hidden states from concatenated atom and bond features in Supporting Information Section~S12.}
 
 
 % --- Solvent Concatenation ---
