@@ -488,6 +488,61 @@ Notably:
 The full per-fold values for v3 are reported in Tables~\ref{tab:perfold_rf}--\ref{tab:perfold_chemberta}. The v2 numbers are reproduced verbatim from the original submission.
 
 
+\section{Chromophore-Solvent Leakage Analysis (R1-9)}
+\label{si:chromophore_leakage}
+
+In response to reviewer concern R1-9, we audited the v3 5-fold stratified cross-validation splits used in main-text Table~\ref{tab:model_comparison} for the chromophore-overlap concern raised by Greenman et al.~\cite{greenman2022multifidelity}: because the Joung+Beard dataset contains many more records (18{,}415) than unique solutes (7{,}846), the same chromophore can appear in both the training and test slices of a single fold under different solvents, giving the model an easier prediction target than would a scaffold-based split. For each fold and each model we partitioned the test records into two subsets---``chromophore seen in training'' (the same canonical solute SMILES appears in the train slice under any solvent) vs.\ ``chromophore novel'' (the solute is absent from train)---and recomputed RMSE/MAE/$R^2$ on each subset using the saved per-fold predictions. The fingerprint-based models (RF, XGBoost) were evaluated against the train-only slice they actually fit on; the deep learning models (BiGRU, Chemprop, ChemBERTa) were evaluated against the train+val slice they have access to (DL models use val for early stopping).
+
+The overall leakage rate is high: 66.8\% of test records under the train-only partition and 69.3\% under the train+val partition; equivalently, 54.6\% of the unique solutes in any given test fold also appear in the corresponding train fold (Table~\ref{tab:si_leakage_perfold}).
+
+\begin{table}[htbp]
+\centering
+\caption{Per-fold chromophore leakage statistics on the v3 5-fold stratified splits. ``Leaked vs.\ train'' counts test records whose canonical solute appears in the 64\% train slice (used by RF, XGBoost); ``leaked vs.\ train+val'' counts test records whose solute appears in the 80\% train+val slice (relevant for DL models with early stopping on val).}
+\label{tab:si_leakage_perfold}
+\small
+\begin{tabular}{ccccc}
+\toprule
+\textbf{Fold} & \textbf{Test records} & \textbf{Unique test solutes} & \textbf{Leaked vs.\ train} & \textbf{Leaked vs.\ train+val} \\
+\midrule
+0 & 3683 & 2609 & 2440 (66.2\%) & 2534 (68.8\%) \\
+1 & 3683 & 2564 & 2458 (66.7\%) & 2554 (69.3\%) \\
+2 & 3683 & 2567 & 2469 (67.0\%) & 2546 (69.1\%) \\
+3 & 3683 & 2547 & 2490 (67.6\%) & 2575 (69.9\%) \\
+4 & 3683 & 2539 & 2451 (66.5\%) & 2545 (69.1\%) \\
+\midrule
+\textbf{Mean} & 3683 & 2565 & \textbf{2462 (66.8\%)} & \textbf{2551 (69.3\%)} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Table~\ref{tab:si_leakage_per_model} reports the decomposition of each model's test-fold RMSE into chromophore-seen and chromophore-novel subsets. The chromophore-seen subset gives RMSEs in the 16--45~nm range, while the novel-solute subset gives RMSEs in the 50--70~nm range; the $\Delta$RMSE (novel minus seen) is $+25$ to $+36$~nm across all five model families.
+
+\begin{table}[htbp]
+\centering
+\caption{Per-model RMSE on the chromophore-seen vs.\ chromophore-novel test subsets (mean $\pm$ std across five v3 folds). The full-test RMSE column reproduces the column from main-text Table~\ref{tab:model_comparison} for reference. $\Delta$RMSE is the gap between novel and seen subsets.}
+\label{tab:si_leakage_per_model}
+\small
+\begin{tabular}{lccccc}
+\toprule
+\textbf{Model} & \textbf{Leak rate} & \textbf{RMSE (seen)} & \textbf{RMSE (novel)} & $\boldsymbol{\Delta}$\textbf{RMSE} & \textbf{Full-test RMSE} \\
+\midrule
+RF (tuned)        & 66.8\% & 16.36 $\pm$ 0.88 & 49.53 $\pm$ 2.90 & $+33.16$ & 31.50 $\pm$ 1.47 \\
+XGBoost (MSE)     & 66.8\% & 21.33 $\pm$ 0.29 & 50.52 $\pm$ 2.79 & $+29.19$ & 33.92 $\pm$ 1.26 \\
+Chemprop (D-MPNN) & 69.3\% & 19.65 $\pm$ 4.10 & 51.90 $\pm$ 4.73 & $+32.26$ & 33.15 $\pm$ 3.27 \\
+BiGRU (tuned)     & 69.3\% & 20.96 $\pm$ 1.45 & 57.16 $\pm$ 3.03 & $+36.21$ & 36.20 $\pm$ 1.20 \\
+ChemBERTa         & 69.3\% & 45.13 $\pm$ 4.56 & 70.17 $\pm$ 3.68 & $+25.04$ & 54.09 $\pm$ 3.57 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Three observations:
+(i) \textbf{All five model families benefit comparably from chromophore overlap.} $\Delta$RMSE spans a narrow 25--36~nm band across architectures spanning four families (tree ensemble, GNN, RNN, Transformer). No model is differentially advantaged: in particular, RF and Chemprop have $\Delta$RMSE of $+33.16$ and $+32.26$~nm respectively. The RF vs.\ Chemprop paired $t$-test on the chromophore-novel subset alone (n~=~5 folds) gives $t = -2.51$, $p = 0.066$---still failing to reject the null at $\alpha = 0.05$---so the RF$\approx$Chemprop statistical tie reported in main-text Table~\ref{tab:model_comparison} ($p = 0.16$ on the full test set) is preserved when the comparison is restricted to chromophores genuinely absent from the training data.
+(ii) \textbf{The novel-solute RMSEs roughly align with the wetlab OOD numbers.} The wetlab validation set (Section~\ref{sec:experimental} of the main text, 16 commercial UV-absorbing compounds) gives RF MAE = 38.5~nm, Chemprop MAE = 26.2~nm, ChemBERTa MAE = 26.3~nm; the chromophore-novel subsets here give correspondingly elevated MAEs of comparable order of magnitude (full per-model MAE values in \texttt{results/r1\_9\_leakage\_per\_model.csv}). The pattern is consistent: in-distribution interpolation is substantially easier than true novel-chromophore prediction for all architectures, with the relative ranking of architectures depending on whether the test distribution is close to the training distribution or genuinely out of it.
+(iii) \textbf{The magnitude of the effect is intrinsic to the dataset shape.} With $\sim$2.35 records per unique solute on average, any random or solvent-stratified split that does not group by solute will produce high chromophore-level overlap by construction. A scaffold-based split (separately addressed in our response to R1-13 and our wetlab evaluation) is the methodological complement that controls for this. We retain the standard stratified-CV protocol in Table~\ref{tab:model_comparison} because it is the convention used by Joung et al., Beard et al., Greenman et al., and Jung et al.\ on these same data, and matching the convention is necessary for apples-to-apples comparison with their published baselines; but readers should interpret those numbers as upper bounds on novel-chromophore generalisation.
+
+The full analysis is reproducible from the saved v3 per-fold predictions via \texttt{python3 analyze\_chromophore\_leakage.py}, which writes \texttt{results/r1\_9\_leakage\_\{stats.json,per\_model.csv,per\_fold.csv,summary.md\}}.
+
+
 \section{BiGRU Character-Type Saliency}
 \label{sec:chartype_saliency}
 
