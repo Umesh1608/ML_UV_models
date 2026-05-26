@@ -1,0 +1,109 @@
+{
+  "model_key": "chemprop_tuned_v3",
+  "data": "UV_canonical_v3_dedup.csv",
+  "n_folds_found": 5,
+  "config": {
+    "CHEMPROP_D_H": "900",
+    "CHEMPROP_DEPTH": "4",
+    "CHEMPROP_DROPOUT": "0.1",
+    "CHEMPROP_FFN_N_LAYERS": "2",
+    "CHEMPROP_FFN_HIDDEN_DIM": "800",
+    "CHEMPROP_BATCH_SIZE": "32"
+  },
+  "RMSE_mean": 28.828,
+  "RMSE_std": 1.3171,
+  "RMSE_values": [
+    30.7,
+    28.22,
+    26.92,
+    29.84,
+    28.46
+  ],
+  "MAE_mean": 13.194,
+  "MAE_std": 2.1562,
+  "MAE_values": [
+    17.29,
+    13.47,
+    11.75,
+    11.63,
+    11.83
+  ],
+  "R2_mean": 0.9275,
+  "R2_std": 0.0062,
+  "R2_values": [
+    0.9184,
+    0.9286,
+    0.9359,
+    0.9232,
+    0.9316
+  ],
+  "Pearson_r_mean": 0.9631,
+  "Pearson_r_std": 0.0032,
+  "Pearson_r_values": [
+    0.9584,
+    0.9638,
+    0.9674,
+    0.9609,
+    0.9652
+  ],
+  "paired_t_vs_default_v3": {
+    "tuned_per_fold": [
+      30.7,
+      28.22,
+      26.92,
+      29.84,
+      28.46
+    ],
+    "default_per_fold": [
+      30.62,
+      30.53,
+      31.49,
+      33.9,
+      39.21
+    ],
+    "mean_diff_nm": -4.322,
+    "t": -2.4,
+    "p": 0.0744,
+    "wilcoxon_p": 0.125
+  },
+  "paired_t_vs_rf_v3": {
+    "tuned_per_fold": [
+      30.7,
+      28.22,
+      26.92,
+      29.84,
+      28.46
+    ],
+    "rf_per_fold": [
+      30.33,
+      30.46,
+      30.24,
+      32.67,
+      33.81
+    ],
+    "mean_diff_nm": -2.674,
+    "t": -2.896,
+    "p": 0.0443,
+    "wilcoxon_p": 0.125
+  },
+  "paired_t_vs_default_novel_subset": {
+    "tuned_novel_per_fold": [
+      47.50027492354112,
+      44.28603669512152,
+      44.15391356950895,
+      50.88845794237068,
+      45.886407031257406
+    ],
+    "default_novel_per_fold": [
+      48.020380589990346,
+      46.97211565629804,
+      51.19210521092472,
+      55.19255500578934,
+      58.13502968755795
+    ],
+    "mean_diff_nm": -5.359,
+    "t": -2.647,
+    "p": 0.0571,
+    "wilcoxon_p": 0.0625
+  }
+}

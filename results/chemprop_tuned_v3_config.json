@@ -1,0 +1,12 @@
+{
+  "CHEMPROP_D_H": "900",
+  "CHEMPROP_DEPTH": "4",
+  "CHEMPROP_DROPOUT": "0.1",
+  "CHEMPROP_FFN_N_LAYERS": "2",
+  "CHEMPROP_FFN_HIDDEN_DIM": "800",
+  "CHEMPROP_BATCH_SIZE": "32",
+  "data": "UV_canonical_v3_dedup.csv",
+  "fold_indices": "cv_fold_indices_v3.npz",
+  "script": "run_chemprop.py",
+  "source": "R1-12 Optuna Step 0, trial 23 (val RMSE 27.026 nm)"
+}

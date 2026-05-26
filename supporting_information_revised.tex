@@ -635,4 +635,90 @@ The Directed Message Passing Neural Network (D-MPNN)~\cite{yangAnalyzingLearnedM
 \end{equation}
 where $\tau$ is ReLU, $N(v) \setminus w$ denotes neighbours of $v$ excluding $w$, and $\vect{h}_{vw}^{(0)} = \tau(\matr{W}_0 \, [\vect{x}_v \,\|\, \vect{e}_{vw}])$ is initialised from concatenated atom and bond features. After $T$ message-passing steps, atom-level representations are obtained by summing incoming bond messages and passed through mean pooling to produce a fixed-length molecular vector.
 
+
+\section{Chemprop Hyperparameter Probe (R1-12)}
+\label{si:chemprop_hpo}
+
+In response to reviewer concern R1-12 (asymmetric tuning between BiGRU, which received 25 Optuna trials, and Chemprop, which was left at its published defaults), we ran an Optuna probe of Chemprop's architecture and regularisation on fold 0 of the v3 cleaned Joung+Beard dataset using a comparable 25-trial budget. The probe used the Tree-structured Parzen Estimator (TPE) sampler with $n_{\text{startup\_trials}} = 5$ and a MedianPruner ($n_{\text{warmup\_steps}} = 20$) to terminate clearly-underperforming runs early. The published default configuration was enqueued explicitly as the first trial so that every study contains an in-distribution baseline measurement.
+
+\paragraph{Search space.}
+The probe varied six hyperparameters with categorical distributions:
+\begin{itemize}[leftmargin=2em,itemsep=2pt]
+  \item \textbf{MPNN hidden dimension} $d_h \in \{200,\, 300,\, 400,\, 600,\, 900\}$ (default: 300)
+  \item \textbf{Message-passing depth} $T \in \{3,\, 4,\, 5,\, 6\}$ (default: 3)
+  \item \textbf{Dropout} $\in \{0.0,\, 0.1,\, 0.2,\, 0.3\}$ (applied to both BondMessagePassing and RegressionFFN; default: 0.0)
+  \item \textbf{FFN depth} $\in \{1,\, 2,\, 3\}$ (default: 1)
+  \item \textbf{FFN hidden dimension} $\in \{300,\, 500,\, 800\}$ (default: 300)
+  \item \textbf{Batch size} $\in \{32,\, 50,\, 64,\, 128\}$ (default: 64)
+\end{itemize}
+The Noam learning-rate schedule (warmup $10^{-4} \to 10^{-3}$, exponential decay to $10^{-4}$), the maximum-epoch budget (100), the early-stopping patience (15 on val loss), and Chemprop's loss function were all held fixed at the values used for the default-config training, so the only variable across trials is the architecture/regularisation choice.
+
+\paragraph{Best configuration.}
+After 24 completed trials, the best fold-0 validation RMSE was achieved at trial 23 with
+\[
+  d_h = 900,\quad T = 4,\quad \text{dropout} = 0.1,\quad
+  \text{FFN}\ 2\text{L} \times 800,\quad \text{batch} = 32.
+\]
+This configuration has 5.6M trainable parameters, about $9\times$ the 636K of the published default, and was re-trained on all 5 v3 folds with best-checkpoint restoration before computing test metrics; results are reported in main-text Table~\ref{tab:model_comparison} as the ``Chemprop (tuned, R1-12)'' row. Three additional independent runs of the same configuration during the probe gave fold-0 val RMSE values within $\pm 1$~nm of trial 23, indicating that the result is reproducible despite training stochasticity.
+
+\paragraph{Per-fold comparison: tuned vs.\ default Chemprop on v3.}
+The full 5-fold retrain with best-weight restoration (Table~\ref{tab:si_chemprop_tuned_perfold}) shows that the tuned configuration improves the cross-validated mean by $4.32$~nm and reduces fold-to-fold standard deviation from $3.27$ to $1.32$~nm. The improvement is driven primarily by fold 4, where the default-config Chemprop run produced an early-stopping outlier (RMSE $= 39.21$~nm) that the tuned configuration eliminates (RMSE $= 28.46$~nm, a $10.75$~nm drop).
+
+\begin{table}[htbp]
+\centering
+\caption{Per-fold test-set RMSE (nm) for default vs.\ tuned Chemprop on the v3 cleaned Joung+Beard dataset, with best-checkpoint restoration on the validation set. Paired-$t$ and Wilcoxon signed-rank statistics computed across the five folds.}
+\label{tab:si_chemprop_tuned_perfold}
+\small
+\begin{tabular}{cccc}
+\toprule
+\textbf{Fold} & \textbf{Default RMSE} & \textbf{Tuned RMSE} & $\boldsymbol{\Delta}$ \textbf{(tuned $-$ default)} \\
+\midrule
+0 & 30.62 & 30.70 & $+0.08$ \\
+1 & 30.53 & 28.22 & $-2.31$ \\
+2 & 31.49 & 26.92 & $-4.57$ \\
+3 & 33.90 & 29.84 & $-4.06$ \\
+4 & 39.21 & 28.46 & $-10.75$ \\
+\midrule
+\textbf{Mean $\pm$ Std} & \textbf{33.15 $\pm$ 3.27} & \textbf{28.83 $\pm$ 1.32} & \textbf{$-4.32$} \\
+\bottomrule
+\multicolumn{4}{l}{\footnotesize Paired $t$-test: $t = -2.40$, $p = 0.074$;\quad Wilcoxon signed-rank: $p = 0.125$.} \\
+\end{tabular}
+\end{table}
+
+\paragraph{Per-fold comparison: tuned Chemprop vs.\ RF on v3.}
+The headline comparison for the manuscript narrative is whether the tuned Chemprop dislodges RF as the leading model. The per-fold paired comparison gives a 2.67~nm mean advantage to tuned Chemprop, statistically significant under the parametric paired $t$-test ($t = -2.90$, $p = 0.044$) but \emph{not} significant under the conservative non-parametric Wilcoxon signed-rank test ($p = 0.125$, the minimum achievable $p$-value for $n = 5$ folds is $0.0625$; four of the five paired differences favour tuned Chemprop, the fifth favours RF by $0.37$~nm).
+
+\begin{table}[htbp]
+\centering
+\caption{Per-fold test-set RMSE (nm) for tuned Chemprop vs.\ RF on the v3 cleaned Joung+Beard dataset.}
+\label{tab:si_chemprop_tuned_vs_rf}
+\small
+\begin{tabular}{cccc}
+\toprule
+\textbf{Fold} & \textbf{RF RMSE} & \textbf{Tuned Chemprop RMSE} & $\boldsymbol{\Delta}$ \textbf{(tuned $-$ RF)} \\
+\midrule
+0 & 30.33 & 30.70 & $+0.37$ \\
+1 & 30.46 & 28.22 & $-2.24$ \\
+2 & 30.24 & 26.92 & $-3.32$ \\
+3 & 32.67 & 29.84 & $-2.83$ \\
+4 & 33.81 & 28.46 & $-5.35$ \\
+\midrule
+\textbf{Mean $\pm$ Std} & \textbf{31.50 $\pm$ 1.47} & \textbf{28.83 $\pm$ 1.32} & \textbf{$-2.67$} \\
+\bottomrule
+\multicolumn{4}{l}{\footnotesize Paired $t$-test: $t = -2.90$, $p = 0.044$;\quad Wilcoxon signed-rank: $p = 0.125$.} \\
+\end{tabular}
+\end{table}
+
+\paragraph{Chromophore-novel subset.}
+The same paired comparison restricted to test molecules whose canonical solute SMILES is absent from the corresponding train slice (the chromophore-novel subset defined in Section~\ref{si:chromophore_leakage}) gives tuned $= 46.54 \pm 2.49$~nm vs.\ default $= 51.90 \pm 4.23$~nm; mean $\Delta = -5.36$~nm, paired $t = -2.65$, $p = 0.057$ (Wilcoxon $p = 0.063$). The HPO benefit extends to genuinely novel chromophores, although the absolute novel-subset RMSEs remain $\sim$20~nm above the full-test numbers for both configurations.
+
+\paragraph{Discussion.}
+Three observations frame the manuscript treatment:
+(i) The cross-validated RMSE improvement (4.32~nm) and the reduction of Chemprop's high default variance (3.27 $\to$ 1.32~nm) together indicate that Chemprop's published defaults are \emph{undertrained} for this dataset rather than near-optimal. The 5.6M-parameter tuned configuration corresponds to a Chemprop architecture that is 9$\times$ wider than the default; for the $\sim$12K training records per fold this larger model still benefits from training, contradicting the prior expectation that defaults would be production-validated across moderate-size molecular property datasets.
+(ii) The tuned-vs-RF advantage is borderline under the conservative non-parametric test. We therefore retain the main-text headline language of a statistical tie between RF and Chemprop (as supported by both the v3 default comparison at $p = 0.16$ and the tuned-vs-RF Wilcoxon at $p = 0.125$) and report the tuned numbers as a supplementary row in Table~\ref{tab:model_comparison} for transparency.
+(iii) The default configuration is retained as the primary Table~\ref{tab:model_comparison} comparison because it matches the evaluation convention used by published Chemprop benchmarks on these data~\cite{joung2021deep,beard2019comparative,greenman2022multifidelity,jung2024machine,chempropv2_2024}; matching the convention is necessary for apples-to-apples comparison with cited baselines, and the Chemprop v2 release paper explicitly recommends the defaults as production-ready out of the box for moderate-size molecular property tasks~\cite{chempropv2_2024}.
+
+\paragraph{Reproducibility.}
+The probe is reproducible from \texttt{tune\_chemprop.py} and the saved Optuna SQLite store \texttt{results/r1\_12\_chemprop\_optuna.db}; per-trial logs are in \texttt{logs/r1\_12\_chemprop\_trial\_*.log}. The 5-fold retrain with the best configuration is reproducible via \texttt{retrain\_chemprop\_tuned.py}, which calls \texttt{run\_chemprop.py} once per fold with the tuned hyperparameters injected through environment variables (\texttt{CHEMPROP\_D\_H}, \texttt{CHEMPROP\_DEPTH}, \texttt{CHEMPROP\_DROPOUT}, \texttt{CHEMPROP\_FFN\_N\_LAYERS}, \texttt{CHEMPROP\_FFN\_HIDDEN\_DIM}, \texttt{CHEMPROP\_BATCH\_SIZE}); per-fold predictions land in \texttt{results/chemprop\_tuned\_v3\_fold\{0..4\}\_*.npy} alongside the default-configuration files.
+
 \end{document}

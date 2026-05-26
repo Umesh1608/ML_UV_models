@@ -1,0 +1,60 @@
+{
+  "model_key": "chemprop_tuned_v3",
+  "n_folds": 5,
+  "folds": {
+    "0": {
+      "status": "done",
+      "updated": "2026-05-25T14:58:43.387303Z",
+      "RMSE": 30.7,
+      "MAE": 17.29,
+      "R2": 0.9184,
+      "Pearson_r": 0.9584,
+      "wallclock_s": 1209.3
+    },
+    "1": {
+      "status": "done",
+      "updated": "2026-05-25T15:33:01.865602Z",
+      "RMSE": 28.22,
+      "MAE": 13.47,
+      "R2": 0.9286,
+      "Pearson_r": 0.9638,
+      "wallclock_s": 2058.4
+    },
+    "2": {
+      "status": "done",
+      "updated": "2026-05-25T16:30:19.493326Z",
+      "RMSE": 26.92,
+      "MAE": 11.75,
+      "R2": 0.9359,
+      "Pearson_r": 0.9674,
+      "wallclock_s": 3437.6
+    },
+    "3": {
+      "status": "done",
+      "updated": "2026-05-25T17:33:26.293365Z",
+      "RMSE": 29.84,
+      "MAE": 11.63,
+      "R2": 0.9232,
+      "Pearson_r": 0.9609,
+      "wallclock_s": 3786.8
+    },
+    "4": {
+      "status": "done",
+      "updated": "2026-05-25T18:37:56.521462Z",
+      "RMSE": 28.46,
+      "MAE": 11.83,
+      "R2": 0.9316,
+      "Pearson_r": 0.9652,
+      "wallclock_s": 3870.2
+    }
+  },
+  "config": {
+    "CHEMPROP_D_H": "900",
+    "CHEMPROP_DEPTH": "4",
+    "CHEMPROP_DROPOUT": "0.1",
+    "CHEMPROP_FFN_N_LAYERS": "2",
+    "CHEMPROP_FFN_HIDDEN_DIM": "800",
+    "CHEMPROP_BATCH_SIZE": "32"
+  },
+  "started": "2026-05-25T14:38:34.031461Z"
+}

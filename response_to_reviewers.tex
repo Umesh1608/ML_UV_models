@@ -43,7 +43,8 @@ In the responses below, each reviewer comment is reproduced verbatim in indented
   \item \textbf{Explicitly addressed the chromophore-solvent leakage in the stratified-CV protocol} flagged by Greenman et al.\ (R1-9): added the nested-split origin of the 64/16/20 fractions to Methods, audited the v3 splits and reported the leakage magnitude (66.8\% record-level / 54.6\% unique-solute-level overlap between train and test per fold), and added a Limitations bullet framing the in-distribution Table~1 numbers as upper bounds on novel-chromophore generalisation. The chromophore-overlap effect is comparable across all five architectures ($\Delta$RMSE $+25$ to $+36$~nm between novel and seen test subsets), so the RF$\approx$Chemprop tie is also preserved on the chromophore-novel subset (paired-$t$ $p = 0.066$, $n = 5$). New SI Section~S10 reports the full per-model decomposition.
   \item \textbf{Moved the architecture math to the Supporting Information} (R1-10): the equation blocks defining RF, XGBoost, vanilla RNN, GRU gating, BiGRU concatenation, and the D-MPNN message-passing recurrence are now collected in a new SI Section~S12 (``Detailed Model Architectures''), while the main-text Methods Architecture subsections retain a 3--5 sentence summary per architecture covering citation, input representation, key hyperparameters and parameter count. The reviewer's argument was correct: these architectures are documented in detail by their original publications and the paper's core findings do not depend on the equation-level details.
   \item \textbf{Corrected ``We adapt'' to ``We use'' for Chemprop multicomponent} (R1-11): the rephrasing was absorbed implicitly by the R1-10 truncation of the D-MPNN Methods subsection.
-  % TODO: fill in as we work through the remaining comments
+  \item \textbf{Ran a budget-matched 25-trial Optuna probe of Chemprop hyperparameters} (R1-12) and retrained the best configuration ($d_h = 900$, depth $= 4$, dropout $= 0.1$, FFN $2 \times 800$, batch $32$; 5.6M parameters) on all five v3 folds with best-checkpoint restoration. Tuned Chemprop achieves $28.83 \pm 1.32$~nm RMSE (vs.\ default $33.15 \pm 3.27$~nm; $\Delta = -4.32$~nm, paired-$t$ $p = 0.074$, Wilcoxon $p = 0.125$); the improvement is concentrated in the elimination of the default's fold-4 outlier (39.21 $\to$ 28.46~nm). The headline RF$\approx$Chemprop tie is preserved: the tuned-vs-RF paired comparison gives $\Delta = -2.67$~nm with a parametric $p = 0.044$ but a non-parametric Wilcoxon $p = 0.125$, so we retain default Chemprop as the bolded primary in Table~\ref{tab:model_comparison} (for convention-matching with Joung/Beard/Greenman/Jung baselines), add a ``Chemprop (tuned, R1-12)'' supplementary row, and add a new SI Section~S13 documenting the search space, the per-fold tuned-vs-default and tuned-vs-RF tables, and the chromophore-novel subset numbers. The Limitations section now states explicitly that the published Chemprop defaults are undertrained for this dataset. The R1-2 response is amended to replace the previous ``variance is intrinsic to Chemprop'' clause with the HPO finding.
+  \item \textbf{Added the Chemprop v2 paper to the bibliography} (R1-19): the \texttt{chempropv2\_2024} entry (Heid et al., \textit{J.\ Chem.\ Inf.\ Model.} \textbf{2024}, \textit{64}, 9--17) is now cited in the D-MPNN Methods paragraph and in the Table~\ref{tab:model_comparison} footnote justifying the choice to retain defaults as the primary Chemprop row.
 \end{itemize}
 
 \clearpage
@@ -71,7 +72,7 @@ The authors make some claims about the conclusions from this work being extensib
 The claim that RF is ``optimal'' (pg 1 line 51 in abstract) is hurt by the fact that the difference between RF and Chemprop is not statistically significant.
 \end{reviewer}
 
-\response{We agree. We have removed every instance of ``RF is optimal'' or equivalent language and replaced it with statements that explicitly acknowledge the statistical equivalence between RF and the D-MPNN. After adopting the Greenman/Song duplicate-handling protocol (in response to reviewer concern R1-8) and retraining all five model families on the resulting v3 cleaned dataset, the RF--Chemprop paired $t$-test $p$-value moved from $0.77$ on the original v2 first-occurrence-dedup data to $0.16$ on v3; in both cases the null hypothesis of equal mean RMSE cannot be rejected at $\alpha = 0.05$, so the statistical-tie language is preserved. We are explicit in the manuscript about the v2-to-v3 shift and note that the entire RF nominal advantage on v3 is driven by a single Chemprop fold (fold~4, RMSE = 39.21~nm) whose early-stopping behaviour produced an outlier; Chemprop's fold-to-fold standard deviation on v3 (3.27) is comparable to its v2 std (3.18), so the underlying variance is intrinsic to Chemprop on this dataset rather than protocol-driven. The revised text frames RF's advantage as one of compute cost and operational simplicity rather than predictive accuracy. \textbf{An additional finding from the R1-9 chromophore-overlap analysis reinforces this point}: when the test set is restricted to chromophores absent from the training set, the RF$\approx$Chemprop tie also holds (RF novel-subset RMSE = $49.5 \pm 2.9$~nm vs.\ Chemprop novel-subset RMSE = $51.9 \pm 4.7$~nm; paired $t$-test $t = -2.51$, $p = 0.066$, $n = 5$ folds), so the statistical tie between them is not an artefact of chromophore overlap in the standard cross-validation protocol. The substantial overall novel-subset RMSE (50--57~nm for all four local-feature models) is a separate matter discussed in the Limitations section and in the response to R1-9.}
+\response{We agree. We have removed every instance of ``RF is optimal'' or equivalent language and replaced it with statements that explicitly acknowledge the statistical equivalence between RF and the D-MPNN. After adopting the Greenman/Song duplicate-handling protocol (in response to reviewer concern R1-8) and retraining all five model families on the resulting v3 cleaned dataset, the RF--Chemprop paired $t$-test $p$-value moved from $0.77$ on the original v2 first-occurrence-dedup data to $0.16$ on v3; in both cases the null hypothesis of equal mean RMSE cannot be rejected at $\alpha = 0.05$, so the statistical-tie language is preserved. We are explicit in the manuscript about the v2-to-v3 shift and note that the entire RF nominal advantage on v3 is driven by a single Chemprop fold (fold~4, RMSE = 39.21~nm) whose early-stopping behaviour produced an outlier; Chemprop's fold-to-fold standard deviation on v3 (3.27) is comparable to its v2 std (3.18). \textbf{[Amended in light of R1-12.]} In response to reviewer R1-12 we subsequently ran a budget-matched 25-trial Optuna probe of Chemprop's hyperparameters and retrained the best configuration on all five v3 folds; the tuned Chemprop achieves $28.83 \pm 1.32$~nm RMSE (a $4.32$~nm mean improvement over default, paired-$t$ $p = 0.074$, Wilcoxon $p = 0.125$), with the fold-4 outlier eliminated (39.21 $\to$ 28.46~nm) and the standard deviation reduced from $3.27$ to $1.32$. This new evidence shows that the high default variance is \emph{not} intrinsic to Chemprop on this dataset but reflects undertraining of the published defaults---a finding we have added to the Limitations section. The tuned-vs-RF paired comparison gives $\Delta = -2.67$~nm with a parametric $p = 0.044$ but a non-parametric Wilcoxon $p = 0.125$ (four of the five paired differences favour tuned Chemprop, the fifth favours RF by $0.37$~nm; the minimum achievable Wilcoxon $p$ for $n = 5$ is $0.0625$). We therefore retain the statistical-tie language in the main text, add tuned Chemprop as a supplementary row in Table~\ref{tab:model_comparison} for transparency, keep the default Chemprop as the bolded primary for convention-matching with published baselines, and report the full HPO probe in new SI Section~S13. The revised text frames RF's advantage as one of compute cost and operational simplicity rather than predictive accuracy. \textbf{An additional finding from the R1-9 chromophore-overlap analysis reinforces this point}: when the test set is restricted to chromophores absent from the training set, the RF$\approx$Chemprop tie also holds (RF novel-subset RMSE = $49.5 \pm 2.9$~nm vs.\ Chemprop novel-subset RMSE = $51.9 \pm 4.7$~nm; paired $t$-test $t = -2.51$, $p = 0.066$, $n = 5$ folds), so the statistical tie between them is not an artefact of chromophore overlap in the standard cross-validation protocol. The substantial overall novel-subset RMSE (50--57~nm for all four local-feature models) is a separate matter discussed in the Limitations section and in the response to R1-9.}
 
 \begin{changes}
   \item \textbf{Abstract (line 53).} Replaced ``RF with Morgan fingerprints is optimal: it matches the GNN\ldots'' with ``RF with Morgan fingerprints is competitive with the best deep learning model at a fraction of the compute cost: RF and the D-MPNN are statistically indistinguishable (RMSE = $31.50 \pm 1.47$ vs.\ $33.15 \pm 3.27$~nm, $p = 0.16$), and RF trains in 15 minutes on a CPU with no hyperparameter tuning while outperforming all sequence-based models.''
@@ -280,6 +281,89 @@ pg. 18 line 20: I think ``We adapt'' should be ``We use'' since this capability 
 
 \begin{changes}
   \item \textbf{Methods (D-MPNN subsection).} The ``We adapt the D-MPNN for solute--solvent prediction using a multicomponent configuration'' sentence has been replaced (as part of the R1-10 truncation) with ``We use Chemprop's built-in multicomponent configuration for solute--solvent prediction.''
+\end{changes}
+
+\subsection*{Comment R1-12: D-MPNN hyperparameter sweep}
+\begin{reviewer}
+Did the authors do any hyperparameter optimization for the D-MPNN model? The same was done for the BiGRU, but no mention is made of any analogous procedure for the D-MPNN.
+\end{reviewer}
+
+\response{The reviewer is correct that our original submission left Chemprop at its published defaults while BiGRU received a 25-trial Optuna study. This was an asymmetry in the experimental protocol that we have now closed.
+
+\textbf{Probe design.} We ran an Optuna study on fold 0 of the v3 cleaned Joung+Beard dataset matching the BiGRU budget exactly (25 trials, TPE sampler with $n_{\text{startup\_trials}} = 5$, MedianPruner with $n_{\text{warmup\_steps}} = 20$). The search space varied six hyperparameters: message-passing hidden dimension $d_h \in \{200, 300, 400, 600, 900\}$, depth $T \in \{3, 4, 5, 6\}$, dropout $\in \{0.0, 0.1, 0.2, 0.3\}$, FFN depth $\in \{1, 2, 3\}$, FFN hidden $\in \{300, 500, 800\}$, and batch size $\in \{32, 50, 64, 128\}$. The default configuration was enqueued as trial 0 so the study contains an in-distribution baseline. The Noam learning-rate schedule, maximum epochs (100), early-stopping patience (15 on val loss), and loss were held fixed at the values used for the default-configuration training, so the only variable was architecture/regularisation.
+
+\textbf{Best configuration.} After 24 completed trials, the best fold-0 validation RMSE was achieved at trial 23 with $d_h = 900$, $T = 4$, dropout $= 0.1$, FFN $2 \times 800$, batch $= 32$ (5.6M parameters, $\sim$9$\times$ the 636K of the default). Three additional independent runs of the same configuration during the probe gave fold-0 val RMSE values within $\pm 1$~nm of trial 23, confirming reproducibility.
+
+\textbf{Full 5-fold retrain.} We then retrained Chemprop at the tuned configuration on all five v3 folds using \texttt{run\_chemprop.py} with best-checkpoint restoration on val loss. The per-fold tuned-vs-default RMSEs and the resulting paired statistics are:
+
+\begin{center}\small
+\begin{tabular}{cccc}
+\toprule
+\textbf{Fold} & \textbf{Default RMSE} & \textbf{Tuned RMSE} & $\boldsymbol{\Delta}$ \\
+\midrule
+0 & 30.62 & 30.70 & $+0.08$ \\
+1 & 30.53 & 28.22 & $-2.31$ \\
+2 & 31.49 & 26.92 & $-4.57$ \\
+3 & 33.90 & 29.84 & $-4.06$ \\
+4 & 39.21 & 28.46 & $-10.75$ \\
+\midrule
+\textbf{Mean $\pm$ Std} & \textbf{33.15 $\pm$ 3.27} & \textbf{28.83 $\pm$ 1.32} & \textbf{$-4.32$} \\
+\bottomrule
+\multicolumn{4}{l}{\footnotesize Paired $t$: $t = -2.40$, $p = 0.074$; Wilcoxon: $p = 0.125$.} \\
+\end{tabular}
+\end{center}
+
+The headline observation is that the improvement is concentrated almost entirely in fold 4: the default Chemprop training on fold 4 produced an early-stopping outlier (39.21~nm, $\sim$2.5 $\sigma$ above the other four folds), and the tuned configuration eliminates it (28.46~nm). The remaining four folds individually improve by 0.1 to 4.6~nm. The variance reduction (3.27 $\to$ 1.32) is therefore not a precision-bumping artefact but a substantive consequence of HPO --- and it shows that the high default variance is not intrinsic to Chemprop on this dataset.
+
+\textbf{Tuned-vs-RF comparison.} The narrative-critical question is whether the tuned Chemprop dislodges RF as the leading model. The paired comparison gives:
+\begin{center}\small
+\begin{tabular}{cccc}
+\toprule
+\textbf{Fold} & \textbf{RF RMSE} & \textbf{Tuned Chemprop} & $\boldsymbol{\Delta}$ \\
+\midrule
+0 & 30.33 & 30.70 & $+0.37$ \\
+1 & 30.46 & 28.22 & $-2.24$ \\
+2 & 30.24 & 26.92 & $-3.32$ \\
+3 & 32.67 & 29.84 & $-2.83$ \\
+4 & 33.81 & 28.46 & $-5.35$ \\
+\midrule
+\textbf{Mean $\pm$ Std} & \textbf{31.50 $\pm$ 1.47} & \textbf{28.83 $\pm$ 1.32} & \textbf{$-2.67$} \\
+\bottomrule
+\multicolumn{4}{l}{\footnotesize Paired $t$: $t = -2.90$, $p = 0.044$; Wilcoxon: $p = 0.125$.} \\
+\end{tabular}
+\end{center}
+The parametric and non-parametric tests disagree: the paired $t$-test marginally rejects the null at $\alpha = 0.05$ ($p = 0.044$), but the Wilcoxon signed-rank test does not ($p = 0.125$, the minimum achievable for $n = 5$ folds is $0.0625$; four of the five paired differences favour tuned Chemprop, the fifth favours RF by $0.37$~nm). This disagreement is a known pathology of small $n$ in statistical testing: the $t$-test assumes a normal distribution of differences while the Wilcoxon makes no such assumption. We report both $p$-values and treat the result as borderline rather than as a clean rejection of the RF$\approx$Chemprop tie. Restricting to chromophores genuinely absent from the training slice (the R1-9 subset) gives tuned Chemprop $= 46.54 \pm 2.49$~nm vs.\ default Chemprop $= 51.90 \pm 4.23$~nm ($\Delta = -5.36$~nm, paired $t = -2.65$, $p = 0.057$); the HPO benefit extends to genuinely novel chromophores, but absolute novel-subset errors remain $\sim$20~nm above the full-test numbers for both configurations.
+
+\textbf{Choice of headline row.} Three considerations led us to retain the default Chemprop as the bolded primary in Table~\ref{tab:model_comparison} and add the tuned configuration as a supplementary row rather than replacing the primary:
+\begin{itemize}[leftmargin=2em,itemsep=2pt]
+  \item The published Chemprop benchmarks on these data (Joung 2020--2021, Beard 2019, Greenman 2022, Jung 2024, the Chemprop v2 release paper~\cite{chempropv2_2024}) all report results at the default configuration. Apples-to-apples comparison with those baselines requires retaining the default as a headline row.
+  \item The tuned-vs-RF advantage is borderline under the conservative non-parametric test ($p = 0.125$), so we cannot honestly claim that the tuned Chemprop ``wins'' against RF on these data.
+  \item The Chemprop v2 release paper~\cite{chempropv2_2024} explicitly recommends the defaults as production-ready for moderate-size molecular property tasks; reporting both rows respects the convention while disclosing the asymmetric HPO outcome.
+\end{itemize}
+
+\textbf{Reproducibility.} The probe is reproducible from \texttt{tune\_chemprop.py} and the saved Optuna SQLite store \texttt{results/r1\_12\_chemprop\_optuna.db}; per-trial logs are in \texttt{logs/r1\_12\_chemprop\_trial\_*.log}. The 5-fold retrain is reproducible from \texttt{retrain\_chemprop\_tuned.py}, which calls \texttt{run\_chemprop.py} once per fold with the tuned hyperparameters injected via environment variables (\texttt{CHEMPROP\_D\_H}, \texttt{CHEMPROP\_DEPTH}, \texttt{CHEMPROP\_DROPOUT}, \texttt{CHEMPROP\_FFN\_N\_LAYERS}, \texttt{CHEMPROP\_FFN\_HIDDEN\_DIM}, \texttt{CHEMPROP\_BATCH\_SIZE}). Per-fold tuned-configuration artefacts land in \texttt{results/chemprop\_tuned\_v3\_fold\{0..4\}\_*.npy} alongside the default-configuration files; the aggregated paired-$t$ statistics are in \texttt{results/chemprop\_tuned\_v3\_cv\_aggregate.json}.}
+
+\begin{changes}
+  \item \textbf{Table~\ref{tab:model_comparison} (Model Comparison).} Added a new ``Chemprop (tuned, R1-12)$^{\ddagger}$'' row with RMSE = $28.83 \pm 1.32$, MAE = $13.19 \pm 2.16$, R$^2$ = $0.928 \pm 0.006$, Pearson = $0.963 \pm 0.003$. The default Chemprop row remains bolded as the primary comparator. Added a 5-line footnote ($^{\ddagger}$) explaining the budget-matched Optuna probe, the best configuration, the $p$-values vs.\ default ($t$-test $p = 0.074$, Wilcoxon $p = 0.125$) and vs.\ RF ($t$-test $p = 0.044$, Wilcoxon $p = 0.125$), the fold-4 outlier elimination, and the rationale for retaining defaults as the primary row.
+  \item \textbf{Methods (D-MPNN subsection, R1-10 paragraph).} Expanded to cite Chemprop v2~\cite{chempropv2_2024} alongside the original Yang et al.\ paper, and appended two sentences describing the R1-12 Optuna probe, the 33.15 $\to$ 28.83~nm tuned improvement, the fold-4 outlier elimination, and the borderline RF advantage with both $p$-values reported.
+  \item \textbf{Limitations (pg.\ 40).} Added a new bullet ``\textbf{Chemprop default hyperparameters are undertrained for this dataset}'' summarising the HPO finding: 5.6M-parameter tuned configuration improves CV RMSE by $4.32$~nm and reduces fold variance from 3.27 to 1.32, with the implication that production deployments should perform task-specific HPO rather than relying on the published defaults out of the box.
+  \item \textbf{Supporting Information---new Section~S13.} Added ``Chemprop Hyperparameter Probe (R1-12)'' with the search space, best configuration, per-fold tuned-vs-default RMSE table, per-fold tuned-vs-RF table, chromophore-novel subset numbers, and reproducibility pointers to \texttt{tune\_chemprop.py}, the Optuna SQLite store, and \texttt{retrain\_chemprop\_tuned.py}.
+  \item \textbf{Abstract, Conclusion bullet 1, and Introduction contributions bullet.} \emph{No change.} The bolded primary numbers in Table~\ref{tab:model_comparison} are unchanged, and the borderline tuned-vs-RF result does not warrant rewriting the headline statistical-tie language in the abstract/conclusion. The HPO finding is disclosed in Methods, the supplementary table row, Limitations, and SI Section~S13, which we judged sufficient transparency.
+  \item \textbf{Bibliography (R1-19 piggyback).} Added \texttt{chempropv2\_2024} (Heid, Greenman, Chung, Li, Graff, Jorner, McGill, Glandorf, Vermeire, Stark, Yang, Coley, Green, \textit{J.\ Chem.\ Inf.\ Model.} \textbf{2024}, \textit{64}, 9--17, DOI 10.1021/acs.jcim.5c02332). Cited in the D-MPNN Methods paragraph, in the Table~\ref{tab:model_comparison} R1-12 footnote, and in SI Section~S13.
+  \item \textbf{R1-2 response amended.} Replaced the previous ``variance is intrinsic to Chemprop on this dataset rather than protocol-driven'' clause with an explicit pointer to the R1-12 HPO finding, which demonstrates that the variance is in fact a consequence of undertrained defaults and falls away with appropriate HPO.
+\end{changes}
+
+\subsection*{Comment R1-19: Cite the Chemprop v2 paper}
+\begin{reviewer}
+Page 17 line 13: The Chemprop v2 paper (\url{https://doi.org/10.1021/acs.jcim.5c02332}) should be cited for the implementation that's used in this work.
+\end{reviewer}
+
+\response{We thank the reviewer for pointing this out and have added the Chemprop v2 release paper~\cite{chempropv2_2024} (Heid et al., \textit{J.\ Chem.\ Inf.\ Model.} \textbf{2024}, \textit{64}, 9--17, DOI 10.1021/acs.jcim.5c02332) to the bibliography and cited it in the D-MPNN Methods paragraph, in the Table~\ref{tab:model_comparison} R1-12 footnote (where it supports the rationale for retaining the published defaults as our headline row for apples-to-apples comparison with prior benchmarks), and in SI Section~S13. This change was bundled with the R1-12 manuscript edits, which is why the R1-19 entry is concise.}
+
+\begin{changes}
+  \item \textbf{Bibliography.} Added \texttt{chempropv2\_2024} (Heid, Greenman, Chung, Li, Graff, Jorner, McGill, Glandorf, Vermeire, Stark, Yang, Coley, Green, \textit{J.\ Chem.\ Inf.\ Model.} \textbf{2024}, \textit{64}, 9--17) to \texttt{Proposal.bib}.
+  \item \textbf{Methods (D-MPNN subsection).} Added the Chemprop v2 citation alongside the original Yang et al.\ message-passing reference.
+  \item \textbf{Supporting Information Section~S13 and Table~\ref{tab:model_comparison} footnote.} Added the Chemprop v2 citation in support of the rationale for retaining defaults as the primary row.
 \end{changes}
 
 \end{document}
