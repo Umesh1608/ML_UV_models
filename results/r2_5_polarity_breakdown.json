@@ -1,0 +1,203 @@
+{
+  "coverage_counts": {
+    "moderate": 6619,
+    "polar_aprotic": 3625,
+    "polar_protic": 3412,
+    "nonpolar": 3010,
+    "other": 1749
+  },
+  "results": [
+    {
+      "model": "RF (tuned)",
+      "tier": "nonpolar",
+      "n_test": 3010,
+      "RMSE": 27.72,
+      "MAE": 14.31,
+      "mean_lmax": 423.5
+    },
+    {
+      "model": "RF (tuned)",
+      "tier": "moderate",
+      "n_test": 6619,
+      "RMSE": 34.491,
+      "MAE": 17.287,
+      "mean_lmax": 425.17
+    },
+    {
+      "model": "RF (tuned)",
+      "tier": "polar_aprotic",
+      "n_test": 3625,
+      "RMSE": 29.66,
+      "MAE": 12.964,
+      "mean_lmax": 421.04
+    },
+    {
+      "model": "RF (tuned)",
+      "tier": "polar_protic",
+      "n_test": 3412,
+      "RMSE": 30.175,
+      "MAE": 14.089,
+      "mean_lmax": 417.25
+    },
+    {
+      "model": "RF (tuned)",
+      "tier": "other",
+      "n_test": 1749,
+      "RMSE": 32.365,
+      "MAE": 17.443,
+      "mean_lmax": 456.75
+    },
+    {
+      "model": "RF (tuned)",
+      "tier": "ALL",
+      "n_test": 18415,
+      "RMSE": 31.537,
+      "MAE": 15.372,
+      "mean_lmax": 425.62
+    },
+    {
+      "model": "Chemprop",
+      "tier": "nonpolar",
+      "n_test": 3010,
+      "RMSE": 28.387,
+      "MAE": 16.648,
+      "mean_lmax": 423.5
+    },
+    {
+      "model": "Chemprop",
+      "tier": "moderate",
+      "n_test": 6619,
+      "RMSE": 37.911,
+      "MAE": 20.036,
+      "mean_lmax": 425.17
+    },
+    {
+      "model": "Chemprop",
+      "tier": "polar_aprotic",
+      "n_test": 3625,
+      "RMSE": 32.003,
+      "MAE": 16.288,
+      "mean_lmax": 421.04
+    },
+    {
+      "model": "Chemprop",
+      "tier": "polar_protic",
+      "n_test": 3412,
+      "RMSE": 29.724,
+      "MAE": 16.956,
+      "mean_lmax": 417.25
+    },
+    {
+      "model": "Chemprop",
+      "tier": "other",
+      "n_test": 1749,
+      "RMSE": 31.797,
+      "MAE": 19.327,
+      "mean_lmax": 456.75
+    },
+    {
+      "model": "Chemprop",
+      "tier": "ALL",
+      "n_test": 18415,
+      "RMSE": 33.311,
+      "MAE": 18.106,
+      "mean_lmax": 425.62
+    },
+    {
+      "model": "BiGRU (tuned)",
+      "tier": "nonpolar",
+      "n_test": 3010,
+      "RMSE": 30.503,
+      "MAE": 16.55,
+      "mean_lmax": 423.5
+    },
+    {
+      "model": "BiGRU (tuned)",
+      "tier": "moderate",
+      "n_test": 6619,
+      "RMSE": 39.56,
+      "MAE": 20.898,
+      "mean_lmax": 425.17
+    },
+    {
+      "model": "BiGRU (tuned)",
+      "tier": "polar_aprotic",
+      "n_test": 3625,
+      "RMSE": 32.578,
+      "MAE": 15.413,
+      "mean_lmax": 421.04
+    },
+    {
+      "model": "BiGRU (tuned)",
+      "tier": "polar_protic",
+      "n_test": 3412,
+      "RMSE": 32.725,
+      "MAE": 17.228,
+      "mean_lmax": 417.25
+    },
+    {
+      "model": "BiGRU (tuned)",
+      "tier": "other",
+      "n_test": 1749,
+      "RMSE": 44.69,
+      "MAE": 24.879,
+      "mean_lmax": 456.75
+    },
+    {
+      "model": "BiGRU (tuned)",
+      "tier": "ALL",
+      "n_test": 18415,
+      "RMSE": 36.216,
+      "MAE": 18.806,
+      "mean_lmax": 425.62
+    },
+    {
+      "model": "ChemBERTa",
+      "tier": "nonpolar",
+      "n_test": 3010,
+      "RMSE": 50.522,
+      "MAE": 24.518,
+      "mean_lmax": 423.5
+    },
+    {
+      "model": "ChemBERTa",
+      "tier": "moderate",
+      "n_test": 6619,
+      "RMSE": 53.6,
+      "MAE": 28.406,
+      "mean_lmax": 425.17
+    },
+    {
+      "model": "ChemBERTa",
+      "tier": "polar_aprotic",
+      "n_test": 3625,
+      "RMSE": 42.497,
+      "MAE": 19.898,
+      "mean_lmax": 421.04
+    },
+    {
+      "model": "ChemBERTa",
+      "tier": "polar_protic",
+      "n_test": 3412,
+      "RMSE": 49.658,
+      "MAE": 24.668,
+      "mean_lmax": 417.25
+    },
+    {
+      "model": "ChemBERTa",
+      "tier": "other",
+      "n_test": 1749,
+      "RMSE": 84.383,
+      "MAE": 42.925,
+      "mean_lmax": 456.75
+    },
+    {
+      "model": "ChemBERTa",
+      "tier": "ALL",
+      "n_test": 18415,
+      "RMSE": 54.208,
+      "MAE": 26.782,
+      "mean_lmax": 425.62
+    }
+  ]
+}

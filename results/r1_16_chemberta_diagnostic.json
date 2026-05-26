@@ -1,0 +1,70 @@
+{
+  "H1_training_distribution": {
+    "n_train": 11785,
+    "n_train_gt_600nm": 980,
+    "n_train_gt_700nm": 272,
+    "n_train_gt_800nm": 47,
+    "frac_train_gt_600": 0.0832,
+    "frac_train_gt_700": 0.0231,
+    "frac_train_gt_800": 0.004,
+    "train_median_lmax": 396.0,
+    "train_p95_lmax": 647.0,
+    "train_p99_lmax": 755.0,
+    "train_max_lmax": 1100.0
+  },
+  "H2_prediction_distribution": {
+    "pred_min": 185.0,
+    "pred_max": 556.4,
+    "pred_median": 396.4,
+    "pred_p95": 551.1,
+    "pred_p99": 556.4,
+    "frac_pred_gt_600": 0.0,
+    "frac_pred_gt_700": 0.0,
+    "n_test_y_gt_600": 1555,
+    "median_pred_when_y_gt_600": 549.1,
+    "p25_pred_when_y_gt_600": 525.7,
+    "p75_pred_when_y_gt_600": 551.1,
+    "frac_pred_in_550_650_when_y_gt_600": 0.3691,
+    "frac_pred_lt_y_minus_50_when_y_gt_600": 0.9846,
+    "median_underprediction_when_y_gt_600_nm": 125.7
+  },
+  "H3_smiles_length_by_y": {
+    "smiles_len_p50": 61.0,
+    "smiles_len_p95": 135.0,
+    "smiles_len_max": 645,
+    "frac_truncated_at_MAX_LEN": 0.0023,
+    "MAX_LEN": 256,
+    "smiles_len_by_y_bin": {
+      "y_150-400": {
+        "n": 9490,
+        "mean_smiles_len": 60.8,
+        "median_smiles_len": 52.0,
+        "frac_truncated": 0.0018
+      },
+      "y_400-500": {
+        "n": 5037,
+        "mean_smiles_len": 70.4,
+        "median_smiles_len": 61.0,
+        "frac_truncated": 0.002
+      },
+      "y_500-600": {
+        "n": 2318,
+        "mean_smiles_len": 84.8,
+        "median_smiles_len": 74.0,
+        "frac_truncated": 0.0047
+      },
+      "y_600-700": {
+        "n": 1139,
+        "mean_smiles_len": 90.1,
+        "median_smiles_len": 85.0,
+        "frac_truncated": 0.0026
+      },
+      "y_700-1100": {
+        "n": 430,
+        "mean_smiles_len": 101.6,
+        "median_smiles_len": 93.0,
+        "frac_truncated": 0.0023
+      }
+    }
+  }
+}

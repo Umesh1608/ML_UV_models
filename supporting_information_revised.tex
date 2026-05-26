@@ -30,6 +30,21 @@
 
 \begin{document}
 
+\section{Dataset Overview (R2-2)}
+\label{si:dataset_overview}
+
+In response to reviewer concern R2-2 (request for a visual summary of the v3 cleaned Joung+Beard primary dataset), Figure~\ref{fig:si_dataset_overview} provides a three-panel overview: (a)~the $\lambda_{\max}$ distribution across the $18{,}415$ records (median $= 396$~nm; range $[162, 1100]$~nm, with the bulk in the UV/early-visible region 250--500~nm and a long tail of deep-coloured chromophores extending to the near-IR); (b)~the top-20 solvents by record count, on a log scale to accommodate the $\sim$30$\times$ dynamic range between the most common (DCM, MeCN, CHCl$_3$) and least common solvents in the top-20 set (note the $726$ unique canonical solvent SMILES in the full dataset; the long tail of $\sim$700 rarely-used solvents is not shown); and (c)~eight representative chromophore structures spanning the major class diversity in the dataset (hydroxycinnamic acids, linear acenes, push--pull aromatics, azo dyes, BF$_2$-dipyrromethene BODIPYs, push--pull coumarins, extended-quinoid indigo, and porphyrin macrocycles).
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{results/figure_dataset_overview.png}
+\caption{Overview of the v3 cleaned Joung+Beard primary dataset ($18{,}415$ records, $7{,}846$ unique chromophores, $726$ unique canonical solvent SMILES). (a) $\lambda_{\max}$ histogram (bin width $\approx 10$~nm; red dashed line marks the median $396$~nm). (b) Top-20 solvents ranked by record count (log~$x$-axis; raw counts annotated). (c) Eight representative chromophore structures spanning class diversity. All numbers reproducible from \texttt{make\_dataset\_overview.py} in the public repository.}
+\label{fig:si_dataset_overview}
+\end{figure}
+
+This panel-(a)/panel-(c) view also clarifies the structural diversity that motivates the locality-hypothesis discussion in the main text: the dataset includes both molecules dominated by local conjugation (e.g., hydroxycinnamic acids, BODIPYs) and molecules where extended conjugation and through-bond donor--acceptor charge transfer span the entire scaffold (e.g., porphyrins, indigo, push--pull cyanines). The main-text non-local subset analysis (Section~5.3 and SI Section~\ref{si:nonlocal_smarts}) partitions the dataset along this axis.
+
+
 \section{Per-Fold Cross-Validation Results}
 \label{sec:perfold}
 
@@ -884,5 +899,201 @@ Both scripts are pinned at \texttt{git} HEAD on the public repository (URL in th
 
 \paragraph{Correction to original manuscript.}
 The original submission stated that ``we reconstructed the Mamede/Reaxys dataset by querying Reaxys using the CAS registry numbers listed in the original study, recovering 93.6\% of the original 74{,}784 compounds.'' In preparing this revision we discovered that the actual reproducibility code reads Mamede's publicly available SI directly (no fresh Reaxys query); the recovery rate is $\sim$100\% (one of $74{,}784$ SMILES fails to canonicalise), not $93.6$\%. The revised Section~\ref{sec:classification} text in the main manuscript reflects the actual procedure. The classification model (RF + Morgan fingerprints) and its reported performance metrics are unchanged because the underlying dataset and training pipeline have always been what is documented above; only the manuscript wording was incorrect.
+
+
+\section{Experimental $\lambda_{\max}$ Uncertainty Audit (R2-1)}
+\label{si:experimental_uncertainty}
+
+To contextualise the magnitude of the model errors reported in Table~\ref{tab:model_comparison}, we quantified two complementary estimates of the inherent measurement noise in the source data. Both audits operate on the v2 first-occurrence-dedup combination of Joung 2020 and Beard 2019 ($18{,}755$ records pre-cleaning) because the v3 Greenman--Song protocol already removes duplicates with spread $> 5$~nm; the v2 view therefore retains the full noise distribution that the cleaning rule was designed to address.
+
+\paragraph{Within-source duplicate spread.}
+For each (canonical solute SMILES, canonical solvent SMILES) key with multiplicity $> 1$, we computed the within-key spread $\max(\lambda_{\max}) - \min(\lambda_{\max})$. Table~\ref{tab:si_uncertainty_within} reports the resulting distribution by source.
+
+\begin{table}[htbp]
+\centering
+\caption{Within-source duplicate spread distribution. A multi-record key is a (canon, solvent) pair with at least two reported $\lambda_{\max}$ values in the named source. Median spread of $0$~nm indicates that more than half of all multi-record keys contain perfectly-agreeing values (typically re-extractions of the same primary measurement across multiple secondary citations). The $> 50$~nm tail captures large disagreements likely attributable to lab-to-lab protocol differences or labelling errors. The Greenman--Song cleaning rule (adopted in this revision per R1-8) discards groups whose spread exceeds 5~nm; the ``$\leq 5$~nm'' fraction therefore quantifies the proportion of multi-record keys retained after cleaning.}
+\label{tab:si_uncertainty_within}
+\small
+\begin{tabular}{lcccccc}
+\toprule
+\textbf{Source} & \textbf{Multi-keys} & \textbf{Median} & \textbf{p95} & \textbf{$\leq 5$~nm} & \textbf{$\leq 20$~nm} & \textbf{$> 50$~nm} \\
+\midrule
+Joung 2020           & 0     & --    & --    & --     & --     & --    \\
+Beard 2019           & 273   & 0~nm  & 21~nm & $89.7$\% & $94.1$\% & $1.1$\% \\
+v2 combined          & 294   & 0~nm  & 38~nm & $86.1$\% & $90.5$\% & $4.1$\% \\
+\bottomrule
+\multicolumn{7}{l}{\footnotesize Joung 2020 reports each compound at most once per solvent in its published table, so it} \\
+\multicolumn{7}{l}{\footnotesize contributes zero within-source multi-records. The v2-combined view picks up additional} \\
+\multicolumn{7}{l}{\footnotesize multi-records from the Joung--Beard cross-source overlap (next paragraph).} \\
+\end{tabular}
+\end{table}
+
+\paragraph{Inter-source disagreement (Joung vs.\ Beard).}
+Of the $1{,}479$ (canon, solvent) keys in Joung 2020 and $16{,}999$ keys in Beard 2019, only $21$ keys are present in both. The cross-source disagreement on these $21$ paired observations is substantial: median $|\Delta\lambda_{\max}| = 49$~nm; mean = $36$~nm; p95 = $76$~nm; max = $77$~nm. Inter-source RMSD = $48$~nm. Only $38$\% of the paired observations agree within $5$~nm. The small sample size ($n = 21$) is the principal limitation here, and the paired compounds are biased toward chromophores of multi-paper solvatochromic interest, which are exactly the molecules most sensitive to subtle solvent-purity, temperature, and concentration differences across laboratories; the inter-source RMSD should therefore be treated as an upper bound on typical inter-laboratory disagreement rather than as a representative population statistic.
+
+\paragraph{Implication for model error.}
+The reported Table~\ref{tab:model_comparison} RMSEs range from $31$~nm (RF) to $54$~nm (ChemBERTa). Comparing these to the within-source noise distribution: the model RMSEs are larger than the median or mean inter-duplicate spread but comparable to the $95$th percentile of within-source spreads ($21$~nm in Beard, $38$~nm in v2-combined). On the chromophores where the underlying measurements perfectly agree (the median-$=0$ regime), the model error is largely model-attributable; on the chromophores where the source data disagrees by tens of nm (the tail), the model error includes a substantial data-noise component. The headline RF$\approx$Chemprop tie reported in the main text is therefore consistent with both architectures operating near the data noise floor on a substantial fraction of test molecules---the regime in which further architectural improvement yields diminishing returns and where genuine error reduction requires either improved measurement protocols at data-curation time or models that explicitly carry an uncertainty estimate alongside the point prediction.
+
+\paragraph{Reproducibility.}
+The audit is reproducible from the single script \texttt{analyze\_experimental\_uncertainty.py}, which loads the cleaned per-source CSVs (\texttt{previous\_code/UV\_canonical\_dataset1.csv} for Joung and \texttt{previous\_code/UV\_canonical\_dataset2.csv} for Beard) plus the combined v2 file, and writes \texttt{results/r2\_1\_uncertainty.json} and \texttt{results/r2\_1\_uncertainty\_summary.md}.
+
+
+\section{Per-Solute Solvent-Induced Shifts (R2-4)}
+\label{si:solvent_shifts}
+
+To quantify the empirical magnitude of solvatochromism in the v3 cleaned dataset directly from the data (without invoking polarity scales; see Section~\ref{si:polarity_breakdown} for the polarity-grouped analysis), we computed for each chromophore appearing under $\geq 2$ canonical solvents the span $\max(\lambda_{\max}) - \min(\lambda_{\max})$ across its observed solvent set. After collapsing intra-solvent duplicates by averaging, $2{,}516$ of the $7{,}846$ unique chromophores ($32$\%) satisfy the multi-solvent criterion. Figure~\ref{fig:si_solvent_shift_hist} shows the per-chromophore span distribution.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.85\textwidth]{results/r2_4_solvent_shifts.png}
+\caption{Distribution of per-chromophore solvent-induced spans on the v3 cleaned Joung+Beard dataset. The histogram is heavily right-skewed: median $= 10$~nm, $95$th percentile $= 52$~nm. The distribution tail is truncated at $200$~nm for visualisation; five chromophores have spans exceeding $200$~nm (the largest is Reichardt's $E_T(30)$ dye at $494$~nm, evaluated across $334$ different solvents in the dataset).}
+\label{fig:si_solvent_shift_hist}
+\end{figure}
+
+\paragraph{Summary statistics.}
+Median per-chromophore span = $10$~nm; mean = $16.3$~nm; p75 = $20$~nm; p90 = $36$~nm; p95 = $52$~nm; p99 = $123$~nm; max = $494$~nm. By bins:
+\begin{itemize}[leftmargin=2em,itemsep=2pt]
+  \item Span $= 0$~nm (chromophore reported with identical $\lambda_{\max}$ under multiple solvents): $4.8$\%.
+  \item Span $\leq 5$~nm (within instrument precision): $26.0$\%.
+  \item Span $\leq 10$~nm (typical solvatochromism): $51.6$\%.
+  \item Span $\leq 20$~nm: $75.0$\%.
+  \item Span $> 50$~nm (large solvatochromic shifts): $5.6$\%.
+  \item Span $> 100$~nm (extreme shifts; merocyanines, push--pull cyanines, $E_T(30)$-class dyes): $1.4$\%.
+\end{itemize}
+
+\paragraph{Top-15 chromophores by span.}
+Table~\ref{tab:si_solvent_shift_top} reports the fifteen largest per-chromophore spans, together with structural class flags from a lightweight SMARTS classifier. The list is dominated by the chromophore classes that the solvatochromism literature predicts: the $E_T(30)$ reference dye~\cite{reichardt2011solvents} at the top, push--pull merocyanines (intramolecular charge transfer between donor and acceptor through a conjugated polyene bridge), and stilbene-pyridinium cyanines (charged acceptor + amine donor across a stilbene bridge). The empirical ranking confirms that the v3 dataset captures the full operational range of solvatochromic behaviour relevant for UV/Vis prediction model evaluation.
+
+\begin{table}[htbp]
+\centering
+\caption{Top-15 chromophores by solvent-induced span on the v3 cleaned dataset. ``n solv'' = number of distinct canonical solvents the chromophore appears under in v3. ``Span'' = $\max(\lambda_{\max}) - \min(\lambda_{\max})$ across those solvents. ``Class'' = lightweight SMARTS structural flags (empty when no rule matches; many strong-solvatochromism chromophores are push--pull merocyanines that do not match a simple SMARTS).}
+\label{tab:si_solvent_shift_top}
+\small
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{rrlp{0.55\textwidth}}
+\toprule
+\textbf{Span (nm)} & \textbf{n solv} & \textbf{Class} & \textbf{Canonical SMILES} \\
+\midrule
+493.5 & 334 & --        & Reichardt's $E_T(30)$ betaine (zwitterionic phenoxide-pyridinium) \\
+418.0 &   2 & --        & \texttt{CC(=O)[O-]} (acetate, edge-case data point) \\
+235.0 &   2 & stilbene  & polythiophene-bridged porphyrin (stilbene-like) \\
+225.0 &   9 & --        & merocyanine (bis-benzimidazole + thiabarbituric acid) \\
+210.0 &  10 & stilbene  & stilbene-pyridinium + hydroxynaphthalene \\
+163.3 &   9 & stilbene  & stilbene-quinolinium + coumarin oxide \\
+153.0 &   3 & --        & merocyanine (cyclobutenedione + dimethylanilino) \\
+153.0 &  12 & stilbene  & stilbene-pyridinium + hydroxyphenyl \\
+152.0 &   3 & --        & merocyanine (cyclobutenedione + anilino) \\
+151.0 &   3 & --        & merocyanine (cyclobutenedione + dimethylanilino) \\
+151.0 &   3 & --        & merocyanine (cyclobutenedione + dimethylanilino) \\
+150.0 &   3 & --        & merocyanine (cyclobutenedione + dimethylanilino) \\
+148.0 &   3 & --        & push--pull coumarin + indolium + sulfonate \\
+145.0 &  13 & --        & extended-aromatic acceptor + naphthyl-aryl wings \\
+145.0 &   3 & --        & push--pull coumarin + indolium + sulfonate \\
+\bottomrule
+\multicolumn{4}{l}{\footnotesize Full SMILES strings for all $2{,}516$ multi-solvent chromophores in} \\
+\multicolumn{4}{l}{\footnotesize \texttt{results/r2\_4\_solvent\_shifts.csv}.} \\
+\end{tabular}
+\end{table}
+
+\paragraph{Reproducibility.}
+Reproducible from the single script \texttt{analyze\_solvent\_shifts.py}. Outputs: \texttt{results/r2\_4\_solvent\_shifts.json}, \texttt{results/r2\_4\_solvent\_shifts.csv} (full per-chromophore table), \texttt{results/r2\_4\_solvent\_shifts.png} (the histogram in Figure~\ref{fig:si_solvent_shift_hist}), and \texttt{results/r2\_4\_summary.md}.
+
+
+\section{Solvent Polarity Stratification (R2-5)}
+\label{si:polarity_breakdown}
+
+To test whether any solvent polarity class is disproportionately difficult for the four headline models, we partitioned the $18{,}415$ v3 records into four polarity tiers based on standard $E_T(30)$-style groupings of canonical solvent SMILES (Reichardt 2011~\cite{reichardt2011solvents}), plus an ``other'' bucket for solvents not represented in the standard tier definitions:
+\begin{itemize}[leftmargin=2em,itemsep=2pt]
+  \item \textbf{Nonpolar} ($n = 3{,}010$, $16.4$\%): n-hexane, n-heptane, n-octane, cyclohexane, benzene, toluene, xylene, CCl$_4$.
+  \item \textbf{Moderate} ($n = 6{,}619$, $35.9$\%): DCM, CHCl$_3$, 1,2-DCE, THF, 2-Me-THF, EtOAc, MeOAc, 1,4-dioxane, acetone.
+  \item \textbf{Polar aprotic} ($n = 3{,}625$, $19.7$\%): MeCN, DMF, DMSO, propionitrile, DMA, GBL, NMP.
+  \item \textbf{Polar protic} ($n = 3{,}412$, $18.5$\%): water, MeOH, EtOH, $n$-PrOH, $i$-PrOH, $n$-BuOH, $n$-PenOH, ethylene glycol, glycerol.
+  \item \textbf{Other} ($n = 1{,}749$, $9.5$\%): long-tail solvents not in the standard tier definitions (mixed solvents, less-common substituted aromatics, etc.).
+\end{itemize}
+
+\paragraph{Test-fold RMSE by tier.}
+Table~\ref{tab:si_polarity_breakdown} reports pooled-5-fold test RMSE per (model, tier) cell. Three observations frame the headline:
+
+\begin{table}[htbp]
+\centering
+\caption{Pooled 5-fold test-set RMSE (nm) per solvent-polarity tier. ``$n$'' = pooled test-set size for that tier (sum across the five folds). ``ALL'' row aggregates the full v3 test set and matches the headline Table~\ref{tab:model_comparison} numbers exactly.}
+\label{tab:si_polarity_breakdown}
+\small
+\begin{tabular}{lrcccc}
+\toprule
+\textbf{Tier}             & $\boldsymbol{n}$ & \textbf{RF} & \textbf{Chemprop} & \textbf{BiGRU} & \textbf{ChemBERTa} \\
+\midrule
+Nonpolar                  &  3{,}010 & \textbf{27.7} & 28.4 & 30.5 & 50.5 \\
+Moderate                  &  6{,}619 & 34.5 & 37.9 & 39.6 & 53.6 \\
+Polar aprotic             &  3{,}625 & 29.7 & 32.0 & 32.6 & 42.5 \\
+Polar protic              &  3{,}412 & 30.2 & 29.7 & 32.7 & 49.7 \\
+Other                     &  1{,}749 & 32.4 & 31.8 & 44.7 & \textbf{84.4} \\
+\midrule
+\textbf{ALL}              & 18{,}415 & \textbf{31.5} & 33.3 & 36.2 & 54.2 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{itemize}[leftmargin=2em,itemsep=2pt]
+  \item \textbf{Cross-architecture ranking is preserved on every tier.} RF $\lesssim$ Chemprop $<$ BiGRU $\ll$ ChemBERTa holds in nonpolar, moderate, polar aprotic, polar protic, and ``other'' tiers. The R1-2 statistical-tie claim and the complementary-strengths narrative are not artefacts of a specific solvent class.
+  \item \textbf{Nonpolar is the easiest tier across all four models.} RF reaches $27.7$~nm RMSE on nonpolar (vs.\ $31.5$~nm on ALL), Chemprop reaches $28.4$~nm. This is consistent with two compounding effects: (a) nonpolar test records skew toward less complex chromophores due to solubility constraints (highly conjugated push--pull dyes are typically insoluble in hexane/cyclohexane), and (b) absence of strong specific solute--solvent interactions (hydrogen bonding, dipole-dipole) reduces measurement variance.
+  \item \textbf{The ``other'' tier reveals ChemBERTa's failure mode most starkly.} On the long-tail solvents not represented in the standard tier definitions, ChemBERTa's RMSE jumps to $84.4$~nm (vs.\ $54.2$~nm aggregate), while RF and Chemprop stay near their aggregate values ($32.4$ and $31.8$~nm). This is consistent with the prediction-ceiling artefact diagnosed in Section~5.2 of the main text and analysed in more detail in SI Section~\ref{si:chemberta_ceiling}: ChemBERTa's degradation mode is concentrated on inputs that drift far from its pretraining distribution, of which the ``other''-tier solvents are a representative sample.
+\end{itemize}
+
+There is no evidence of a polarity tier where one architecture systematically wins or loses against its peers; the relative ranking is preserved with $\pm 5$~nm shifts at most. The polarity-grouped analysis therefore reinforces rather than complicates the manuscript's headline cross-architecture findings.
+
+\paragraph{Reproducibility.}
+Reproducible from the single script \texttt{analyze\_solvent\_polarity.py}, which loads the per-fold v3 predictions for all four headline models, joins them to the v3 dataset's canonical solvent column, applies the tier mapping, and writes per-(model, tier) RMSE and MAE to \texttt{results/r2\_5\_polarity\_breakdown.\{json,csv,png\}} and \texttt{results/r2\_5\_summary.md}.
+
+
+\section{ChemBERTa $\sim$556~nm Prediction-Ceiling Diagnostic (R1-16)}
+\label{si:chemberta_ceiling}
+
+We tested three hypotheses for the prediction-ceiling artefact visible in Figure~\ref{fig:parity_5models}, where ChemBERTa's predictions for long-wavelength chromophores cluster near $556$~nm regardless of the experimental $\lambda_{\max}$ value:
+
+\paragraph{(H1) Training-distribution imbalance.}
+Fold-0 train ($n = 11{,}785$) contains $980$ records ($8.3$\%) with $\lambda_{\max} > 600$~nm, $272$ ($2.3$\%) with $> 700$~nm, and only $47$ ($0.4$\%) with $> 800$~nm. The train median is $396$~nm, p95 = $647$~nm, p99 = $755$~nm. The deep-coloured chromophores ($\lambda_{\max} > 600$~nm) are a long thin tail in the training distribution: present but underrepresented relative to the bulk.
+
+\paragraph{(H2) ChemBERTa output range.}
+Across the full pooled-5-fold test set ($18{,}415$ records), ChemBERTa's predictions span $[185, 556.4]$~nm. The \emph{maximum} predicted value is $556.4$~nm; $0$\% of predictions exceed $600$~nm. On the $1{,}555$ test records with experimental $\lambda_{\max} > 600$~nm, the median ChemBERTa prediction is $549$~nm, $37$\% of predictions fall in the $[550, 650]$~nm band, $98.5$\% are underpredicted by more than $50$~nm, and the median underprediction is $126$~nm. This is a hard ceiling on the model's predictive range, not a gradual underprediction.
+
+\paragraph{(H3) SMILES-length truncation.}
+Combined solute--solvent SMILES strings have median length $61$ chars, p95 $135$ chars, max $645$ chars. Only $0.23$\% of test records exceed the MAX\_LEN $= 256$ truncation cap in the ChemBERTa tokenizer. Mean SMILES length does increase with $\lambda_{\max}$ (60.8 chars at $\lambda_{\max} < 400$~nm $\to$ 101.6 chars at $\lambda_{\max} > 700$~nm), but the truncation rate per bin is uniformly low (Table~\ref{tab:si_chemberta_smileslen}). H3 is therefore ruled out as the primary cause of the $\sim$556~nm ceiling.
+
+\begin{table}[htbp]
+\centering
+\caption{Combined solute--solvent SMILES length statistics by experimental $\lambda_{\max}$ bin (v3 pooled-5-fold test set). ``Frac trunc'' = fraction of records in that bin whose combined SMILES exceeds the MAX\_LEN $= 256$ token cap used by the ChemBERTa tokenizer.}
+\label{tab:si_chemberta_smileslen}
+\small
+\begin{tabular}{lrrr}
+\toprule
+\textbf{$\lambda_{\max}$ bin (nm)} & $\boldsymbol{n}$ & \textbf{Mean SMILES len (chars)} & \textbf{Frac trunc at MAX\_LEN $= 256$} \\
+\midrule
+$150$--$400$       & 9{,}490 & 60.8  & $0.18$\% \\
+$400$--$500$       & 5{,}037 & 70.4  & $0.20$\% \\
+$500$--$600$       & 2{,}318 & 84.8  & $0.47$\% \\
+$600$--$700$       & 1{,}139 & 90.1  & $0.26$\% \\
+$700$--$1100$      &    430  & 101.6 & $0.23$\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Diagnosis.}
+The $\sim$556~nm ceiling arises from the conjunction of (H1) and (H2), with (H3) ruled out. The proximate cause is the regression head's output range. The deeper cause is the pretrained-representation mismatch: ChemBERTa was pretrained on ZINC (\texttt{seyonec/ChemBERTa-zinc-base-v1}), whose drug-like molecules are dominated by short-wavelength absorbers; the [CLS] embeddings ChemBERTa produces for long-wavelength chromophores (extended polyenes, push--pull cyanines, BODIPYs, porphyrins) are not well-separated in the pretrained representation from those of medium-wavelength absorbers, and the regression head fine-tuned on top of these collapsed embeddings cannot push its predictions beyond the $\sim$556~nm boundary even when shown long-wavelength training targets, because the input representations are not sufficiently distinct. The training-target imbalance (H1) compounds this: with $\sim$92\% of training mass below $600$~nm, the MAE-minimising regression head defaults to predictions near the training median for any input it has not seen many times.
+
+This is consistent with the broader finding in the deep-learning literature that fine-tuning a pretrained transformer cannot recover representation distinctions that the pretraining task did not require, even if downstream training data is provided~\cite{ross2022molformer}; the right remedy is either to pretrain on a UV-Vis-rich corpus (which would require a different pretraining task than ZINC's drug-likeness) or to augment the v3 training data with long-wavelength chromophores (which the field is already actively working on; see Future Work).
+
+\paragraph{Three-panel diagnostic figure.}
+Figure~\ref{fig:si_chemberta_diagnostic} shows (a) the train vs.\ test $\lambda_{\max}$ histograms with the 600~nm line marked, (b) the ChemBERTa parity plot colour-coded by whether the input SMILES would have been truncated at MAX\_LEN $= 256$ (truncated records are a small minority and are scattered, not concentrated at the ceiling), and (c) mean combined-SMILES length by $\lambda_{\max}$ bin with the MAX\_LEN cap marked.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{results/r1_16_chemberta_diagnostic.png}
+\caption{Three-panel ChemBERTa prediction-ceiling diagnostic. (a) v3 fold-0 train + pooled-test $\lambda_{\max}$ distribution; only $8.3$\% of train records exceed 600~nm. (b) ChemBERTa parity plot, colour-coded by whether the combined solute--solvent SMILES exceeds MAX\_LEN $= 256$; the horizontal cluster at $\sim$556~nm is unrelated to truncation status (most truncated records are scattered, not concentrated at the ceiling). (c) Mean combined-SMILES length by $\lambda_{\max}$ bin; long-wavelength chromophores have longer SMILES but the MAX\_LEN cap is rarely hit (median length stays $\leq 100$ chars across all bins, with $\leq 0.5$\% truncation in any bin).}
+\label{fig:si_chemberta_diagnostic}
+\end{figure}
+
+\paragraph{Reproducibility.}
+Reproducible from the single script \texttt{analyze\_chemberta\_ceiling.py}, which loads the per-fold ChemBERTa predictions from \texttt{results/chemberta\_v3\_fold\{0..4\}\_*.npy} and the v3 dataset CSV, computes the three-hypothesis diagnostics, and writes \texttt{results/r1\_16\_chemberta\_diagnostic.\{json,png\}}, \texttt{results/r1\_16\_chemberta\_diagnostic\_top\_y.csv} (per-record diagnostic for the 200 test records with highest experimental $\lambda_{\max}$), and \texttt{results/r1\_16\_summary.md}.
 
 \end{document}

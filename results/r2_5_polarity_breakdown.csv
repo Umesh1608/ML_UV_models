@@ -1,0 +1,25 @@
+model,tier,n_test,RMSE,MAE,mean_lmax
+RF (tuned),nonpolar,3010,27.72,14.31,423.5
+RF (tuned),moderate,6619,34.491,17.287,425.17
+RF (tuned),polar_aprotic,3625,29.66,12.964,421.04
+RF (tuned),polar_protic,3412,30.175,14.089,417.25
+RF (tuned),other,1749,32.365,17.443,456.75
+RF (tuned),ALL,18415,31.537,15.372,425.62
+Chemprop,nonpolar,3010,28.387,16.648,423.5
+Chemprop,moderate,6619,37.911,20.036,425.17
+Chemprop,polar_aprotic,3625,32.003,16.288,421.04
+Chemprop,polar_protic,3412,29.724,16.956,417.25
+Chemprop,other,1749,31.797,19.327,456.75
+Chemprop,ALL,18415,33.311,18.106,425.62
+BiGRU (tuned),nonpolar,3010,30.503,16.55,423.5
+BiGRU (tuned),moderate,6619,39.56,20.898,425.17
+BiGRU (tuned),polar_aprotic,3625,32.578,15.413,421.04
+BiGRU (tuned),polar_protic,3412,32.725,17.228,417.25
+BiGRU (tuned),other,1749,44.69,24.879,456.75
+BiGRU (tuned),ALL,18415,36.216,18.806,425.62
+ChemBERTa,nonpolar,3010,50.522,24.518,423.5
+ChemBERTa,moderate,6619,53.6,28.406,425.17
+ChemBERTa,polar_aprotic,3625,42.497,19.898,421.04
+ChemBERTa,polar_protic,3412,49.658,24.668,417.25
+ChemBERTa,other,1749,84.383,42.925,456.75
+ChemBERTa,ALL,18415,54.208,26.782,425.62

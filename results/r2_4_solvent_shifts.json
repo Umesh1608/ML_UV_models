@@ -1,0 +1,141 @@
+{
+  "stats": {
+    "n_total_chromophores": 7846,
+    "n_multi_solvent_chromophores": 2516,
+    "median_span_nm": 10.0,
+    "mean_span_nm": 16.299,
+    "p75_span_nm": 19.0,
+    "p90_span_nm": 36.0,
+    "p95_span_nm": 52.25,
+    "p99_span_nm": 106.85,
+    "max_span_nm": 493.462,
+    "frac_span_eq_0": 0.052,
+    "frac_span_le_5nm": 0.288,
+    "frac_span_le_10nm": 0.528,
+    "frac_span_le_20nm": 0.781,
+    "frac_span_gt_50nm": 0.056,
+    "frac_span_gt_100nm": 0.013
+  },
+  "top_spans": [
+    {
+      "canon": "[O-]c1c(-c2ccccc2)cc(-[n+]2c(-c3ccccc3)cc(-c3ccccc3)cc2-c2ccccc2)cc1-c1ccccc1",
+      "n_solvents": 334,
+      "span_nm": 493.5,
+      "lmax_min": 437.8,
+      "lmax_max": 931.3,
+      "class_flags": "other"
+    },
+    {
+      "canon": "CC(=O)[O-]",
+      "n_solvents": 2,
+      "span_nm": 418.0,
+      "lmax_min": 210.0,
+      "lmax_max": 628.0,
+      "class_flags": "other"
+    },
+    {
+      "canon": "C1=Cc2nc1c(-c1cccs1)c1ccc([nH]1)c(-c1cccs1)c1nc(c(-c3cccs3)c3ccc([nH]3)c2-c2cccs2)C=C1",
+      "n_solvents": 2,
+      "span_nm": 235.0,
+      "lmax_min": 426.0,
+      "lmax_max": 661.0,
+      "class_flags": "stilbene"
+    },
+    {
+      "canon": "CCCCN1C(=O)C(=C/C=C/C=C/C=C2N(CCCC)c3ccccc3N2CCCC)C(=O)N(CCCC)C1=S",
+      "n_solvents": 9,
+      "span_nm": 225.0,
+      "lmax_min": 464.0,
+      "lmax_max": 689.0,
+      "class_flags": "other"
+    },
+    {
+      "canon": "C[n+]1ccc(/C=C/c2ccc3cc([O-])ccc3c2)cc1",
+      "n_solvents": 10,
+      "span_nm": 210.0,
+      "lmax_min": 412.0,
+      "lmax_max": 622.0,
+      "class_flags": "stilbene"
+    },
+    {
+      "canon": "CC[n+]1ccc2ccccc2c1/C=C/c1c([O-])ccc2ccc(=O)oc12",
+      "n_solvents": 9,
+      "span_nm": 163.3,
+      "lmax_min": 491.7,
+      "lmax_max": 655.0,
+      "class_flags": "stilbene"
+    },
+    {
+      "canon": "CN(C)c1ccc(-c2c(/C=C3/C=Cc4ccccc4N3Cc3ccccc3)c(=O)c2=O)cc1",
+      "n_solvents": 3,
+      "span_nm": 153.0,
+      "lmax_min": 358.0,
+      "lmax_max": 511.0,
+      "class_flags": "other"
+    },
+    {
+      "canon": "C[n+]1ccc(/C=C/c2ccc([O-])cc2)cc1",
+      "n_solvents": 12,
+      "span_nm": 153.0,
+      "lmax_min": 442.0,
+      "lmax_max": 595.0,
+      "class_flags": "stilbene"
+    },
+    {
+      "canon": "CCCCN1/C(=C\\c2c(-c3ccc(N(C)C)cc3)c(=O)c2=O)C=Cc2ccccc21",
+      "n_solvents": 3,
+      "span_nm": 152.0,
+      "lmax_min": 357.0,
+      "lmax_max": 509.0,
+      "class_flags": "other"
+    },
+    {
+      "canon": "CN(C)c1ccc(-c2c(/C=C3/C=Cc4ccccc4N3C)c(=O)c2=O)cc1",
+      "n_solvents": 3,
+      "span_nm": 151.0,
+      "lmax_min": 358.0,
+      "lmax_max": 509.0,
+      "class_flags": "other"
+    },
+    {
+      "canon": "CCCN1/C(=C\\c2c(-c3ccc(N(C)C)cc3)c(=O)c2=O)C=Cc2ccccc21",
+      "n_solvents": 3,
+      "span_nm": 151.0,
+      "lmax_min": 358.0,
+      "lmax_max": 509.0,
+      "class_flags": "other"
+    },
+    {
+      "canon": "CCN1/C(=C\\c2c(-c3ccc(N(C)C)cc3)c(=O)c2=O)C=Cc2ccccc21",
+      "n_solvents": 3,
+      "span_nm": 150.0,
+      "lmax_min": 359.0,
+      "lmax_max": 509.0,
+      "class_flags": "other"
+    },
+    {
+      "canon": "CC1(C)C(/C=C/c2cc3ccc(O)cc3oc2=O)=[N+](CCCS(=O)(=O)[O-])c2ccc3c(S(=O)(=O)O)cc(S(=O)(=O)O)cc3c21",
+      "n_solvents": 3,
+      "span_nm": 148.0,
+      "lmax_min": 495.0,
+      "lmax_max": 643.0,
+      "class_flags": "other"
+    },
+    {
+      "canon": "CC(C)(C)c1ccc(-c2nc3c4ccc(-c5cc6ccccc6c6ccccc56)cc4c4cc(-c5cc6ccccc6c6ccccc56)ccc4c3n2-c2ccc(C(C)(C)C)cc2)cc1",
+      "n_solvents": 13,
+      "span_nm": 145.0,
+      "lmax_min": 234.0,
+      "lmax_max": 379.0,
+      "class_flags": "other"
+    },
+    {
+      "canon": "CC1(C)C(/C=C/c2cc3ccc(O)cc3oc2=O)=[N+](CCCS(=O)(=O)[O-])c2ccc(S(=O)(=O)O)cc21",
+      "n_solvents": 3,
+      "span_nm": 145.0,
+      "lmax_min": 485.0,
+      "lmax_max": 630.0,
+      "class_flags": "other"
+    }
+  ]
+}

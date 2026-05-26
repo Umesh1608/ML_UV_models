@@ -1,0 +1,67 @@
+{
+  "inter_source": {
+    "n_paired": 21,
+    "median_abs_diff_nm": 49.0,
+    "mean_abs_diff_nm": 35.81,
+    "p75_abs_diff_nm": 65.0,
+    "p90_abs_diff_nm": 73.0,
+    "p95_abs_diff_nm": 76.0,
+    "max_abs_diff_nm": 77.0,
+    "frac_within_5nm": 0.381,
+    "frac_within_10nm": 0.381,
+    "frac_within_20nm": 0.429,
+    "frac_within_50nm": 0.571,
+    "rmsd_inter_source": 47.515
+  },
+  "within_source": {
+    "joung": {
+      "source": "Joung",
+      "n_total_records": 1479,
+      "n_unique_pairs": 1479,
+      "n_pairs_multiplicity_gt1": 0,
+      "n_records_in_multi_pairs": 0,
+      "median_spread_nm": null,
+      "p75_spread_nm": null,
+      "p95_spread_nm": null,
+      "frac_spread_leq_5nm": null,
+      "frac_spread_leq_10nm": null,
+      "frac_spread_leq_20nm": null,
+      "frac_spread_gt_50nm": null
+    },
+    "beard": {
+      "source": "Beard",
+      "n_total_records": 17276,
+      "n_unique_pairs": 16999,
+      "n_pairs_multiplicity_gt1": 273,
+      "n_records_in_multi_pairs": 550,
+      "median_spread_nm": 0.0,
+      "p75_spread_nm": 0.0,
+      "p95_spread_nm": 21.0,
+      "frac_spread_leq_5nm": 0.897,
+      "frac_spread_leq_10nm": 0.923,
+      "frac_spread_leq_20nm": 0.941,
+      "frac_spread_gt_50nm": 0.011
+    },
+    "v2_combined": {
+      "source": "v2_combined",
+      "n_total_records": 18755,
+      "n_unique_pairs": 18457,
+      "n_pairs_multiplicity_gt1": 294,
+      "n_records_in_multi_pairs": 592,
+      "median_spread_nm": 0.0,
+      "p75_spread_nm": 0.005,
+      "p95_spread_nm": 38.35,
+      "frac_spread_leq_5nm": 0.861,
+      "frac_spread_leq_10nm": 0.884,
+      "frac_spread_leq_20nm": 0.905,
+      "frac_spread_gt_50nm": 0.041
+    }
+  },
+  "model_errors_v3": {
+    "RF_RMSE_nm": 31.5,
+    "Chemprop_default_RMSE_nm": 33.15,
+    "Chemprop_tuned_RMSE_nm": 28.83,
+    "BiGRU_tuned_RMSE_nm": 36.2,
+    "ChemBERTa_RMSE_nm": 54.09
+  }
+}
