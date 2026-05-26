@@ -1,0 +1,17 @@
+molecule,smiles,lambda_max_EtOH,lambda_max_MeOH,exact_smiles_in_train,generic_scaffold,generic_scaffold_in_train,specific_scaffold,specific_scaffold_in_train,example_train_smiles_for_generic_scaffold,nearest_tanimoto,nearest_train_smiles,nearest_train_lambda_max
+Amiloxate,COc1ccc(/C=C/C(=O)OCCC(C)C)cc1,309.0,298.0,False,C1CCCCC1,True,c1ccccc1,True,CCCC(=O)OCc1ccccc1[N+](=O)[O-],0.4348,CCOC(=O)/C=C/c1ccc(N(C)C)cc1,362.5
+Avobenzone,COc1ccc(C(=O)CC(=O)c2ccc(C(C)(C)C)cc2)cc1,358.0,358.0,False,CC(CC(C)C1CCCCC1)C1CCCCC1,False,O=C(CC(=O)c1ccccc1)c1ccccc1,False,,0.3793,COc1ccc(OC)cc1,286.2
+Caffeic Acid,O=C(O)/C=C/c1ccc(O)c(O)c1,325.0,325.0,False,C1CCCCC1,True,c1ccccc1,True,CCCC(=O)OCc1ccccc1[N+](=O)[O-],0.6364,COc1cc(/C=C/C(=O)O)ccc1O,287.0
+Cinnamic Acid,O=C(O)/C=C/c1ccccc1,275.0,276.0,False,C1CCCCC1,True,c1ccccc1,True,CCCC(=O)OCc1ccccc1[N+](=O)[O-],0.5714,CN(C)c1ccc(/C=C/C(=O)O)cc1,355.64
+Coumaric Acid,O=C(O)/C=C/c1ccc(O)cc1,310.0,309.0,False,C1CCCCC1,True,c1ccccc1,True,CCCC(=O)OCc1ccccc1[N+](=O)[O-],0.5862,CN(C)c1ccc(/C=C/C(=O)O)cc1,355.64
+Dioxybenzone,COc1ccc(C(=O)c2ccccc2O)c(O)c1,283.0,283.0,False,CC(C1CCCCC1)C1CCCCC1,True,O=C(c1ccccc1)c1ccccc1,True,C=C(COC(=O)c1ccc(C(=O)c2ccccc2)cc1)C(=O)OCC,0.6176,COc1ccc(C(=O)[O-])c(O)c1,295.0
+Ferulic Acid,COc1cc(/C=C/C(=O)O)ccc1O,324.0,324.0,True,C1CCCCC1,True,c1ccccc1,True,CCCC(=O)OCc1ccccc1[N+](=O)[O-],1.0,COc1cc(/C=C/C(=O)O)ccc1O,287.0
+Homosalate,CC1CC(OC(=O)c2ccccc2O)CC(C)(C)C1,308.0,308.0,False,CC(CC1CCCCC1)C1CCCCC1,True,O=C(OC1CCCCC1)c1ccccc1,True,Cc1ccc(NC(=O)c2ccc(N(C)C)cc2)cc1,0.35,O=C(O)c1ccccc1O,295.0
+Octinoxate,CCCCC(CC)COC(=O)/C=C/c1ccc(OC)cc1,309.0,308.0,False,C1CCCCC1,True,c1ccccc1,True,CCCC(=O)OCc1ccccc1[N+](=O)[O-],0.6667,CCCCC(CC)COC(=O)/C=C/c1c(OC)ccc(OC)c1OC,322.5
+Octisalate,CCCCC(CC)COC(=O)c1ccccc1O,308.0,308.0,False,C1CCCCC1,True,c1ccccc1,True,CCCC(=O)OCc1ccccc1[N+](=O)[O-],0.4906,CCCCC(CC)COC(=O)/C=C/c1ccccc1OC,316.0
+Octocrylene,CCCCC(CC)COC(=O)/C(C#N)=C\c1ccccc1,301.0,302.0,False,C1CCCCC1,True,c1ccccc1,True,CCCC(=O)OCc1ccccc1[N+](=O)[O-],0.4576,CCCCC(CC)COC(=O)/C=C/c1ccccc1OC,316.0
+Oxybenzone,COc1ccc(C(=O)c2ccccc2)c(O)c1,287.0,287.0,False,CC(C1CCCCC1)C1CCCCC1,True,O=C(c1ccccc1)c1ccccc1,True,C=C(COC(=O)c1ccc(C(=O)c2ccccc2)cc1)C(=O)OCC,0.6,COc1ccc(C(=O)[O-])c(O)c1,295.0
+PABA,Nc1ccc(C(=O)O)cc1,291.0,290.0,False,C1CCCCC1,True,c1ccccc1,True,CCCC(=O)OCc1ccccc1[N+](=O)[O-],0.5909,CC(=O)c1ccc(N)cc1,329.4
+Padimate O,CCCCC(CC)COC(=O)c1ccc(N(C)C)cc1,310.0,310.0,False,C1CCCCC1,True,c1ccccc1,True,CCCC(=O)OCc1ccccc1[N+](=O)[O-],0.575,CCOC(=O)c1ccc(N(C)C)cc1,303.71
+Sinapic Acid,COc1cc(/C=C/C(=O)O)cc(OC)c1O,324.0,324.0,False,C1CCCCC1,True,c1ccccc1,True,CCCC(=O)OCc1ccccc1[N+](=O)[O-],0.6765,COc1cc(/C=C/C(=O)O)ccc1O,287.0
+Sulisobenzone,COc1ccc(C(=O)c2ccc(S(=O)(=O)O)cc2)c(O)c1,287.0,286.0,False,CC(C1CCCCC1)C1CCCCC1,True,O=C(c1ccccc1)c1ccccc1,True,C=C(COC(=O)c1ccc(C(=O)c2ccccc2)cc1)C(=O)OCC,0.5641,COc1ccc(C(=O)[O-])c(O)c1,295.0

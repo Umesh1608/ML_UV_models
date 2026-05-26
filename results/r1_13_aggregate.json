@@ -1,0 +1,20 @@
+{
+  "n_wetlab_molecules": 16,
+  "n_train_records": 18415,
+  "n_train_unique_solutes": 7846,
+  "n_train_unique_generic_scaffolds": 3013,
+  "n_train_unique_specific_scaffolds": 4054,
+  "tanimoto_bins": {
+    "near_duplicate_gt_0.85": 1,
+    "high_similar_gt_0.7": 0,
+    "some_similar_gt_0.5": 10,
+    "dissimilar_le_0.5": 5
+  },
+  "generic_scaffold_match_count": 15,
+  "specific_scaffold_match_count": 15,
+  "exact_smiles_duplicate_count": 1,
+  "tanimoto_mean": 0.5748,
+  "tanimoto_median": 0.5806,
+  "tanimoto_min": 0.35,
+  "tanimoto_max": 1.0
+}

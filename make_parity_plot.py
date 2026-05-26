@@ -52,9 +52,16 @@ def main():
         y_true, y_pred = load_pooled(prefix)
         all_data.append((name, y_true, y_pred))
 
-    global_min = min(min(y.min(), p.min()) for _, y, p in all_data) - 10
-    global_max = max(max(y.max(), p.max()) for _, y, p in all_data) + 10
-    lims = [global_min, global_max]
+    # R2-10 fix: clamp axis limits to the *experimental* lambda_max range
+    # (positive, physical) rather than letting outlier predictions drag the
+    # lower bound into unphysical (e.g., negative) territory. Predictions
+    # outside the experimental range will accumulate at the panel edge,
+    # which is itself informative (it visually flags the prediction-ceiling
+    # / floor artefacts already discussed in Section 5.2 Error Analysis).
+    y_true_min = min(y.min() for _, y, _ in all_data)
+    y_true_max = max(y.max() for _, y, _ in all_data)
+    lims = [max(150.0, float(y_true_min) - 20.0),
+            float(y_true_max) + 20.0]
 
     fig, axes = plt.subplots(2, 3, figsize=(15, 10))
     axes = axes.flatten()

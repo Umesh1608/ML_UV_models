@@ -1,0 +1,553 @@
+{
+  "per_fold": [
+    {
+      "fold": 0,
+      "models": {
+        "RF (tuned)": {
+          "with_solvent": {
+            "n_test_total": 3751,
+            "n_test_multi": 2254,
+            "n_test_single": 1497,
+            "frac_multi": 0.6009,
+            "full_RMSE": 32.02,
+            "full_MAE": 15.424,
+            "multi_RMSE": 14.656,
+            "multi_MAE": 7.753,
+            "single_RMSE": 47.387,
+            "single_MAE": 26.974,
+            "n_unique_multi_chrom_in_train": 2187
+          },
+          "solute_only": {
+            "n_test_total": 3751,
+            "n_test_multi": 2254,
+            "n_test_single": 1497,
+            "frac_multi": 0.6009,
+            "full_RMSE": 34.41,
+            "full_MAE": 16.417,
+            "multi_RMSE": 22.089,
+            "multi_MAE": 9.442,
+            "single_RMSE": 47.246,
+            "single_MAE": 26.919,
+            "n_unique_multi_chrom_in_train": 2187
+          }
+        },
+        "Chemprop": {
+          "with_solvent": {
+            "n_test_total": 3751,
+            "n_test_multi": 2254,
+            "n_test_single": 1497,
+            "frac_multi": 0.6009,
+            "full_RMSE": 30.795,
+            "full_MAE": 15.235,
+            "multi_RMSE": 14.357,
+            "multi_MAE": 9.376,
+            "single_RMSE": 45.451,
+            "single_MAE": 24.057,
+            "n_unique_multi_chrom_in_train": 2187
+          },
+          "solute_only": {
+            "n_test_total": 3751,
+            "n_test_multi": 2254,
+            "n_test_single": 1497,
+            "frac_multi": 0.6009,
+            "full_RMSE": 33.371,
+            "full_MAE": 15.954,
+            "multi_RMSE": 22.585,
+            "multi_MAE": 10.838,
+            "single_RMSE": 44.97,
+            "single_MAE": 23.656,
+            "n_unique_multi_chrom_in_train": 2187
+          }
+        },
+        "BiGRU": {
+          "with_solvent": {
+            "n_test_total": 3751,
+            "n_test_multi": 2254,
+            "n_test_single": 1497,
+            "frac_multi": 0.6009,
+            "full_RMSE": 35.231,
+            "full_MAE": 20.017,
+            "multi_RMSE": 19.197,
+            "multi_MAE": 13.161,
+            "single_RMSE": 50.55,
+            "single_MAE": 30.339,
+            "n_unique_multi_chrom_in_train": 2187
+          },
+          "solute_only": {
+            "n_test_total": 3751,
+            "n_test_multi": 2254,
+            "n_test_single": 1497,
+            "frac_multi": 0.6009,
+            "full_RMSE": 39.092,
+            "full_MAE": 22.327,
+            "multi_RMSE": 24.977,
+            "multi_MAE": 14.626,
+            "single_RMSE": 53.758,
+            "single_MAE": 33.923,
+            "n_unique_multi_chrom_in_train": 2187
+          }
+        }
+      }
+    },
+    {
+      "fold": 1,
+      "models": {
+        "RF (tuned)": {
+          "with_solvent": {
+            "n_test_total": 3751,
+            "n_test_multi": 2271,
+            "n_test_single": 1480,
+            "frac_multi": 0.6054,
+            "full_RMSE": 30.743,
+            "full_MAE": 14.792,
+            "multi_RMSE": 15.13,
+            "multi_MAE": 7.302,
+            "single_RMSE": 45.213,
+            "single_MAE": 26.286,
+            "n_unique_multi_chrom_in_train": 2208
+          },
+          "solute_only": {
+            "n_test_total": 3751,
+            "n_test_multi": 2271,
+            "n_test_single": 1480,
+            "frac_multi": 0.6054,
+            "full_RMSE": 34.13,
+            "full_MAE": 16.272,
+            "multi_RMSE": 23.492,
+            "multi_MAE": 9.396,
+            "single_RMSE": 45.885,
+            "single_MAE": 26.823,
+            "n_unique_multi_chrom_in_train": 2208
+          }
+        },
+        "Chemprop": {
+          "with_solvent": {
+            "n_test_total": 3751,
+            "n_test_multi": 2271,
+            "n_test_single": 1480,
+            "frac_multi": 0.6054,
+            "full_RMSE": 35.396,
+            "full_MAE": 19.957,
+            "multi_RMSE": 21.093,
+            "multi_MAE": 14.318,
+            "single_RMSE": 49.926,
+            "single_MAE": 28.609,
+            "n_unique_multi_chrom_in_train": 2208
+          },
+          "solute_only": {
+            "n_test_total": 3751,
+            "n_test_multi": 2271,
+            "n_test_single": 1480,
+            "frac_multi": 0.6054,
+            "full_RMSE": 37.278,
+            "full_MAE": 16.286,
+            "multi_RMSE": 24.27,
+            "multi_MAE": 11.043,
+            "single_RMSE": 51.167,
+            "single_MAE": 24.33,
+            "n_unique_multi_chrom_in_train": 2208
+          }
+        },
+        "BiGRU": {
+          "with_solvent": {
+            "n_test_total": 3751,
+            "n_test_multi": 2271,
+            "n_test_single": 1480,
+            "frac_multi": 0.6054,
+            "full_RMSE": 37.335,
+            "full_MAE": 20.858,
+            "multi_RMSE": 20.844,
+            "multi_MAE": 12.848,
+            "single_RMSE": 53.535,
+            "single_MAE": 33.149,
+            "n_unique_multi_chrom_in_train": 2208
+          },
+          "solute_only": {
+            "n_test_total": 3751,
+            "n_test_multi": 2271,
+            "n_test_single": 1480,
+            "frac_multi": 0.6054,
+            "full_RMSE": 38.458,
+            "full_MAE": 22.366,
+            "multi_RMSE": 27.272,
+            "multi_MAE": 15.693,
+            "single_RMSE": 51.061,
+            "single_MAE": 32.605,
+            "n_unique_multi_chrom_in_train": 2208
+          }
+        }
+      }
+    },
+    {
+      "fold": 2,
+      "models": {
+        "RF (tuned)": {
+          "with_solvent": {
+            "n_test_total": 3750,
+            "n_test_multi": 2294,
+            "n_test_single": 1456,
+            "frac_multi": 0.6117,
+            "full_RMSE": 28.087,
+            "full_MAE": 14.469,
+            "multi_RMSE": 15.935,
+            "multi_MAE": 7.809,
+            "single_RMSE": 40.395,
+            "single_MAE": 24.964,
+            "n_unique_multi_chrom_in_train": 2204
+          },
+          "solute_only": {
+            "n_test_total": 3750,
+            "n_test_multi": 2294,
+            "n_test_single": 1456,
+            "frac_multi": 0.6117,
+            "full_RMSE": 31.464,
+            "full_MAE": 15.974,
+            "multi_RMSE": 23.611,
+            "multi_MAE": 9.831,
+            "single_RMSE": 40.884,
+            "single_MAE": 25.652,
+            "n_unique_multi_chrom_in_train": 2204
+          }
+        },
+        "Chemprop": {
+          "with_solvent": {
+            "n_test_total": 3750,
+            "n_test_multi": 2294,
+            "n_test_single": 1456,
+            "frac_multi": 0.6117,
+            "full_RMSE": 26.058,
+            "full_MAE": 15.524,
+            "multi_RMSE": 17.235,
+            "multi_MAE": 11.147,
+            "single_RMSE": 35.788,
+            "single_MAE": 22.42,
+            "n_unique_multi_chrom_in_train": 2204
+          },
+          "solute_only": {
+            "n_test_total": 3750,
+            "n_test_multi": 2294,
+            "n_test_single": 1456,
+            "frac_multi": 0.6117,
+            "full_RMSE": 29.31,
+            "full_MAE": 15.881,
+            "multi_RMSE": 24.121,
+            "multi_MAE": 11.659,
+            "single_RMSE": 35.999,
+            "single_MAE": 22.533,
+            "n_unique_multi_chrom_in_train": 2204
+          }
+        },
+        "BiGRU": {
+          "with_solvent": {
+            "n_test_total": 3751,
+            "n_test_multi": 2294,
+            "n_test_single": 1457,
+            "frac_multi": 0.6116,
+            "full_RMSE": 34.959,
+            "full_MAE": 20.77,
+            "multi_RMSE": 22.087,
+            "multi_MAE": 14.379,
+            "single_RMSE": 48.767,
+            "single_MAE": 30.833,
+            "n_unique_multi_chrom_in_train": 2204
+          },
+          "solute_only": {
+            "n_test_total": 3751,
+            "n_test_multi": 2294,
+            "n_test_single": 1457,
+            "frac_multi": 0.6116,
+            "full_RMSE": 37.266,
+            "full_MAE": 22.778,
+            "multi_RMSE": 27.489,
+            "multi_MAE": 16.553,
+            "single_RMSE": 48.843,
+            "single_MAE": 32.578,
+            "n_unique_multi_chrom_in_train": 2204
+          }
+        }
+      }
+    },
+    {
+      "fold": 3,
+      "models": {
+        "RF (tuned)": {
+          "with_solvent": {
+            "n_test_total": 3751,
+            "n_test_multi": 2247,
+            "n_test_single": 1504,
+            "frac_multi": 0.599,
+            "full_RMSE": 32.582,
+            "full_MAE": 15.557,
+            "multi_RMSE": 16.835,
+            "multi_MAE": 7.971,
+            "single_RMSE": 47.162,
+            "single_MAE": 26.891,
+            "n_unique_multi_chrom_in_train": 2199
+          },
+          "solute_only": {
+            "n_test_total": 3751,
+            "n_test_multi": 2247,
+            "n_test_single": 1504,
+            "frac_multi": 0.599,
+            "full_RMSE": 34.867,
+            "full_MAE": 16.643,
+            "multi_RMSE": 22.242,
+            "multi_MAE": 9.497,
+            "single_RMSE": 47.884,
+            "single_MAE": 27.319,
+            "n_unique_multi_chrom_in_train": 2199
+          }
+        },
+        "Chemprop": {
+          "with_solvent": {
+            "n_test_total": 3751,
+            "n_test_multi": 2247,
+            "n_test_single": 1504,
+            "frac_multi": 0.599,
+            "full_RMSE": 32.7,
+            "full_MAE": 16.026,
+            "multi_RMSE": 16.237,
+            "multi_MAE": 9.791,
+            "single_RMSE": 47.676,
+            "single_MAE": 25.342,
+            "n_unique_multi_chrom_in_train": 2199
+          },
+          "solute_only": {
+            "n_test_total": 3751,
+            "n_test_multi": 2247,
+            "n_test_single": 1504,
+            "frac_multi": 0.599,
+            "full_RMSE": 33.068,
+            "full_MAE": 16.637,
+            "multi_RMSE": 22.938,
+            "multi_MAE": 11.199,
+            "single_RMSE": 44.058,
+            "single_MAE": 24.76,
+            "n_unique_multi_chrom_in_train": 2199
+          }
+        },
+        "BiGRU": {
+          "with_solvent": {
+            "n_test_total": 3751,
+            "n_test_multi": 2247,
+            "n_test_single": 1504,
+            "frac_multi": 0.599,
+            "full_RMSE": 37.625,
+            "full_MAE": 21.514,
+            "multi_RMSE": 22.915,
+            "multi_MAE": 14.158,
+            "single_RMSE": 52.403,
+            "single_MAE": 32.505,
+            "n_unique_multi_chrom_in_train": 2199
+          },
+          "solute_only": {
+            "n_test_total": 3751,
+            "n_test_multi": 2247,
+            "n_test_single": 1504,
+            "frac_multi": 0.599,
+            "full_RMSE": 38.861,
+            "full_MAE": 22.138,
+            "multi_RMSE": 25.775,
+            "multi_MAE": 15.111,
+            "single_RMSE": 52.667,
+            "single_MAE": 32.637,
+            "n_unique_multi_chrom_in_train": 2199
+          }
+        }
+      }
+    },
+    {
+      "fold": 4,
+      "models": {
+        "RF (tuned)": {
+          "with_solvent": {
+            "n_test_total": 3751,
+            "n_test_multi": 2238,
+            "n_test_single": 1513,
+            "frac_multi": 0.5966,
+            "full_RMSE": 33.248,
+            "full_MAE": 15.541,
+            "multi_RMSE": 14.914,
+            "multi_MAE": 7.57,
+            "single_RMSE": 49.108,
+            "single_MAE": 27.332,
+            "n_unique_multi_chrom_in_train": 2203
+          },
+          "solute_only": {
+            "n_test_total": 3751,
+            "n_test_multi": 2238,
+            "n_test_single": 1513,
+            "frac_multi": 0.5966,
+            "full_RMSE": 35.762,
+            "full_MAE": 16.936,
+            "multi_RMSE": 22.154,
+            "multi_MAE": 9.529,
+            "single_RMSE": 49.444,
+            "single_MAE": 27.892,
+            "n_unique_multi_chrom_in_train": 2203
+          }
+        },
+        "Chemprop": {
+          "with_solvent": {
+            "n_test_total": 3751,
+            "n_test_multi": 2238,
+            "n_test_single": 1513,
+            "frac_multi": 0.5966,
+            "full_RMSE": 33.509,
+            "full_MAE": 17.435,
+            "multi_RMSE": 18.813,
+            "multi_MAE": 11.613,
+            "single_RMSE": 47.543,
+            "single_MAE": 26.048,
+            "n_unique_multi_chrom_in_train": 2203
+          },
+          "solute_only": {
+            "n_test_total": 3751,
+            "n_test_multi": 2238,
+            "n_test_single": 1513,
+            "frac_multi": 0.5966,
+            "full_RMSE": 35.882,
+            "full_MAE": 17.639,
+            "multi_RMSE": 23.387,
+            "multi_MAE": 11.835,
+            "single_RMSE": 48.816,
+            "single_MAE": 26.225,
+            "n_unique_multi_chrom_in_train": 2203
+          }
+        },
+        "BiGRU": {
+          "with_solvent": {
+            "n_test_total": 3751,
+            "n_test_multi": 2238,
+            "n_test_single": 1513,
+            "frac_multi": 0.5966,
+            "full_RMSE": 37.117,
+            "full_MAE": 20.321,
+            "multi_RMSE": 19.805,
+            "multi_MAE": 12.876,
+            "single_RMSE": 53.248,
+            "single_MAE": 31.333,
+            "n_unique_multi_chrom_in_train": 2203
+          },
+          "solute_only": {
+            "n_test_total": 3751,
+            "n_test_multi": 2238,
+            "n_test_single": 1513,
+            "frac_multi": 0.5966,
+            "full_RMSE": 41.474,
+            "full_MAE": 23.013,
+            "multi_RMSE": 27.588,
+            "multi_MAE": 15.97,
+            "single_RMSE": 56.023,
+            "single_MAE": 33.432,
+            "n_unique_multi_chrom_in_train": 2203
+          }
+        }
+      }
+    }
+  ],
+  "aggregate": {
+    "dataset": "UV_canonical_full_dataset.csv",
+    "n_records": 18755,
+    "n_folds_aggregated": 5,
+    "frac_multi_solvent_test_mean": 0.6027,
+    "models": {
+      "RF (tuned)": {
+        "with_solvent_full_RMSE_mean": 31.336,
+        "with_solvent_full_RMSE_std": 1.821,
+        "with_solvent_full_MAE_mean": 15.157,
+        "with_solvent_full_MAE_std": 0.444,
+        "with_solvent_multi_RMSE_mean": 15.494,
+        "with_solvent_multi_RMSE_std": 0.795,
+        "with_solvent_multi_MAE_mean": 7.681,
+        "with_solvent_multi_MAE_std": 0.229,
+        "with_solvent_single_RMSE_mean": 45.853,
+        "with_solvent_single_RMSE_std": 2.995,
+        "with_solvent_single_MAE_mean": 26.489,
+        "with_solvent_single_MAE_std": 0.834,
+        "solute_only_full_RMSE_mean": 34.127,
+        "solute_only_full_RMSE_std": 1.442,
+        "solute_only_full_MAE_mean": 16.448,
+        "solute_only_full_MAE_std": 0.326,
+        "solute_only_multi_RMSE_mean": 22.718,
+        "solute_only_multi_RMSE_std": 0.684,
+        "solute_only_multi_MAE_mean": 9.539,
+        "solute_only_multi_MAE_std": 0.153,
+        "solute_only_single_RMSE_mean": 46.269,
+        "solute_only_single_RMSE_std": 2.925,
+        "solute_only_single_MAE_mean": 26.921,
+        "solute_only_single_MAE_std": 0.738,
+        "full_solvent_gain_RMSE": 2.791,
+        "full_solvent_gain_pct": 8.18,
+        "multi_solvent_gain_RMSE": 7.224,
+        "multi_solvent_gain_pct": 31.8,
+        "single_solvent_gain_RMSE": 0.416,
+        "single_solvent_gain_pct": 0.9
+      },
+      "Chemprop": {
+        "with_solvent_full_RMSE_mean": 31.692,
+        "with_solvent_full_RMSE_std": 3.181,
+        "with_solvent_full_MAE_mean": 16.835,
+        "with_solvent_full_MAE_std": 1.734,
+        "with_solvent_multi_RMSE_mean": 17.547,
+        "with_solvent_multi_RMSE_std": 2.288,
+        "with_solvent_multi_MAE_mean": 11.249,
+        "with_solvent_multi_MAE_std": 1.743,
+        "with_solvent_single_RMSE_mean": 45.277,
+        "with_solvent_single_RMSE_std": 4.951,
+        "with_solvent_single_MAE_mean": 25.295,
+        "with_solvent_single_MAE_std": 2.066,
+        "solute_only_full_RMSE_mean": 33.782,
+        "solute_only_full_RMSE_std": 2.732,
+        "solute_only_full_MAE_mean": 16.479,
+        "solute_only_full_MAE_std": 0.639,
+        "solute_only_multi_RMSE_mean": 23.46,
+        "solute_only_multi_RMSE_std": 0.654,
+        "solute_only_multi_MAE_mean": 11.315,
+        "solute_only_multi_MAE_std": 0.375,
+        "solute_only_single_RMSE_mean": 45.002,
+        "solute_only_single_RMSE_std": 5.187,
+        "solute_only_single_MAE_mean": 24.301,
+        "solute_only_single_MAE_std": 1.221,
+        "full_solvent_gain_RMSE": 2.09,
+        "full_solvent_gain_pct": 6.19,
+        "multi_solvent_gain_RMSE": 5.913,
+        "multi_solvent_gain_pct": 25.2,
+        "single_solvent_gain_RMSE": -0.275,
+        "single_solvent_gain_pct": -0.61
+      },
+      "BiGRU": {
+        "with_solvent_full_RMSE_mean": 36.453,
+        "with_solvent_full_RMSE_std": 1.124,
+        "with_solvent_full_MAE_mean": 20.696,
+        "with_solvent_full_MAE_std": 0.51,
+        "with_solvent_multi_RMSE_mean": 20.97,
+        "with_solvent_multi_RMSE_std": 1.382,
+        "with_solvent_multi_MAE_mean": 13.484,
+        "with_solvent_multi_MAE_std": 0.653,
+        "with_solvent_single_RMSE_mean": 51.701,
+        "with_solvent_single_RMSE_std": 1.799,
+        "with_solvent_single_MAE_mean": 31.632,
+        "with_solvent_single_MAE_std": 1.045,
+        "solute_only_full_RMSE_mean": 39.03,
+        "solute_only_full_RMSE_std": 1.374,
+        "solute_only_full_MAE_mean": 22.524,
+        "solute_only_full_MAE_std": 0.321,
+        "solute_only_multi_RMSE_mean": 26.62,
+        "solute_only_multi_RMSE_std": 1.052,
+        "solute_only_multi_MAE_mean": 15.591,
+        "solute_only_multi_MAE_std": 0.669,
+        "solute_only_single_RMSE_mean": 52.47,
+        "solute_only_single_RMSE_std": 2.427,
+        "solute_only_single_MAE_mean": 33.035,
+        "solute_only_single_MAE_std": 0.547,
+        "full_solvent_gain_RMSE": 2.577,
+        "full_solvent_gain_pct": 6.6,
+        "multi_solvent_gain_RMSE": 5.65,
+        "multi_solvent_gain_pct": 21.22,
+        "single_solvent_gain_RMSE": 0.769,
+        "single_solvent_gain_pct": 1.47
+      }
+    }
+  }
+}

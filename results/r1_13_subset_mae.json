@@ -1,0 +1,78 @@
+{
+  "models": [
+    "BiGRU (default)",
+    "BiGRU (tuned)",
+    "RF",
+    "ChemBERTa",
+    "Chemprop"
+  ],
+  "tanimoto_le_0.5_molecules": [
+    "Amiloxate",
+    "Avobenzone",
+    "Homosalate",
+    "Octisalate",
+    "Octocrylene"
+  ],
+  "results": [
+    {
+      "subset": "all_16_molecules",
+      "n_records": 32,
+      "n_unique_molecules": 16,
+      "BiGRU (default)_MAE": 28.64,
+      "BiGRU (default)_RMSE": 33.9,
+      "BiGRU (tuned)_MAE": 31.52,
+      "BiGRU (tuned)_RMSE": 37.01,
+      "RF_MAE": 38.46,
+      "RF_RMSE": 43.68,
+      "ChemBERTa_MAE": 26.29,
+      "ChemBERTa_RMSE": 32.15,
+      "Chemprop_MAE": 26.18,
+      "Chemprop_RMSE": 35.68
+    },
+    {
+      "subset": "strict_5_tanimoto_le_0.5",
+      "n_records": 10,
+      "n_unique_molecules": 5,
+      "BiGRU (default)_MAE": 28.35,
+      "BiGRU (default)_RMSE": 29.88,
+      "BiGRU (tuned)_MAE": 35.66,
+      "BiGRU (tuned)_RMSE": 38.5,
+      "RF_MAE": 46.09,
+      "RF_RMSE": 52.2,
+      "ChemBERTa_MAE": 33.0,
+      "ChemBERTa_RMSE": 36.36,
+      "Chemprop_MAE": 28.46,
+      "Chemprop_RMSE": 40.2
+    },
+    {
+      "subset": "scaffold_known_11",
+      "n_records": 20,
+      "n_unique_molecules": 10,
+      "BiGRU (default)_MAE": 30.4,
+      "BiGRU (default)_RMSE": 37.1,
+      "BiGRU (tuned)_MAE": 32.19,
+      "BiGRU (tuned)_RMSE": 38.07,
+      "RF_MAE": 36.43,
+      "RF_RMSE": 40.59,
+      "ChemBERTa_MAE": 25.33,
+      "ChemBERTa_RMSE": 31.5,
+      "Chemprop_MAE": 25.89,
+      "Chemprop_RMSE": 34.59
+    },
+    {
+      "subset": "ferulic_only",
+      "n_records": 2,
+      "n_unique_molecules": 1,
+      "BiGRU (default)_MAE": 12.5,
+      "BiGRU (default)_RMSE": 12.58,
+      "BiGRU (tuned)_MAE": 4.25,
+      "BiGRU (tuned)_RMSE": 4.25,
+      "RF_MAE": 20.6,
+      "RF_RMSE": 20.62,
+      "ChemBERTa_MAE": 2.3,
+      "ChemBERTa_RMSE": 2.38,
+      "Chemprop_MAE": 17.6,
+      "Chemprop_RMSE": 18.09
+    }
+  ]
+}

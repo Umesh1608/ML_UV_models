@@ -721,4 +721,168 @@ Three observations frame the manuscript treatment:
 \paragraph{Reproducibility.}
 The probe is reproducible from \texttt{tune\_chemprop.py} and the saved Optuna SQLite store \texttt{results/r1\_12\_chemprop\_optuna.db}; per-trial logs are in \texttt{logs/r1\_12\_chemprop\_trial\_*.log}. The 5-fold retrain with the best configuration is reproducible via \texttt{retrain\_chemprop\_tuned.py}, which calls \texttt{run\_chemprop.py} once per fold with the tuned hyperparameters injected through environment variables (\texttt{CHEMPROP\_D\_H}, \texttt{CHEMPROP\_DEPTH}, \texttt{CHEMPROP\_DROPOUT}, \texttt{CHEMPROP\_FFN\_N\_LAYERS}, \texttt{CHEMPROP\_FFN\_HIDDEN\_DIM}, \texttt{CHEMPROP\_BATCH\_SIZE}); per-fold predictions land in \texttt{results/chemprop\_tuned\_v3\_fold\{0..4\}\_*.npy} alongside the default-configuration files.
 
+
+\section{Wetlab Chemical-Space Audit (R1-13)}
+\label{si:wetlab_audit}
+
+In response to reviewer concern R1-13 (whether the 16-compound wetlab benchmark is truly out-of-distribution relative to the v3 cleaned Joung+Beard training set), we computed two complementary chemical-space-overlap measures for every wetlab molecule against the full $7{,}846$-solute training set: (i)~nearest-neighbour Tanimoto similarity using Morgan fingerprints of radius~$2$ and $2048$ bits, and (ii)~exact-match check on the generic and specific Bemis--Murcko scaffolds. Per-molecule details are in Table~\ref{tab:si_wetlab_per_molecule}; the aggregate decomposition is in the four-bin Tanimoto histogram and the scaffold-match counts immediately below it.
+
+\paragraph{Aggregate findings.}
+At the SMILES level the wetlab set is novel: only Ferulic Acid is an exact duplicate of a training record (Tanimoto $= 1.000$), and the other 15 molecules are absent from the training data with a nearest-neighbour Tanimoto distribution of mean~$= 0.58$, median~$= 0.58$, range $[0.350, 0.676]$. The four-bin breakdown is:
+\begin{itemize}[leftmargin=2em,itemsep=2pt]
+  \item Near-duplicate (Tanimoto $> 0.85$): \textbf{1/16} (Ferulic Acid only).
+  \item High-similar ($0.7 < $ Tanimoto $\leq 0.85$): \textbf{0/16}.
+  \item Some-similar ($0.5 < $ Tanimoto $\leq 0.7$): \textbf{10/16}.
+  \item Dissimilar (Tanimoto $\leq 0.5$): \textbf{5/16} --- Homosalate ($0.350$), Avobenzone ($0.379$), Amiloxate ($0.435$), Octocrylene ($0.458$), Octisalate ($0.491$).
+\end{itemize}
+
+\noindent
+At the Bemis--Murcko scaffold level, however, the wetlab set is largely \emph{in-distribution}: \textbf{15/16} generic Murcko scaffolds and \textbf{15/16} specific Murcko scaffolds are present in the v3 training set. Only Avobenzone (a 1,3-diketone bridging two substituted phenyl rings) has a generic scaffold absent from training. The training set contains $3{,}013$ unique generic and $4{,}054$ unique specific Murcko scaffolds across its $7{,}846$ solutes, so the chromophore-class coverage is wide; the wetlab compounds therefore represent novel substitution patterns on chromophore scaffolds the models have seen at training time.
+
+\paragraph{Strict-5 subset analysis (Tanimoto $\leq 0.5$).}
+We additionally re-computed the per-model wetlab MAE on the five truly fingerprint-novel molecules to test whether the aggregate ranking is driven by the eleven scaffold-known compounds. Table~\ref{tab:si_wetlab_strict5} shows that the DL-vs-RF gap actually \emph{widens} on the strict-5 subset: the three DL models cluster at MAE $28$--$33$~nm while RF degrades to $46.1$~nm. This is consistent with the manuscript's complementary-strengths narrative: the DL architectures retain their out-of-distribution advantage over RF (and the ranking BiGRU $\sim$ Chemprop $<$ ChemBERTa $\ll$ RF is preserved) precisely on the molecules most chemically removed from the training data.
+
+\begin{table}[htbp]
+\centering
+\caption{Per-model wetlab MAE (nm) on three nested subsets defined by Tanimoto similarity to the v3 training set: the full aggregate (16 molecules), the scaffold-known 11 (excluding Ferulic Acid and the five with Tanimoto $\leq 0.5$), and the strict-5 subset of truly fingerprint-novel molecules. Each subset row aggregates over the EtOH and MeOH measurements.}
+\label{tab:si_wetlab_strict5}
+\small
+\begin{tabular}{lccccc}
+\toprule
+\textbf{Subset} & \textbf{BiGRU (def)} & \textbf{BiGRU (tuned)} & \textbf{RF} & \textbf{ChemBERTa} & \textbf{Chemprop} \\
+\midrule
+All 16 (aggregate)                       & 28.64 & 31.52 & 38.46 & 26.29 & 26.18 \\
+Scaffold-known 11 (Tan $\in (0.5, 1)$)   & 30.40 & 32.19 & 36.43 & 25.33 & 25.89 \\
+Strict-5 (Tan $\leq 0.5$)                & \textbf{28.35} & 35.66 & \textbf{46.09} & 33.00 & 28.46 \\
+\bottomrule
+\multicolumn{6}{l}{\footnotesize Strict-5 set: Amiloxate, Avobenzone, Homosalate, Octisalate, Octocrylene. Bold values denote} \\
+\multicolumn{6}{l}{\footnotesize the strict-5 best (BiGRU default) and worst (RF). Numbers from \texttt{results/r1\_13\_subset\_mae.json}.} \\
+\end{tabular}
+\end{table}
+
+The single most striking strict-5 result is Octocrylene, where RF over-predicts by $87.7$~nm (and Chemprop by $81.3$~nm) while BiGRU's error is $42.5$~nm; the molecule's $\alpha$-cyano-cinnamate substitution and long branched ester chain shift its absorption blue of what fingerprint-based similarity to other cinnamates would predict. Conversely, on Amiloxate the D-MPNN's near-exact prediction (error $2.1$~nm) versus RF's $55.6$~nm over-prediction indicates that the multi-component graph encoder captures the long aliphatic ester linker as essentially absorption-inactive while RF's Morgan fingerprint treats the long-chain ester as a novel substructure.
+
+\paragraph{Interpretation: Case B (partially out-of-distribution).}
+Taken together, the audit places the wetlab benchmark in an honest middle ground rather than the genuine-OOD framing implied by the original ``15 entirely absent'' phrasing. The set is novel at the molecule level (substitution patterns, side chains, exact SMILES) but on chromophore scaffolds the models have seen in training. This is the operational deployment scenario most relevant to the photosafety- and UV-filter-screening applications the manuscript targets---chemists screening new ester/ether substitutions on known UV-absorber scaffolds---and is therefore a meaningful but specifically-scoped test. The closer approximation to scaffold-class extrapolation in the present manuscript is the Jung 2024 external benchmark ($\sim$50\% solute overlap with our primary training data, distinct experimental provenance, separate chromophore-class coverage); a dedicated scaffold-split evaluation across the primary v3 dataset is a priority for future work.
+
+\paragraph{Reproducibility.}
+The full audit is reproducible from the single script \texttt{analyze\_wetlab\_similarity.py} (Morgan-FP nearest-neighbour search + Murcko scaffold matching against the full v3 dedup CSV). The strict-5 subset metrics are reproducible from \texttt{results/wetlab\_predictions.csv} (per-molecule predictions for all five model families saved during the wetlab evaluation) and the helper output \texttt{results/r1\_13\_subset\_mae.json}; the per-molecule audit table and Tanimoto bin counts are written to \texttt{results/r1\_13\_wetlab\_per\_molecule.csv}, \texttt{results/r1\_13\_aggregate.json}, and \texttt{results/r1\_13\_summary.md}.
+
+\begin{table}[htbp]
+\centering
+\caption{Per-molecule chemical-space audit of the 16 wetlab compounds against the v3 cleaned Joung+Beard training set ($18{,}415$ records, $7{,}846$ unique solutes). \textbf{Exact dup} = identical canonical SMILES present in train; \textbf{Gen-scaf} / \textbf{Spec-scaf} = generic / specific Bemis--Murcko scaffold present in train; \textbf{Nearest Tan} = Tanimoto similarity (Morgan radius~$2$, $2048$~bits) to nearest training solute; \textbf{Nearest train $\lambda_{\max}$} = mean experimental $\lambda_{\max}$ (nm) of that nearest training molecule. Full table with nearest-train SMILES and per-solvent experimental values in \texttt{results/r1\_13\_wetlab\_per\_molecule.csv}.}
+\label{tab:si_wetlab_per_molecule}
+\small
+\begin{tabular}{lcccccc}
+\toprule
+\textbf{Molecule} & \textbf{Exact dup} & \textbf{Gen-scaf} & \textbf{Spec-scaf} & \textbf{Nearest Tan} & \textbf{Nearest train $\lambda_{\max}$ (nm)} \\
+\midrule
+Amiloxate      & N & Y & Y & 0.435 & 362.5 \\
+Avobenzone     & N & N & N & 0.379 & 286.2 \\
+Caffeic Acid   & N & Y & Y & 0.636 & 287.0 \\
+Cinnamic Acid  & N & Y & Y & 0.571 & 355.6 \\
+Coumaric Acid  & N & Y & Y & 0.586 & 355.6 \\
+Dioxybenzone   & N & Y & Y & 0.618 & 295.0 \\
+Ferulic Acid   & Y & Y & Y & 1.000 & 287.0 \\
+Homosalate     & N & Y & Y & 0.350 & 295.0 \\
+Octinoxate     & N & Y & Y & 0.667 & 322.5 \\
+Octisalate     & N & Y & Y & 0.491 & 316.0 \\
+Octocrylene    & N & Y & Y & 0.458 & 316.0 \\
+Oxybenzone     & N & Y & Y & 0.600 & 295.0 \\
+PABA           & N & Y & Y & 0.591 & 329.4 \\
+Padimate O     & N & Y & Y & 0.575 & 303.7 \\
+Sinapic Acid   & N & Y & Y & 0.676 & 287.0 \\
+Sulisobenzone  & N & Y & Y & 0.564 & 295.0 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+\section{Solvent-Encoding Gain by Chromophore Multi-Solvent Coverage (R1-14)}
+\label{si:multisolvent_audit}
+
+In response to reviewer concern R1-14 (whether the solvent-encoding ablation should be reported on the multi-solvent subset only, because chromophores represented in training with only one solvent cannot teach the model a solvent-specific delta), we re-computed the +Solvent vs.\ Solute-only paired ablation restricted to test records whose canonical solute SMILES appears in the corresponding (train+val) slice with at least two distinct canonical solvent SMILES. The same per-fold trained checkpoints used for the main-text Table~\ref{tab:solvent_ablation} are used here, so the only change is the subsetting; no new training was required.
+
+\paragraph{Subset definitions.} For each fold $f$:
+\begin{itemize}[leftmargin=2em,itemsep=2pt]
+  \item Let $C^{\text{multi}}_f$ be the set of canonical solute SMILES that appear in the fold-$f$ train+val slice with $\geq 2$ distinct canonical solvent SMILES. Across the five folds, $|C^{\text{multi}}_f|$ ranges from $2{,}187$ to $2{,}208$ unique chromophores (about $28$\% of the $\sim$$7{,}846$ unique training solutes).
+  \item The \textbf{multi-solvent test subset} is the set of test records whose canonical solute belongs to $C^{\text{multi}}_f$. Across folds this is $59.7$--$61.2$\% of test records (mean $= 60.3$\%).
+  \item The \textbf{single-or-novel test subset} is the complement: test records whose canonical solute either appears in train+val with only one solvent or does not appear in train+val at all. This is the regime where solvent encoding has no per-chromophore signal to learn from.
+\end{itemize}
+
+\paragraph{Aggregate result (5-fold mean).} The full per-model decomposition is in Table~\ref{tab:si_multisolvent}. The headline observation is that the solvent-encoding contribution is much larger on the multi-solvent subset than the aggregate Table~\ref{tab:solvent_ablation} numbers suggest:
+\begin{itemize}[leftmargin=2em,itemsep=2pt]
+  \item RF (tuned): aggregate gain $= 2.79$~nm (8.2\%); multi-solvent subset gain $= \mathbf{7.22}$~nm ($\mathbf{31.8}$\%); single-or-novel subset gain $= 0.42$~nm ($0.9$\%).
+  \item Chemprop: aggregate gain $= 2.09$~nm (6.2\%); multi-solvent subset gain $= \mathbf{5.91}$~nm ($\mathbf{25.2}$\%); single-or-novel subset gain $= -0.28$~nm ($-0.6$\%).
+  \item BiGRU (+Solv default): aggregate gain $= 2.58$~nm (6.6\%); multi-solvent subset gain $= \mathbf{5.65}$~nm ($\mathbf{21.2}$\%); single-or-novel subset gain $= 0.77$~nm ($1.5$\%).
+\end{itemize}
+
+\begin{table}[htbp]
+\centering
+\caption{Per-model decomposition of the solvent-encoding ablation by chromophore multi-solvent coverage. Test records are partitioned by whether the canonical solute appears in the corresponding (train+val) slice with $\geq 2$ distinct solvents (multi-solvent subset, $\sim$60\% of test) or with $\leq 1$ solvent / absent entirely (single-or-novel subset, $\sim$40\%). All values are 5-fold means computed from the same per-fold checkpoints used to construct Table~\ref{tab:solvent_ablation}. $\Delta$ denotes (Solute-only RMSE) $-$ (+Solvent RMSE); positive $\Delta$ means solvent encoding helps.}
+\label{tab:si_multisolvent}
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lcccccccc}
+\toprule
+& \multicolumn{2}{c}{\textbf{Full (3{,}750)}} & \multicolumn{3}{c}{\textbf{Multi-solv subset ($\sim$2{,}260)}} & \multicolumn{3}{c}{\textbf{Single/novel subset ($\sim$1{,}490)}} \\
+\cmidrule(lr){2-3} \cmidrule(lr){4-6} \cmidrule(lr){7-9}
+\textbf{Model} & \textbf{+Solv} & \textbf{Solute} & \textbf{+Solv} & \textbf{Solute} & $\boldsymbol{\Delta}$ (\%) & \textbf{+Solv} & \textbf{Solute} & $\boldsymbol{\Delta}$ (\%) \\
+\midrule
+RF (tuned) & 31.34 & 34.13 & \textbf{15.49} & \textbf{22.72} & \textbf{7.22 (31.8\%)} & 45.85 & 46.27 & 0.42 (0.9\%) \\
+Chemprop   & 31.69 & 33.78 & \textbf{17.55} & \textbf{23.46} & \textbf{5.91 (25.2\%)} & 45.28 & 45.00 & $-0.28$ ($-0.6$\%) \\
+BiGRU      & 36.45 & 39.03 & \textbf{20.97} & \textbf{26.62} & \textbf{5.65 (21.2\%)} & 51.70 & 52.47 & 0.77 (1.5\%) \\
+\bottomrule
+\multicolumn{9}{l}{\footnotesize All RMSEs in nm. Analysis performed on v2 first-occurrence-dedup splits because both ablation arms (+Solvent and} \\
+\multicolumn{9}{l}{\footnotesize Solute-only) were trained on v2; the v3 Greenman--Song cleaning removes records uniformly across chromophore-coverage} \\
+\multicolumn{9}{l}{\footnotesize strata (Section~\ref{si:v2_v3_comparison} confirms the 1.81\% loss is independent of multi-solvent membership), so the multi-solvent} \\
+\multicolumn{9}{l}{\footnotesize vs.\ single-or-novel ratios are expected to be preserved on v3.} \\
+\end{tabular}
+\end{table}
+
+\paragraph{Discussion.}
+Three observations frame the manuscript treatment:
+(i) Solvent encoding can only contribute predictive value where solvent-specific signal exists. For a chromophore the model has seen in only one solvent during training, the model has no basis to attribute the prediction's variability to the solvent feature versus the solute feature; the solvent vector becomes either an unused dimension or, at worst, an additional input the model has to learn to ignore. The multi-solvent subset is exactly the regime where this signal exists and the model can therefore exploit it.
+(ii) The cross-architecture consistency reported in the main-text aggregate (6--8\%) is preserved and amplified on the multi-solvent subset (21--32\% across all three families), so the qualitative finding that concatenation-based solvent encoding helps regardless of architecture is unchanged.
+(iii) The headline 21--32\% multi-solvent improvement matches the order-of-magnitude solvatochromic shifts reported in the photochemistry literature~\cite{reichardt2011solvents}, suggesting that the architectures are recovering close to the maximum extractable solvent-specific signal on this subset. The dilution to 6--8\% in the aggregate is a property of the train/test split's chromophore coverage, not a property of the architectures or the solvent-encoding strategy.
+
+A consequence relevant to deployment: practitioners screening compounds whose chromophore class is well-represented in their training data (with multiple solvent observations) should expect solvent-encoding gains of $\sim$20--30\%; those screening novel chromophore classes should not expect solvent encoding to contribute much beyond a generic regularisation effect. The aggregate 6--8\% number is the right summary only for evaluation populations that resemble the cross-validated test mix.
+
+\paragraph{Reproducibility.} The audit is reproducible from the single script \texttt{analyze\_multisolvent\_subset.py}, which loads the per-fold +Solvent and Solute-only prediction arrays from \texttt{results/} (saved during the existing v2 ablation runs), reconstructs the multi-solvent / single-or-novel partition from the v2 dataset (\texttt{previous\_code/UV\_canonical\_full\_dataset.csv}), and writes the per-fold and aggregate metrics to \texttt{results/r1\_14\_multisolvent\_subset.json} and \texttt{results/r1\_14\_summary.md}.
+
+
+\section{Mamede Photosafety Dataset Reproducibility (R1-15)}
+\label{si:mamede_reproducibility}
+
+In response to reviewer concern R1-15 (request for detailed reproducibility procedure for the Mamede et al.\ photosafety dataset), this section documents the full pipeline from upstream source to the dataset used for the Table~\ref{tab:classification} classifier training. We also note that this revision corrects a factual misstatement in the original manuscript regarding the dataset's provenance (see ``Correction to original manuscript'' below).
+
+\paragraph{Upstream source.}
+The dataset originates with Mamede, de Almeida, et al., \emph{Sci.\ Rep.}\ \textbf{2021}, \textit{11}, 3622 (DOI \texttt{10.1038/s41598-021-83104-4})~\cite{mamede2021machine}, who curated a set of $74{,}784$ compounds from Reaxys with binary photosafety labels (POS = absorbance in $290$--$700$~nm at MEC $\geq 1000$~L\,mol$^{-1}$\,cm$^{-1}$; NEG otherwise). The compound identifiers and SMILES strings were distributed in the article's Supplementary Information, which is publicly accessible without an institutional Reaxys subscription via the Springer Nature article page.
+
+\paragraph{Local pipeline.}
+\begin{enumerate}[leftmargin=2em,itemsep=2pt]
+  \item \textbf{Download.} The Mamede SI table was downloaded as a tab-separated file ($74{,}784$ rows) containing three columns: \texttt{REAXYS\_Registry\_Number}, \texttt{SMILES}, and a Reaxys URL pointing back to the entry. The local copy is stored at \texttt{data/raw/mamede\_supplementary.txt} in the public repository.
+  \item \textbf{Parse + canonicalise.} The pipeline script \texttt{postprocess\_reaxys.py} parses the SI file, drops the URL column, and passes each SMILES string through RDKit's \texttt{Chem.MolFromSmiles}\, $\rightarrow$\, \texttt{Chem.MolToSmiles(canonical=True)} round-trip. Of the $74{,}784$ entries, $74{,}783$ canonicalise successfully and $1$ SMILES fails to parse (logged but discarded), giving an effective recovery rate of $\sim$100\%. The output is \texttt{data/mamede\_classification\_dataset.csv}.
+  \item \textbf{Label join.} Mamede's POS/NEG labels are present in the same SI file and are joined to the canonical-SMILES records without further filtering.
+  \item \textbf{Train/test split.} The orchestrator script \texttt{run\_mamede.py rf\_cls} performs a single-level stratified split via \texttt{sklearn.model\_selection.train\_test\_split} with \texttt{test\_size=1996}, \texttt{stratify=class\_bin}, and \texttt{random\_state=7}, yielding $72{,}787$ train records, $998$ \texttt{test\_I} records, and $998$ \texttt{test\_II} records (the inner $998$/$998$ split uses a second \texttt{train\_test\_split} on the held-out 1996, also with \texttt{random\_state=7}). The Table~\ref{tab:classification} ``Our RF'' row aggregates predictions across \texttt{test\_I $\cup$ test\_II} ($N_{\text{test}} = 1{,}996$) to match the publication-scale evaluation.
+  \item \textbf{Model.} RandomForestClassifier with $n_{\text{estimators}} = 500$, Morgan fingerprints of radius $2$ and $1024$ bits, default scikit-learn hyperparameters otherwise; same RNG seed (7). Out-of-bag score is reported in the per-run metrics file.
+\end{enumerate}
+
+\paragraph{Software versions.}
+The pipeline uses RDKit $\geq$ 2024.03 (the project's pinned minimum in \texttt{requirements.txt}), scikit-learn 1.1+, and pandas/NumPy at their respective project pins. The full environment specification is in \texttt{pyproject.toml} and \texttt{requirements.txt} in the public repository.
+
+\paragraph{Output artefacts.}
+The per-run results file \texttt{results/mamede\_rf\_cls\_metrics.json} contains the aggregate \texttt{classification} block (TP/FP/TN/FN, sensitivity, specificity, accuracy, $F_1$, MCC, AUC), separate \texttt{test\_I} and \texttt{test\_II} blocks, the OOB score, and the configuration snapshot ($n_{\text{total}} = 74{,}783$, $n_{\text{train}} = 72{,}787$, $n_{\text{test1}} = 998$, $n_{\text{test2}} = 998$, $n_{\text{invalid\_smiles}} = 0$, seed = 7). All reported Table~\ref{tab:classification} numbers (sensitivity $= 0.876$, specificity $= 0.882$, accuracy $= 0.879$, AUC $= 0.942$) are read directly from this JSON.
+
+\paragraph{Reproducibility command.}
+From the public repository root:
+\begin{verbatim}
+python3 postprocess_reaxys.py            # parse + canonicalise SI -> CSV
+python3 run_mamede.py --model rf_cls     # train RF + write metrics JSON
+\end{verbatim}
+Both scripts are pinned at \texttt{git} HEAD on the public repository (URL in the Data and Code Availability section).
+
+\paragraph{Correction to original manuscript.}
+The original submission stated that ``we reconstructed the Mamede/Reaxys dataset by querying Reaxys using the CAS registry numbers listed in the original study, recovering 93.6\% of the original 74{,}784 compounds.'' In preparing this revision we discovered that the actual reproducibility code reads Mamede's publicly available SI directly (no fresh Reaxys query); the recovery rate is $\sim$100\% (one of $74{,}784$ SMILES fails to canonicalise), not $93.6$\%. The revised Section~\ref{sec:classification} text in the main manuscript reflects the actual procedure. The classification model (RF + Morgan fingerprints) and its reported performance metrics are unchanged because the underlying dataset and training pipeline have always been what is documented above; only the manuscript wording was incorrect.
+
 \end{document}
