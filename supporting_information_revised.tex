@@ -6,6 +6,7 @@
 \usepackage{multirow}
 \usepackage{siunitx}
 \usepackage[dvipsnames]{xcolor}
+\usepackage{enumitem}
 
 % Mirror the vector/matrix shorthand from the main paper (needed for the
 % moved equation blocks in the new Detailed Model Architectures section).
@@ -1095,5 +1096,7 @@ Figure~\ref{fig:si_chemberta_diagnostic} shows (a) the train vs.\ test $\lambda_
 
 \paragraph{Reproducibility.}
 Reproducible from the single script \texttt{analyze\_chemberta\_ceiling.py}, which loads the per-fold ChemBERTa predictions from \texttt{results/chemberta\_v3\_fold\{0..4\}\_*.npy} and the v3 dataset CSV, computes the three-hypothesis diagnostics, and writes \texttt{results/r1\_16\_chemberta\_diagnostic.\{json,png\}}, \texttt{results/r1\_16\_chemberta\_diagnostic\_top\_y.csv} (per-record diagnostic for the 200 test records with highest experimental $\lambda_{\max}$), and \texttt{results/r1\_16\_summary.md}.
+
+\bibliography{Proposal}
 
 \end{document}

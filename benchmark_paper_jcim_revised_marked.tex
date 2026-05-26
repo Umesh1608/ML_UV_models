@@ -24,12 +24,14 @@
 \newcommand{\gp}[1]{\cellcolor{goodpred}{#1}}
 
 % ===== Change-tracking macros (marked copy ONLY) =====
-% \added{...} = new/replacement text (blue); \removed{...} = deleted text (red, struck through).
+% \added{...} = new/replacement text (blue); \removed{...} = deleted text (red).
+% Strikethrough via soul's \st was the original intent but it cannot span paragraph
+% breaks or table cells; the marked copy therefore uses colour-only marking.
 % The clean copy contains the final text only and does not load these macros.
 \definecolor{addedblue}{RGB}{0,0,180}
 \definecolor{removedred}{RGB}{200,0,0}
-\newcommand{\added}[1]{\textcolor{addedblue}{#1}}
-\newcommand{\removed}[1]{\textcolor{removedred}{\st{#1}}}
+\newcommand{\added}[1]{{\color{addedblue}#1}}
+\newcommand{\removed}[1]{{\color{removedred}#1}}
 
 % ===== Title and Authors =====
 \title{When Do Simple Models Win? Machine Learning Architectures for UV Absorption Prediction \removed{and Insights for General Molecular Property Prediction}}
@@ -346,7 +348,7 @@ Figure~\ref{fig:model_overview} provides a high-level comparison of the \removed
 % ============== Architecture Overview: 4-panel (R2-6: added D-MPNN panel) ==============
 
 \tikzstyle{archbox} = [rectangle, rounded corners=4pt, minimum width=4cm, minimum height=0.85cm, text centered, draw=black, font=\small]
-\tikzstyle{archboxnarrow} = [rectangle, rounded corners=4pt, minimum width=3.0cm, minimum height=0.85cm, text centered, draw=black, font=\small]
+\tikzstyle{archboxnarrow} = [rectangle, rounded corners=4pt, minimum width=3.0cm, minimum height=0.85cm, align=center, draw=black, font=\small]
 \tikzstyle{archarrow} = [thick,-{Stealth[length=2.5mm]}]
 
 \begin{figure}[htbp]
@@ -698,7 +700,7 @@ Table~\ref{tab:model_comparison} presents the performance of all models on the p
 \midrule
 RF + Morgan FP        & \textbf{31.50 $\pm$ 1.47} & \textbf{15.37 $\pm$ 0.22} & \textbf{0.914 $\pm$ 0.007} & \textbf{0.956 $\pm$ 0.004} \\
 Chemprop (D-MPNN)     & 33.15 $\pm$ 3.27          & 18.11 $\pm$ 3.02          & 0.904 $\pm$ 0.020          & 0.952 $\pm$ 0.011 \\
-\added{Chemprop (tuned, R1-12)$^{\ddagger}$ & 28.83 $\pm$ 1.32 & 13.19 $\pm$ 2.16 & 0.928 $\pm$ 0.006 & 0.963 $\pm$ 0.003 \\}
+Chemprop (tuned, R1-12)$^{\ddagger}$ & 28.83 $\pm$ 1.32 & 13.19 $\pm$ 2.16 & 0.928 $\pm$ 0.006 & 0.963 $\pm$ 0.003 \\
 XGBoost + Morgan FP   & 33.92 $\pm$ 1.26          & 20.25 $\pm$ 0.41          & 0.900 $\pm$ 0.006          & 0.950 $\pm$ 0.003 \\
 BiGRU + Solvent       & 36.45 $\pm$ 1.12$^{\dagger}$ & 20.70 $\pm$ 0.51$^{\dagger}$ & 0.884 $\pm$ 0.006$^{\dagger}$ & 0.940 $\pm$ 0.003$^{\dagger}$ \\
 BiGRU (tuned, 3L/256u)& 36.20 $\pm$ 1.20          & 18.81 $\pm$ 0.58          & 0.886 $\pm$ 0.007          & 0.944 $\pm$ 0.004 \\
@@ -708,11 +710,11 @@ ChemBERTa (pretrained)& 54.09 $\pm$ 3.57          & 26.78 $\pm$ 2.35          & 
 \multicolumn{5}{l}{\footnotesize $^{\dagger}$The default BiGRU and MAE-loss XGBoost rows are reported on the v2 (18{,}755-row, first-occurrence-dedup)} \\
 \multicolumn{5}{l}{\footnotesize dataset; v3 retraining of these ablation variants is not in scope for the current revision and the qualitative comparisons} \\
 \multicolumn{5}{l}{\footnotesize (default vs.\ tuned BiGRU; MSE vs.\ MAE XGBoost) do not depend on which dedup protocol was used.} \\
-\added{\multicolumn{5}{l}{\footnotesize $^{\ddagger}$Tuned via a 25-trial Optuna probe matching the BiGRU HPO budget (best config: $d_h = 900$, depth $= 4$, dropout $= 0.1$,} \\}
-\added{\multicolumn{5}{l}{\footnotesize FFN $2\text{L}\times 800$, batch $= 32$, 5.6M params; configuration in SI Section~S13). The 2.67~nm advantage of tuned Chemprop over RF is} \\}
-\added{\multicolumn{5}{l}{\footnotesize borderline at $n = 5$ folds: paired $t$-test $p = 0.044$ but Wilcoxon $p = 0.125$; the conservative non-parametric test does not reject} \\}
-\added{\multicolumn{5}{l}{\footnotesize the null. Default Chemprop is retained as the bolded primary row to match the evaluation convention used by published Chemprop} \\}
-\added{\multicolumn{5}{l}{\footnotesize benchmarks on these data~\cite{joung2021deep,beard2019comparative,greenman2022multifidelity,jung2024machine,chempropv2_2024}.} \\}
+\multicolumn{5}{l}{\footnotesize $^{\ddagger}$Tuned via a 25-trial Optuna probe matching the BiGRU HPO budget (best config: $d_h = 900$, depth $= 4$, dropout $= 0.1$,} \\
+\multicolumn{5}{l}{\footnotesize FFN $2\text{L}\times 800$, batch $= 32$, 5.6M params; configuration in SI Section~S13). The 2.67~nm advantage of tuned Chemprop over RF is} \\
+\multicolumn{5}{l}{\footnotesize borderline at $n = 5$ folds: paired $t$-test $p = 0.044$ but Wilcoxon $p = 0.125$; the conservative non-parametric test does not reject} \\
+\multicolumn{5}{l}{\footnotesize the null. Default Chemprop is retained as the bolded primary row to match the evaluation convention used by published Chemprop} \\
+\multicolumn{5}{l}{\footnotesize benchmarks on these data~\cite{joung2021deep,beard2019comparative,greenman2022multifidelity,jung2024machine,chempropv2_2024}.} \\
 \end{tabular}}
 \removed{%
 \begin{tabular}{lcccc}
