@@ -40,3 +40,7 @@ previous_code/
 *.synctex.gz
 *.fdb_latexmk
 *.fls
+.de_ai.py
+*.preai
+.build_check/
+*.backup
