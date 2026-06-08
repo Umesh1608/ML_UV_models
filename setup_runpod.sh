@@ -15,7 +15,7 @@
 # tmux session as that user.
 #
 # Usage on a fresh pod (MUST be run as root):
-#   curl -O https://raw.githubusercontent.com/Umesh1608/Paper-1_New/main/setup_runpod.sh
+#   curl -O https://raw.githubusercontent.com/Umesh1608/ML_UV_models/main/setup_runpod.sh
 #   bash setup_runpod.sh
 # Or after rsync:
 #   bash /workspace/paper1_new_cl/setup_runpod.sh
