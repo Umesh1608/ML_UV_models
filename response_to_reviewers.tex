@@ -360,19 +360,6 @@ The parametric and non-parametric tests disagree: the paired $t$-test marginally
   \item \textbf{R1-2 response amended.} Replaced the previous ``variance is intrinsic to Chemprop on this dataset rather than protocol-driven'' clause with an explicit pointer to the R1-12 HPO finding, which demonstrates that the variance is in fact a consequence of undertrained defaults and falls away with appropriate HPO.
 \end{changes}
 
-\subsection*{Comment R1-19: Cite the Chemprop v2 paper}
-\begin{reviewer}
-Page 17 line 13: The Chemprop v2 paper (\url{https://doi.org/10.1021/acs.jcim.5c02332}) should be cited for the implementation that's used in this work.
-\end{reviewer}
-
-\response{We thank the reviewer for pointing this out and have added the Chemprop v2 release paper~\cite{chempropv2_2024} (Heid et al., \textit{J.\ Chem.\ Inf.\ Model.} \textbf{2024}, \textit{64}, 9--17, DOI 10.1021/acs.jcim.5c02332) to the bibliography and cited it in the D-MPNN Methods paragraph, in the Table~2 R1-12 footnote (where it supports the rationale for retaining the published defaults as our headline row for apples-to-apples comparison with prior benchmarks), and in SI Section~S13. This change was bundled with the R1-12 manuscript edits, which is why the R1-19 entry is concise.}
-
-\begin{changes}
-  \item \textbf{Bibliography.} Added \texttt{chempropv2\_2024} (Heid, Greenman, Chung, Li, Graff, Jorner, McGill, Glandorf, Vermeire, Stark, Yang, Coley, Green, \textit{J.\ Chem.\ Inf.\ Model.} \textbf{2024}, \textit{64}, 9--17) to \texttt{Proposal.bib}.
-  \item \textbf{Methods (D-MPNN subsection).} Added the Chemprop v2 citation alongside the original Yang et al.\ message-passing reference.
-  \item \textbf{Supporting Information Section~S13 and Table~2 footnote.} Added the Chemprop v2 citation in support of the rationale for retaining defaults as the primary row.
-\end{changes}
-
 \subsection*{Comment R1-13: Wetlab dataset scaffold/dye-family OOD check}
 \begin{reviewer}
 The claim that the wetlab validation set represents a ``genuine out-of-distribution test'' (pg.\ 32 line 24) is worth scrutinising. Are these 16 molecules genuinely outside the training distribution, or are they on chromophore scaffolds that are well-represented in the training data? A simple Tanimoto-similarity-to-nearest-training-neighbour audit (and a Bemis--Murcko scaffold-match check) would clarify how OOD the wetlab benchmark really is. If the wetlab compounds are on scaffolds well-represented in the training data, the framing should reflect that.
@@ -461,6 +448,49 @@ A consequence relevant to deployment: practitioners screening compounds whose ch
   \item \textbf{Code release.} Added \texttt{analyze\_multisolvent\_subset.py}; per-fold and aggregate outputs land in \texttt{results/r1\_14\_multisolvent\_subset.json} and the human-readable \texttt{results/r1\_14\_summary.md}.
 \end{changes}
 
+\subsection*{Comment R1-15: Mamede/Reaxys dataset reproducibility}
+\begin{reviewer}
+The Photosafety Classification section briefly describes a reconstruction of the Mamede et al.\ dataset by re-querying Reaxys with the original study's CAS registry numbers, with a $93.6$\% recovery rate. This is too thin for reproducibility purposes. What was the actual query (search fields, filters, export settings)? When was it run (Reaxys changes over time)? How were structures canonicalised? What was the train/test split protocol? Without these details, no independent reader can reproduce the photosafety classifier reported in Table~6.
+\end{reviewer}
+
+\response{We thank the reviewer for prompting a careful audit of our reproducibility procedure. In preparing this revision, we discovered that the original manuscript's claim that we ``reconstructed the Mamede/Reaxys dataset by querying Reaxys using the CAS registry numbers listed in the original study, recovering $93.6$\%'' was incorrect: the actual reproducibility code reads Mamede et al.'s publicly available Supporting Information (a Reaxys-derived XRN+SMILES list distributed with the \emph{Scientific Reports} article) and canonicalises it through RDKit. The canonicalisation succeeds for $74{,}783$ of the $74{,}784$ SMILES strings in Mamede's SI ($\sim$100\% recovery; one SMILES fails to parse). This procedure is in fact more reproducible than a fresh Reaxys query, because Mamede's SI is publicly accessible without an institutional Reaxys licence; anyone can re-run the pipeline from the SI download forward. We have corrected the manuscript text in the Photosafety Classification section (Photosafety Classification) and added a full reproducibility pipeline (SI download URL (DOI 10.1038/s41598-021-83104-4), RDKit version (\texttt{>= 2024.03}), canonicalisation script (\texttt{postprocess\_reaxys.py}), training script (\texttt{run\_mamede.py rf\_cls}), and the seed-7 stratified train/test split protocol ($72{,}787$ train / $998$ \texttt{test\_I} / $998$ \texttt{test\_II})) to Supporting Information Section~S16. The classification model (RandomForestClassifier, $n_{\text{estimators}} = 500$, Morgan fingerprints of radius $2$ and $1024$ bits) and its reported performance (sensitivity $= 0.876$, specificity $= 0.882$, accuracy $= 0.879$, AUC $= 0.942$) are unchanged because the underlying dataset and training pipeline have always been what is now documented in SI Section~S16; only the manuscript wording was incorrect.
+
+This is the second factual correction surfaced by the revision process, the first being the R1-12-driven correction in the R1-2 response to the claim that Chemprop's high default variance is ``intrinsic to Chemprop on this dataset'', the R1-12 HPO probe demonstrated the variance falls away with appropriate hyperparameter tuning. We list both corrections in the Summary of Major Changes for transparency.}
+
+\begin{changes}
+  \item \textbf{the Photosafety Classification section (Photosafety Classification, pg.\ 33).} Replaced ``We reconstructed the Mamede/Reaxys dataset by querying Reaxys using the CAS registry numbers listed in the original study, recovering 93.6\% of the original 74,784 compounds. The 6.4\% gap arises from deprecated CAS entries\ldots'' with the corrected procedure: the dataset comes from Mamede's published SI (a Reaxys-derived XRN+SMILES table), RDKit canonicalisation succeeds for $74{,}783$ of $74{,}784$ entries ($\sim$100\% recovery), and full pipeline detail is in SI Section~S16.
+  \item \textbf{Supporting Information, new Section~S16 ``Mamede Photosafety Dataset Reproducibility (R1-15).''} Added (a) upstream source citation with DOI, (b) the five-step local pipeline (download, parse + canonicalise, label join, train/test split, model), (c) software versions (RDKit $\geq 2024.03$, scikit-learn 1.1+, seed = 7), (d) output artefacts (\texttt{results/mamede\_rf\_cls\_metrics.json}), (e) reproducibility command (two-line shell snippet), and (f) an explicit ``Correction to original manuscript'' paragraph noting the corrected provenance and that the model and metrics are unchanged.
+  \item \textbf{Public repository.} The pipeline scripts (\texttt{postprocess\_reaxys.py}, \texttt{run\_mamede.py}), the upstream Mamede SI table (\texttt{data/raw/mamede\_supplementary.txt}), and the resulting per-fold metrics JSON (\texttt{results/mamede\_rf\_cls\_metrics.json}) are all in the public repository linked in the Data and Code Availability section.
+  \item \textbf{No model or metric changes.} The reported Table~6 numbers (sensitivity, specificity, accuracy, AUC) are unchanged because the underlying RF training has always used the corrected SI-derived dataset; only the manuscript description was wrong.
+\end{changes}
+
+\subsection*{Comment R1-16: ChemBERTa $\sim$600~nm prediction ceiling explanation}
+\begin{reviewer}
+ChemBERTa's parity plot shows a noticeable horizontal cluster of predictions near 600~nm, with experimental $\lambda_{\max}$ values extending well beyond that. What is the source of this prediction ceiling? Is it an artefact of input truncation, target normalisation, training-data imbalance, or some combination?
+\end{reviewer}
+
+\response{We diagnosed this with a three-hypothesis investigation reported in new Supporting Information Section~S20. The key finding is that ChemBERTa's predictions \emph{never exceed $556.4$~nm} (a hard ceiling, not gradual degradation) even though the v3 training distribution extends to $1{,}100$~nm; on the $1{,}555$ test records with experimental $\lambda_{\max} > 600$~nm, $98.5$\% are underpredicted by $\geq 50$~nm (median underprediction $= 126$~nm).
+
+\textbf{Hypothesis testing:}
+\begin{itemize}[leftmargin=2em,itemsep=2pt]
+  \item \textbf{(H1) Training-target imbalance, supported.} Fold-0 train contains only $8.3$\% of records with $\lambda_{\max} > 600$~nm, $2.3$\% with $> 700$~nm, and $0.4$\% with $> 800$~nm. The deep-coloured chromophores are a long thin tail in the training distribution.
+  \item \textbf{(H2) Output-range constraint, supported.} Max ChemBERTa prediction = $556$~nm regardless of input. With target normalisation (mean $= 0$, std $= 1$ during training) and MAE loss, the regression head minimises pooled MAE by regressing toward the training mean for inputs it cannot discriminate, and the maximum achievable output is bounded by the magnitudes of [CLS] activations the model has learned to produce.
+  \item \textbf{(H3) SMILES-length truncation, ruled out.} Only $0.23$\% of test records exceed the MAX\_LEN $= 256$ token cap. Mean SMILES length increases from $61$ chars at $\lambda_{\max} < 400$~nm to $102$ chars at $\lambda_{\max} > 700$~nm, but the truncation rate per bin is uniformly $\leq 0.5$\%. Truncation is not the dominant cause.
+\end{itemize}
+
+\textbf{Diagnosis.} The proximate cause is the regression head's output range (H2). The deeper cause is the pretraining-representation mismatch: ChemBERTa was pretrained on ZINC (\texttt{seyonec/ChemBERTa-zinc-base-v1}), whose drug-like molecules are dominated by short-wavelength absorbers; the [CLS] embeddings ChemBERTa produces for long-wavelength chromophores (extended polyenes, push--pull cyanines, BODIPYs, porphyrins) are not well-separated in the pretrained representation from those of medium-wavelength absorbers, and the regression head fine-tuned on top of these collapsed embeddings cannot push its predictions beyond the $\sim$556~nm boundary even when shown long-wavelength training targets, because the input representations are not sufficiently distinct. Training-target imbalance (H1) compounds this. The remedy is either to pretrain on a UV-Vis-rich corpus (a different pretraining task than ZINC's drug-likeness) or to augment v3 with long-wavelength chromophores.
+
+We have added (a) a paragraph titled ``ChemBERTa's $\sim$556~nm prediction ceiling'' to the Error Analysis subsection in the main text with the headline numbers and the three-factor diagnosis, (b) a new Limitations bullet warning practitioners not to rely on ChemBERTa's point predictions for deep-coloured chromophores, and (c) new SI Section~S20 with the full three-hypothesis investigation, a three-panel diagnostic figure (train/test distributions, parity colour-coded by SMILES truncation, SMILES length by $\lambda_{\max}$ bin), and the per-bin truncation table.}
+
+\begin{changes}
+  \item \textbf{Error Analysis subsection (pg.\ 28).} Added a new paragraph titled ``ChemBERTa's $\sim$556~nm prediction ceiling'' summarising the diagnostic and ruling out SMILES truncation as the cause. Forward pointer to SI Section~S20.
+  \item \textbf{Limitations section (pg.\ 40).} Added a new bullet ``\textbf{ChemBERTa has a hard $\sim$556~nm prediction ceiling}'' giving practitioners guidance for deep-coloured chromophore use cases.
+  \item \textbf{Supporting Information, new Section~S20 ``ChemBERTa $\sim$556~nm Prediction-Ceiling Diagnostic (R1-16).''} Contains the three-hypothesis investigation, the per-bin SMILES-length table (Table~S27), the three-panel diagnostic figure (Figure~S7), the mechanistic explanation, and reproducibility pointer to \texttt{analyze\_chemberta\_ceiling.py}.
+  \item \textbf{Code release.} Added \texttt{analyze\_chemberta\_ceiling.py}; outputs land in \texttt{results/r1\_16\_chemberta\_diagnostic.\{json,png\}}, \texttt{results/r1\_16\_chemberta\_diagnostic\_top\_y.csv}, and \texttt{results/r1\_16\_summary.md}.
+\end{changes}
+
+\clearpage
+
 \subsection*{Comment R1-17: ``Optical properties'' misclassification of lipophilicity}
 \begin{reviewer}
 Pg.\ 40 (Future Work): lipophilicity is listed alongside fluorescence emission and molar extinction coefficient as a ``related molecular optical property,'' but lipophilicity is a partition-coefficient property, not an optical one. This should be corrected.
@@ -483,23 +513,55 @@ The Data and Code Availability section states that code will be released upon pu
   \item \textbf{Data and Code Availability section (pg.\ 41).} Replaced the future-tense statement (``will be released on GitHub under the MIT license upon publication, including trained model weights and preprocessing scripts'') with the present-tense statement (``is publicly available at \url{https://github.com/Umesh1608/Paper-1_New} under the MIT license, including trained model weights, preprocessing scripts, and the analyses associated with this revision (e.g., \texttt{analyze\_nonlocal\_subsets.py}, \texttt{analyze\_deep4chem\_overlap.py}, \texttt{analyze\_chromophore\_leakage.py}, \texttt{analyze\_duplicate\_handling.py}, \texttt{analyze\_wetlab\_similarity.py}, \texttt{tune\_chemprop.py}, and the Greenman--Song duplicate-handling script). The repository has been publicly accessible throughout peer review''). Added \texttt{\textbackslash usepackage\{url\}} to the preamble to support the \texttt{\textbackslash url} command (achemso does not load it by default).
 \end{changes}
 
-\subsection*{Comment R1-15: Mamede/Reaxys dataset reproducibility}
+\subsection*{Comment R1-19: Cite the Chemprop v2 paper}
 \begin{reviewer}
-The Photosafety Classification section briefly describes a reconstruction of the Mamede et al.\ dataset by re-querying Reaxys with the original study's CAS registry numbers, with a $93.6$\% recovery rate. This is too thin for reproducibility purposes. What was the actual query (search fields, filters, export settings)? When was it run (Reaxys changes over time)? How were structures canonicalised? What was the train/test split protocol? Without these details, no independent reader can reproduce the photosafety classifier reported in Table~6.
+Page 17 line 13: The Chemprop v2 paper (\url{https://doi.org/10.1021/acs.jcim.5c02332}) should be cited for the implementation that's used in this work.
 \end{reviewer}
 
-\response{We thank the reviewer for prompting a careful audit of our reproducibility procedure. In preparing this revision, we discovered that the original manuscript's claim that we ``reconstructed the Mamede/Reaxys dataset by querying Reaxys using the CAS registry numbers listed in the original study, recovering $93.6$\%'' was incorrect: the actual reproducibility code reads Mamede et al.'s publicly available Supporting Information (a Reaxys-derived XRN+SMILES list distributed with the \emph{Scientific Reports} article) and canonicalises it through RDKit. The canonicalisation succeeds for $74{,}783$ of the $74{,}784$ SMILES strings in Mamede's SI ($\sim$100\% recovery; one SMILES fails to parse). This procedure is in fact more reproducible than a fresh Reaxys query, because Mamede's SI is publicly accessible without an institutional Reaxys licence; anyone can re-run the pipeline from the SI download forward. We have corrected the manuscript text in the Photosafety Classification section (Photosafety Classification) and added a full reproducibility pipeline (SI download URL (DOI 10.1038/s41598-021-83104-4), RDKit version (\texttt{>= 2024.03}), canonicalisation script (\texttt{postprocess\_reaxys.py}), training script (\texttt{run\_mamede.py rf\_cls}), and the seed-7 stratified train/test split protocol ($72{,}787$ train / $998$ \texttt{test\_I} / $998$ \texttt{test\_II})) to Supporting Information Section~S16. The classification model (RandomForestClassifier, $n_{\text{estimators}} = 500$, Morgan fingerprints of radius $2$ and $1024$ bits) and its reported performance (sensitivity $= 0.876$, specificity $= 0.882$, accuracy $= 0.879$, AUC $= 0.942$) are unchanged because the underlying dataset and training pipeline have always been what is now documented in SI Section~S16; only the manuscript wording was incorrect.
-
-This is the second factual correction surfaced by the revision process, the first being the R1-12-driven correction in the R1-2 response to the claim that Chemprop's high default variance is ``intrinsic to Chemprop on this dataset'', the R1-12 HPO probe demonstrated the variance falls away with appropriate hyperparameter tuning. We list both corrections in the Summary of Major Changes for transparency.}
+\response{We thank the reviewer for pointing this out and have added the Chemprop v2 release paper~\cite{chempropv2_2024} (Heid et al., \textit{J.\ Chem.\ Inf.\ Model.} \textbf{2024}, \textit{64}, 9--17, DOI 10.1021/acs.jcim.5c02332) to the bibliography and cited it in the D-MPNN Methods paragraph, in the Table~2 R1-12 footnote (where it supports the rationale for retaining the published defaults as our headline row for apples-to-apples comparison with prior benchmarks), and in SI Section~S13. This change was bundled with the R1-12 manuscript edits, which is why the R1-19 entry is concise.}
 
 \begin{changes}
-  \item \textbf{the Photosafety Classification section (Photosafety Classification, pg.\ 33).} Replaced ``We reconstructed the Mamede/Reaxys dataset by querying Reaxys using the CAS registry numbers listed in the original study, recovering 93.6\% of the original 74,784 compounds. The 6.4\% gap arises from deprecated CAS entries\ldots'' with the corrected procedure: the dataset comes from Mamede's published SI (a Reaxys-derived XRN+SMILES table), RDKit canonicalisation succeeds for $74{,}783$ of $74{,}784$ entries ($\sim$100\% recovery), and full pipeline detail is in SI Section~S16.
-  \item \textbf{Supporting Information, new Section~S16 ``Mamede Photosafety Dataset Reproducibility (R1-15).''} Added (a) upstream source citation with DOI, (b) the five-step local pipeline (download, parse + canonicalise, label join, train/test split, model), (c) software versions (RDKit $\geq 2024.03$, scikit-learn 1.1+, seed = 7), (d) output artefacts (\texttt{results/mamede\_rf\_cls\_metrics.json}), (e) reproducibility command (two-line shell snippet), and (f) an explicit ``Correction to original manuscript'' paragraph noting the corrected provenance and that the model and metrics are unchanged.
-  \item \textbf{Public repository.} The pipeline scripts (\texttt{postprocess\_reaxys.py}, \texttt{run\_mamede.py}), the upstream Mamede SI table (\texttt{data/raw/mamede\_supplementary.txt}), and the resulting per-fold metrics JSON (\texttt{results/mamede\_rf\_cls\_metrics.json}) are all in the public repository linked in the Data and Code Availability section.
-  \item \textbf{No model or metric changes.} The reported Table~6 numbers (sensitivity, specificity, accuracy, AUC) are unchanged because the underlying RF training has always used the corrected SI-derived dataset; only the manuscript description was wrong.
+  \item \textbf{Bibliography.} Added \texttt{chempropv2\_2024} (Heid, Greenman, Chung, Li, Graff, Jorner, McGill, Glandorf, Vermeire, Stark, Yang, Coley, Green, \textit{J.\ Chem.\ Inf.\ Model.} \textbf{2024}, \textit{64}, 9--17) to \texttt{Proposal.bib}.
+  \item \textbf{Methods (D-MPNN subsection).} Added the Chemprop v2 citation alongside the original Yang et al.\ message-passing reference.
+  \item \textbf{Supporting Information Section~S13 and Table~2 footnote.} Added the Chemprop v2 citation in support of the rationale for retaining defaults as the primary row.
 \end{changes}
 
 \section*{Reviewer 2}
+
+\subsection*{Comment R2-1: Experimental $\lambda_{\max}$ measurement uncertainty}
+\begin{reviewer}
+The reported model errors (RMSE in the $31$--$54$~nm range) should be contextualised against the inherent measurement uncertainty in the experimental $\lambda_{\max}$ values themselves. What is the typical inter-laboratory variability for UV/Vis absorption measurements? How much of the model error is data noise versus genuine model limitation?
+\end{reviewer}
+
+\response{We have quantified this on the v2 first-occurrence-dedup dataset (which retains the full pre-cleaning duplicate distribution; the v3 Greenman--Song cleaning removes high-spread duplicates by design and would understate the noise floor). Two complementary measurements:
+
+\textbf{(a) Within-source duplicate spread (n~=~294 multi-record keys).} Of the $18{,}755$ v2 records, $294$ (canon, solvent) keys appear with multiplicity~$> 1$. The within-key spread distribution is heavily right-skewed: median~$= 0$~nm (most duplicates are perfectly-agreeing re-extractions of the same primary measurement across multiple secondary citations); $86$\% of multi-record keys have spread~$\leq 5$~nm (consistent with typical UV-Vis instrument precision of $1$--$5$~nm); $95$th percentile = $38$~nm; and $4.1$\% have spread~$> 50$~nm (large disagreements likely attributable to lab-to-lab protocol differences or labelling errors). The Greenman--Song 5-nm cleaning rule discards the latter tail, this is the rationale for the R1-8 cleaning, and the audit confirms the threshold is sensibly placed at the boundary between instrument-precision-consistent and protocol-difference-consistent regimes.
+
+\textbf{(b) Inter-source disagreement (Joung vs.\ Beard, n~=~21 paired keys).} For the $21$ (canon, solvent) keys reported in both Joung 2020 and Beard 2019, the median $|\Delta\lambda_{\max}| = 49$~nm (RMSD~$= 48$~nm; p95~$= 76$~nm); only $38$\% of paired observations agree within $5$~nm. We treat this as an upper bound on inter-laboratory disagreement rather than a representative statistic, because the $21$ paired compounds are biased toward chromophores of multi-paper solvatochromic interest, which are exactly the molecules most sensitive to small differences in solvent purity, temperature, and concentration. The small $n$ also limits statistical power.
+
+\textbf{Implication for model error.} The headline RF~$\approx$~Chemprop tie ($31.5$~nm vs.\ $33.2$~nm, $p = 0.16$) and the broader $31$--$54$~nm range of model RMSEs are comparable to the $95$th percentile of the within-source spread distribution ($38$~nm in v2-combined). On the chromophores where the underlying measurements agree perfectly, model error is largely model-attributable; on the chromophores in the $\sim$10\%-tail of high disagreement, model error includes a substantial data-noise component. The diminishing-returns regime for architectural improvement on this dataset is therefore at $\sim$30~nm RMSE, which is where RF and Chemprop currently sit. Closing the residual gap requires either improved data curation at the source or models that explicitly quantify prediction uncertainty alongside the point estimate.
+
+We have added a brief paragraph to the Methods Dataset Description section reporting the within-source and inter-source numbers, and a full SI Section~S17 with the per-source decomposition and reproducibility pipeline.}
+
+\begin{changes}
+  \item \textbf{Methods Dataset Description (pg.\ 9).} Added a new paragraph titled ``Experimental measurement uncertainty'' reporting the within-source numbers ($n = 294$ multi-record keys, median spread $= 0$~nm, $86$\% within $5$~nm, p95 $= 38$~nm) and the inter-source numbers ($n = 21$ Joung--Beard pairs, median $|\Delta| = 49$~nm) with the caveat about the small inter-source $n$ and its biased composition. Forward pointer to SI Section~S17.
+  \item \textbf{Supporting Information, new Section~S17 ``Experimental $\lambda_{\max}$ Uncertainty Audit (R2-1).''} Contains (a) within-source spread table by source (Joung / Beard / v2 combined), (b) inter-source disagreement statistics, (c) discussion of the implication for the model-error budget, and (d) reproducibility command pointing to \texttt{analyze\_experimental\_uncertainty.py}.
+  \item \textbf{Code release.} Added \texttt{analyze\_experimental\_uncertainty.py}; outputs land in \texttt{results/r2\_1\_uncertainty.json} and \texttt{results/r2\_1\_uncertainty\_summary.md}.
+\end{changes}
+
+\subsection*{Comment R2-2: Joung+Beard dataset overview figure}
+\begin{reviewer}
+A visual overview of the primary dataset---the distribution of $\lambda_{\max}$ values, the solvent diversity, and representative chromophore structures---would help readers calibrate the scope and class composition of the benchmark.
+\end{reviewer}
+
+\response{We agree, and have added a three-panel dataset overview figure as new Supporting Information Figure~S1: (a) the $\lambda_{\max}$ histogram across the $18{,}415$ records (median $= 396$~nm, range $[162, 1100]$~nm, with the bulk in the UV/early-visible region 250--500~nm and a long tail of deep-coloured chromophores extending to the near-IR), (b) the top-20 solvents by record count on a log scale (DCM, MeCN, CHCl$_3$, toluene, THF, MeOH, EtOH, \ldots; note the long tail of $\sim$700 rarely-used solvents not shown), and (c) eight representative chromophore structures spanning the major class diversity (hydroxycinnamic acids, linear acenes, push--pull aromatics, azo dyes, BF$_2$-dipyrromethene BODIPYs, push--pull coumarins, extended-quinoid indigo, and porphyrin macrocycles). The figure also helps motivate the non-local subset analysis (Section~5.3): both molecules dominated by local conjugation (hydroxycinnamic acids, BODIPYs) and molecules where extended conjugation and donor--acceptor charge transfer span the entire scaffold (porphyrins, indigo, push--pull cyanines) are represented. We placed this figure in the SI rather than the main text to avoid bloating the main text after R1-10 just compressed it; a forward pointer is added to the Methods Dataset Description paragraph.}
+
+\begin{changes}
+ \item \textbf{Supporting Information (new Section ``Dataset Overview (R2-2)'' as Section~S1.} Added the three-panel figure plus a paragraph describing each panel. Insertion at the top of the SI (between the title block and the existing Section~S1 ``Per-Fold Cross-Validation Results,'' which becomes Section~S2 by document order) no $\backslash$ref's break because the existing section uses $\backslash$label{sec:perfold} and there are no cross-references to it by hardcoded number).
+  \item \textbf{Methods Dataset Description (pg.\ 9).} Added one sentence at the end of the ``After merging and applying the duplicate-handling protocol\ldots 18{,}415 solute--solvent pairs\ldots'' paragraph, pointing to SI Figure~S1.
+  \item \textbf{Figure renumbering propagated.} Inserting the new figure at the top of the SI bumps the existing four SI figures' numbers each by one: BiGRU learning curves S1$\to$S2; ChemBERTa curves S2$\to$S3; Deep4Chem overlap Venn S3$\to$S4; BiGRU character-type saliency S4$\to$S5. The four hardcoded main-text references (lines 294, 897, 902, 1110 of the clean main) were updated accordingly; the marked main uses the existing $\backslash$removed/$\backslash$added wrappers from R1-7 to show the chain of renumbers.
+  \item \textbf{Code release.} Added \texttt{make\_dataset\_overview.py} (RDKit \texttt{MolsToGridImage} for panel (c); matplotlib for panels (a)/(b); solvent-name dictionary in-script). Output: \texttt{results/figure\_dataset\_overview.png}.
+\end{changes}
 
 \subsection*{Comment R2-3: MoleculeNet inclusion plans for the cleaned dataset}
 \begin{reviewer}
@@ -512,6 +574,56 @@ Are there plans to include this benchmark, or a cleaned version of it, in Molecu
   \item \textbf{Data and Code Availability section (pg.\ 41).} Added two sentences immediately after the Mamede dataset description: the v3 cleaned dataset CSV and per-fold CV indices are now explicitly named as artefacts in the public repository; and the planned Zenodo deposit + MoleculeNet contribution PR are noted as forthcoming for the published version.
   \item \textbf{Related Work / Benchmarking perspective paragraph.} \emph{No change.} The existing sentence ``MoleculeNet established a standardized framework for comparing molecular ML models across diverse property prediction tasks, but UV absorption is not among its benchmarks'' already provides the right anchor for our deposit-and-PR plan; expanding it further would be redundant with the Data and Code Availability statement.
   \item \textbf{Future Work section.} \emph{No new sentence.} The Data and Code Availability statement carries the operational commitment; the Future Work section already discusses cross-property benchmarking which would naturally flow from a standardised v3 deposit.
+\end{changes}
+
+\subsection*{Comment R2-4: Solvatochromism analysis (per-solute solvent shifts)}
+\begin{reviewer}
+The manuscript would benefit from a direct empirical characterisation of the magnitude of solvatochromism in the primary dataset. For chromophores measured under multiple solvents, what is the typical $\lambda_{\max}$ span? Which chromophore classes show the largest solvent-induced shifts?
+\end{reviewer}
+
+\response{We have added a per-chromophore solvatochromism audit (new Supporting Information Section~S18, summarised in the Solvent Information Encoding subsection of the main text). For each chromophore appearing under $\geq 2$ canonical solvents in the v3 dataset ($2{,}516$ chromophores ($32$\% of the $7{,}846$ unique solutes)) we computed the per-chromophore span $\max(\lambda_{\max}) - \min(\lambda_{\max})$. The headline distribution is heavily right-skewed: median $= 10$~nm (consistent with the literature's $5$--$20$~nm typical solvatochromic shift for non-charge-transfer chromophores), $95$th percentile $= 52$~nm, $99$th percentile $= 123$~nm, max $= 494$~nm (Reichardt's $E_T(30)$ betaine). The top-decile by span is dominated by classical solvatochromism standards and the structural classes the literature predicts (push--pull merocyanines, stilbene-pyridinium cyanines, and zwitterionic dyes) confirming that the v3 dataset captures the full operational range of solvatochromic behaviour relevant for evaluating UV/Vis prediction models. A histogram of the per-chromophore span distribution and a top-15 table with structural class flags are in SI Section~S18.}
+
+\begin{changes}
+  \item \textbf{Methods Solvent Information Encoding subsection (pg.\ 21).} Added a sentence at the start of the paragraph reporting the $2{,}516$ multi-solvent chromophores, median span $10$~nm, $95$th percentile $52$~nm, and the top-decile dye-class observation ($E_T(30)$, merocyanines, push--pull cyanines). Forward pointer to SI Section~S18.
+  \item \textbf{Supporting Information, new Section~S18 ``Per-Solute Solvent-Induced Shifts (R2-4).''} Contains the full per-chromophore span distribution histogram (Figure~S6), summary statistics in $7$ percentile bins, and a $15$-row top-spans table with structural class annotations. Cross-reference to the upcoming polarity-grouped analysis (R2-5).
+  \item \textbf{Code release.} Added \texttt{analyze\_solvent\_shifts.py}; outputs land in \texttt{results/r2\_4\_solvent\_shifts.\{json,csv,png\}} and \texttt{results/r2\_4\_summary.md}.
+\end{changes}
+
+\subsection*{Comment R2-5: Polarity-grouped prediction variability}
+\begin{reviewer}
+Beyond the per-chromophore solvatochromism audit (R2-4), it would be useful to know whether prediction quality depends systematically on the polarity class of the solvent. Are models worse on polar protic solvents (where hydrogen bonding dominates) than on nonpolar solvents? A by-tier RMSE breakdown would clarify this.
+\end{reviewer}
+
+\response{We have added the per-(model, polarity-tier) breakdown as new Supporting Information Section~S19, using the standard four-tier $E_T(30)$-style classification (nonpolar / moderate / polar aprotic / polar protic, plus an ``other'' bucket for long-tail solvents not represented in the standard tier definitions). The headline finding is a null result: \emph{no polarity tier is dramatically worse across all models}, and the relative ranking (RF $\lesssim$ Chemprop $<$ BiGRU $\ll$ ChemBERTa) is preserved on every tier. Two specific patterns are noteworthy: (a) all four models perform best on nonpolar solvents (RF $= 27.7$~nm, Chemprop $= 28.4$~nm, vs.\ ALL $= 31.5$ and $33.3$~nm respectively), consistent with the solubility-constraint observation that the nonpolar tier is enriched in less complex chromophores; (b) ChemBERTa's degradation is concentrated on the ``other'' tier ($84.4$~nm vs.\ $54.2$~nm aggregate), this is the same prediction-ceiling artefact diagnosed elsewhere in the manuscript (R1-16). Because no tier reveals a systematic relative-ranking shift, we placed the analysis in the SI only; no main-text edit is needed.}
+
+\begin{changes}
+  \item \textbf{Supporting Information, new Section~S19 ``Solvent Polarity Stratification (R2-5).''} Contains tier definitions, the per-(model, tier) RMSE table for the four headline models on the full v3 test pool, and a three-point discussion of the cross-architecture-consistency, nonpolar-easiest, and ChemBERTa-fails-on-``other'' findings. Cross-references the R1-16 ChemBERTa-ceiling section forward.
+  \item \textbf{Main text.} \emph{No change.} The polarity-grouped analysis does not change the headline cross-architecture ranking or the statistical-tie claim, so it stays in the SI.
+  \item \textbf{Code release.} Added \texttt{analyze\_solvent\_polarity.py}; outputs land in \texttt{results/r2\_5\_polarity\_breakdown.\{json,csv,png\}} and \texttt{results/r2\_5\_summary.md}.
+\end{changes}
+
+\subsection*{Comment R2-6: Add D-MPNN to Figure~2 architecture comparison}
+\begin{reviewer}
+Figure~2 currently compares three architecture families (RF, BiGRU, ChemBERTa). The D-MPNN is the fourth headline model in the manuscript and should be visualised alongside the others so readers can compare its architecture at a glance.
+\end{reviewer}
+
+\response{Agreed. We have added a fourth panel for the Chemprop D-MPNN to Figure~2, immediately after the Random Forest panel (so the figure now reads RF $\to$ D-MPNN $\to$ BiGRU $\to$ ChemBERTa, roughly in order of increasing parameter count: 636K $\to$ 3.0M $\to$ 44.1M). The new panel uses the same TikZ \texttt{archbox} style as the other three and shows the eight-stage pipeline: solute + solvent SMILES $\to$ RDKit graph construction $\to$ two parallel D-MPNN encoders (each $T = 3$ message-passing steps, $d_h = 300$) for solute and solvent respectively $\to$ mean-pool + concatenation $\to$ feed-forward head $\to$ linear scalar output. The figure caption was extended to describe the new panel and to note the parallel-encoder multicomponent configuration as the D-MPNN's mechanism for incorporating solvent information (distinct from the SMILES concatenation used by the other three). The layout switched from three minipages at 0.30 textwidth to four minipages at 0.23 textwidth; the font size of the per-panel header was reduced from \texttt{\textbackslash small} to \texttt{\textbackslash scriptsize} to keep the panels visually balanced. XGBoost remains unillustrated (it shares the RF pipeline with a gradient-boosted tree ensemble in place of the RF) and is now mentioned in the caption.}
+
+\begin{changes}
+  \item \textbf{Figure~2 TikZ block (pg.\ 12).} Restructured from three panels (RF, BiGRU, ChemBERTa) to four panels (RF, D-MPNN, BiGRU, ChemBERTa) at 0.23 textwidth each. New \texttt{archboxnarrow} TikZ style added to fit narrower minipages.
+  \item \textbf{Figure caption.} Updated ``three model families'' $\to$ ``four model families,'' added a sentence describing the D-MPNN panel and the parallel-encoder multicomponent configuration, and added a sentence noting XGBoost shares the RF pipeline.
+  \item \textbf{Introduction-to-Figure sentence (Methods opener at pg.\ 12).} ``three model families'' $\to$ ``four model families.''
+\end{changes}
+
+\subsection*{Comment R2-7: D-MPNN 636K parameter count justification for the dataset size}
+\begin{reviewer}
+The D-MPNN configuration reports 636K trainable parameters but the primary dataset is only $\sim$18K samples (and the per-fold train slice is $\sim$12K). Is this parameter budget appropriate for the training data available? What overfitting controls are in place?
+\end{reviewer}
+
+\response{We agree this is worth being explicit about, and have expanded the D-MPNN Methods paragraph with three sentences that (a) report the parameter-to-sample ratio in context ($\sim$54 parameters per training example, computed against the $\sim$11{,}780-record per-fold train slice; higher than the $\sim$10--20 typical of from-scratch QSPR models but well below the $\geq 10^3$ characteristic of pretrained transfer-learning regimes), (b) enumerate the three regularisation mechanisms Chemprop uses in lieu of explicit parameter reduction (Noam learning-rate decay, early stopping on val loss with patience 15, and default dropout of 0.0 deliberately disabled because the Chemprop v2 authors found target-normalisation plus early stopping sufficient on the datasets it was tuned for~\cite{chempropv2_2024}), and (c) note that our R1-12 HPO probe confirmed the defaults are conservative but not pathological at this dataset size (adding modest dropout $= 0.1$ improves RMSE by $\sim$4~nm). The Chemprop v2 release paper validates this parameter regime across moderate-size molecular property datasets, so our default-config choice is consistent with the published-benchmark convention rather than an inadvertent overparameterisation.}
+
+\begin{changes}
+  \item \textbf{Methods D-MPNN subsection (pg.\ 17).} Inserted three sentences after the existing ``Target values are normalised\ldots'' line, reporting (i) parameter-to-sample ratio with context for from-scratch vs.\ transfer-learning regimes, (ii) the three regularisation mechanisms (Noam decay, early stopping with patience 15, default dropout $= 0$), and (iii) a forward pointer to the R1-12 HPO finding that adding dropout $= 0.1$ improves RMSE by $\sim$4~nm. Citation: \texttt{chempropv2\_2024} (already in the bibliography from R1-19).
 \end{changes}
 
 \subsection*{Comment R2-8: LLM / general-purpose foundation-model extensions}
@@ -549,118 +661,6 @@ In Figure~5, the lower limits of the x- and y-axes appear to extend to approxima
   \item \textbf{Figure~5 (\texttt{results/parity\_plot\_5models.png}).} Regenerated with axis limits clamped to the physical experimental $\lambda_{\max}$ range. No caption change because the caption already describes the parity plot generically (RMSE/MAE/$R^2$ annotations and the $\pm 20$~nm band are unchanged).
   \item \textbf{Code.} The fix is a 5-line change in \texttt{make\_parity\_plot.py} (replacing the prediction-inclusive \texttt{global\_min}/\texttt{global\_max} computation with an experimental-$\lambda_{\max}$-only computation clamped at 150~nm). The change is in the public repository.
 \end{changes}
-
-\subsection*{Comment R2-7: D-MPNN 636K parameter count justification for the dataset size}
-\begin{reviewer}
-The D-MPNN configuration reports 636K trainable parameters but the primary dataset is only $\sim$18K samples (and the per-fold train slice is $\sim$12K). Is this parameter budget appropriate for the training data available? What overfitting controls are in place?
-\end{reviewer}
-
-\response{We agree this is worth being explicit about, and have expanded the D-MPNN Methods paragraph with three sentences that (a) report the parameter-to-sample ratio in context ($\sim$54 parameters per training example, computed against the $\sim$11{,}780-record per-fold train slice; higher than the $\sim$10--20 typical of from-scratch QSPR models but well below the $\geq 10^3$ characteristic of pretrained transfer-learning regimes), (b) enumerate the three regularisation mechanisms Chemprop uses in lieu of explicit parameter reduction (Noam learning-rate decay, early stopping on val loss with patience 15, and default dropout of 0.0 deliberately disabled because the Chemprop v2 authors found target-normalisation plus early stopping sufficient on the datasets it was tuned for~\cite{chempropv2_2024}), and (c) note that our R1-12 HPO probe confirmed the defaults are conservative but not pathological at this dataset size (adding modest dropout $= 0.1$ improves RMSE by $\sim$4~nm). The Chemprop v2 release paper validates this parameter regime across moderate-size molecular property datasets, so our default-config choice is consistent with the published-benchmark convention rather than an inadvertent overparameterisation.}
-
-\begin{changes}
-  \item \textbf{Methods D-MPNN subsection (pg.\ 17).} Inserted three sentences after the existing ``Target values are normalised\ldots'' line, reporting (i) parameter-to-sample ratio with context for from-scratch vs.\ transfer-learning regimes, (ii) the three regularisation mechanisms (Noam decay, early stopping with patience 15, default dropout $= 0$), and (iii) a forward pointer to the R1-12 HPO finding that adding dropout $= 0.1$ improves RMSE by $\sim$4~nm. Citation: \texttt{chempropv2\_2024} (already in the bibliography from R1-19).
-\end{changes}
-
-\subsection*{Comment R2-2: Joung+Beard dataset overview figure}
-\begin{reviewer}
-A visual overview of the primary dataset---the distribution of $\lambda_{\max}$ values, the solvent diversity, and representative chromophore structures---would help readers calibrate the scope and class composition of the benchmark.
-\end{reviewer}
-
-\response{We agree, and have added a three-panel dataset overview figure as new Supporting Information Figure~S1: (a) the $\lambda_{\max}$ histogram across the $18{,}415$ records (median $= 396$~nm, range $[162, 1100]$~nm, with the bulk in the UV/early-visible region 250--500~nm and a long tail of deep-coloured chromophores extending to the near-IR), (b) the top-20 solvents by record count on a log scale (DCM, MeCN, CHCl$_3$, toluene, THF, MeOH, EtOH, \ldots; note the long tail of $\sim$700 rarely-used solvents not shown), and (c) eight representative chromophore structures spanning the major class diversity (hydroxycinnamic acids, linear acenes, push--pull aromatics, azo dyes, BF$_2$-dipyrromethene BODIPYs, push--pull coumarins, extended-quinoid indigo, and porphyrin macrocycles). The figure also helps motivate the non-local subset analysis (Section~5.3): both molecules dominated by local conjugation (hydroxycinnamic acids, BODIPYs) and molecules where extended conjugation and donor--acceptor charge transfer span the entire scaffold (porphyrins, indigo, push--pull cyanines) are represented. We placed this figure in the SI rather than the main text to avoid bloating the main text after R1-10 just compressed it; a forward pointer is added to the Methods Dataset Description paragraph.}
-
-\begin{changes}
- \item \textbf{Supporting Information (new Section ``Dataset Overview (R2-2)'' as Section~S1.} Added the three-panel figure plus a paragraph describing each panel. Insertion at the top of the SI (between the title block and the existing Section~S1 ``Per-Fold Cross-Validation Results,'' which becomes Section~S2 by document order) no $\backslash$ref's break because the existing section uses $\backslash$label{sec:perfold} and there are no cross-references to it by hardcoded number).
-  \item \textbf{Methods Dataset Description (pg.\ 9).} Added one sentence at the end of the ``After merging and applying the duplicate-handling protocol\ldots 18{,}415 solute--solvent pairs\ldots'' paragraph, pointing to SI Figure~S1.
-  \item \textbf{Figure renumbering propagated.} Inserting the new figure at the top of the SI bumps the existing four SI figures' numbers each by one: BiGRU learning curves S1$\to$S2; ChemBERTa curves S2$\to$S3; Deep4Chem overlap Venn S3$\to$S4; BiGRU character-type saliency S4$\to$S5. The four hardcoded main-text references (lines 294, 897, 902, 1110 of the clean main) were updated accordingly; the marked main uses the existing $\backslash$removed/$\backslash$added wrappers from R1-7 to show the chain of renumbers.
-  \item \textbf{Code release.} Added \texttt{make\_dataset\_overview.py} (RDKit \texttt{MolsToGridImage} for panel (c); matplotlib for panels (a)/(b); solvent-name dictionary in-script). Output: \texttt{results/figure\_dataset\_overview.png}.
-\end{changes}
-
-\subsection*{Comment R2-6: Add D-MPNN to Figure~2 architecture comparison}
-\begin{reviewer}
-Figure~2 currently compares three architecture families (RF, BiGRU, ChemBERTa). The D-MPNN is the fourth headline model in the manuscript and should be visualised alongside the others so readers can compare its architecture at a glance.
-\end{reviewer}
-
-\response{Agreed. We have added a fourth panel for the Chemprop D-MPNN to Figure~2, immediately after the Random Forest panel (so the figure now reads RF $\to$ D-MPNN $\to$ BiGRU $\to$ ChemBERTa, roughly in order of increasing parameter count: 636K $\to$ 3.0M $\to$ 44.1M). The new panel uses the same TikZ \texttt{archbox} style as the other three and shows the eight-stage pipeline: solute + solvent SMILES $\to$ RDKit graph construction $\to$ two parallel D-MPNN encoders (each $T = 3$ message-passing steps, $d_h = 300$) for solute and solvent respectively $\to$ mean-pool + concatenation $\to$ feed-forward head $\to$ linear scalar output. The figure caption was extended to describe the new panel and to note the parallel-encoder multicomponent configuration as the D-MPNN's mechanism for incorporating solvent information (distinct from the SMILES concatenation used by the other three). The layout switched from three minipages at 0.30 textwidth to four minipages at 0.23 textwidth; the font size of the per-panel header was reduced from \texttt{\textbackslash small} to \texttt{\textbackslash scriptsize} to keep the panels visually balanced. XGBoost remains unillustrated (it shares the RF pipeline with a gradient-boosted tree ensemble in place of the RF) and is now mentioned in the caption.}
-
-\begin{changes}
-  \item \textbf{Figure~2 TikZ block (pg.\ 12).} Restructured from three panels (RF, BiGRU, ChemBERTa) to four panels (RF, D-MPNN, BiGRU, ChemBERTa) at 0.23 textwidth each. New \texttt{archboxnarrow} TikZ style added to fit narrower minipages.
-  \item \textbf{Figure caption.} Updated ``three model families'' $\to$ ``four model families,'' added a sentence describing the D-MPNN panel and the parallel-encoder multicomponent configuration, and added a sentence noting XGBoost shares the RF pipeline.
-  \item \textbf{Introduction-to-Figure sentence (Methods opener at pg.\ 12).} ``three model families'' $\to$ ``four model families.''
-\end{changes}
-
-\subsection*{Comment R2-1: Experimental $\lambda_{\max}$ measurement uncertainty}
-\begin{reviewer}
-The reported model errors (RMSE in the $31$--$54$~nm range) should be contextualised against the inherent measurement uncertainty in the experimental $\lambda_{\max}$ values themselves. What is the typical inter-laboratory variability for UV/Vis absorption measurements? How much of the model error is data noise versus genuine model limitation?
-\end{reviewer}
-
-\response{We have quantified this on the v2 first-occurrence-dedup dataset (which retains the full pre-cleaning duplicate distribution; the v3 Greenman--Song cleaning removes high-spread duplicates by design and would understate the noise floor). Two complementary measurements:
-
-\textbf{(a) Within-source duplicate spread (n~=~294 multi-record keys).} Of the $18{,}755$ v2 records, $294$ (canon, solvent) keys appear with multiplicity~$> 1$. The within-key spread distribution is heavily right-skewed: median~$= 0$~nm (most duplicates are perfectly-agreeing re-extractions of the same primary measurement across multiple secondary citations); $86$\% of multi-record keys have spread~$\leq 5$~nm (consistent with typical UV-Vis instrument precision of $1$--$5$~nm); $95$th percentile = $38$~nm; and $4.1$\% have spread~$> 50$~nm (large disagreements likely attributable to lab-to-lab protocol differences or labelling errors). The Greenman--Song 5-nm cleaning rule discards the latter tail, this is the rationale for the R1-8 cleaning, and the audit confirms the threshold is sensibly placed at the boundary between instrument-precision-consistent and protocol-difference-consistent regimes.
-
-\textbf{(b) Inter-source disagreement (Joung vs.\ Beard, n~=~21 paired keys).} For the $21$ (canon, solvent) keys reported in both Joung 2020 and Beard 2019, the median $|\Delta\lambda_{\max}| = 49$~nm (RMSD~$= 48$~nm; p95~$= 76$~nm); only $38$\% of paired observations agree within $5$~nm. We treat this as an upper bound on inter-laboratory disagreement rather than a representative statistic, because the $21$ paired compounds are biased toward chromophores of multi-paper solvatochromic interest, which are exactly the molecules most sensitive to small differences in solvent purity, temperature, and concentration. The small $n$ also limits statistical power.
-
-\textbf{Implication for model error.} The headline RF~$\approx$~Chemprop tie ($31.5$~nm vs.\ $33.2$~nm, $p = 0.16$) and the broader $31$--$54$~nm range of model RMSEs are comparable to the $95$th percentile of the within-source spread distribution ($38$~nm in v2-combined). On the chromophores where the underlying measurements agree perfectly, model error is largely model-attributable; on the chromophores in the $\sim$10\%-tail of high disagreement, model error includes a substantial data-noise component. The diminishing-returns regime for architectural improvement on this dataset is therefore at $\sim$30~nm RMSE, which is where RF and Chemprop currently sit. Closing the residual gap requires either improved data curation at the source or models that explicitly quantify prediction uncertainty alongside the point estimate.
-
-We have added a brief paragraph to the Methods Dataset Description section reporting the within-source and inter-source numbers, and a full SI Section~S17 with the per-source decomposition and reproducibility pipeline.}
-
-\begin{changes}
-  \item \textbf{Methods Dataset Description (pg.\ 9).} Added a new paragraph titled ``Experimental measurement uncertainty'' reporting the within-source numbers ($n = 294$ multi-record keys, median spread $= 0$~nm, $86$\% within $5$~nm, p95 $= 38$~nm) and the inter-source numbers ($n = 21$ Joung--Beard pairs, median $|\Delta| = 49$~nm) with the caveat about the small inter-source $n$ and its biased composition. Forward pointer to SI Section~S17.
-  \item \textbf{Supporting Information, new Section~S17 ``Experimental $\lambda_{\max}$ Uncertainty Audit (R2-1).''} Contains (a) within-source spread table by source (Joung / Beard / v2 combined), (b) inter-source disagreement statistics, (c) discussion of the implication for the model-error budget, and (d) reproducibility command pointing to \texttt{analyze\_experimental\_uncertainty.py}.
-  \item \textbf{Code release.} Added \texttt{analyze\_experimental\_uncertainty.py}; outputs land in \texttt{results/r2\_1\_uncertainty.json} and \texttt{results/r2\_1\_uncertainty\_summary.md}.
-\end{changes}
-
-\subsection*{Comment R2-4: Solvatochromism analysis (per-solute solvent shifts)}
-\begin{reviewer}
-The manuscript would benefit from a direct empirical characterisation of the magnitude of solvatochromism in the primary dataset. For chromophores measured under multiple solvents, what is the typical $\lambda_{\max}$ span? Which chromophore classes show the largest solvent-induced shifts?
-\end{reviewer}
-
-\response{We have added a per-chromophore solvatochromism audit (new Supporting Information Section~S18, summarised in the Solvent Information Encoding subsection of the main text). For each chromophore appearing under $\geq 2$ canonical solvents in the v3 dataset ($2{,}516$ chromophores ($32$\% of the $7{,}846$ unique solutes)) we computed the per-chromophore span $\max(\lambda_{\max}) - \min(\lambda_{\max})$. The headline distribution is heavily right-skewed: median $= 10$~nm (consistent with the literature's $5$--$20$~nm typical solvatochromic shift for non-charge-transfer chromophores), $95$th percentile $= 52$~nm, $99$th percentile $= 123$~nm, max $= 494$~nm (Reichardt's $E_T(30)$ betaine). The top-decile by span is dominated by classical solvatochromism standards and the structural classes the literature predicts (push--pull merocyanines, stilbene-pyridinium cyanines, and zwitterionic dyes) confirming that the v3 dataset captures the full operational range of solvatochromic behaviour relevant for evaluating UV/Vis prediction models. A histogram of the per-chromophore span distribution and a top-15 table with structural class flags are in SI Section~S18.}
-
-\begin{changes}
-  \item \textbf{Methods Solvent Information Encoding subsection (pg.\ 21).} Added a sentence at the start of the paragraph reporting the $2{,}516$ multi-solvent chromophores, median span $10$~nm, $95$th percentile $52$~nm, and the top-decile dye-class observation ($E_T(30)$, merocyanines, push--pull cyanines). Forward pointer to SI Section~S18.
-  \item \textbf{Supporting Information, new Section~S18 ``Per-Solute Solvent-Induced Shifts (R2-4).''} Contains the full per-chromophore span distribution histogram (Figure~S6), summary statistics in $7$ percentile bins, and a $15$-row top-spans table with structural class annotations. Cross-reference to the upcoming polarity-grouped analysis (R2-5).
-  \item \textbf{Code release.} Added \texttt{analyze\_solvent\_shifts.py}; outputs land in \texttt{results/r2\_4\_solvent\_shifts.\{json,csv,png\}} and \texttt{results/r2\_4\_summary.md}.
-\end{changes}
-
-\subsection*{Comment R2-5: Polarity-grouped prediction variability}
-\begin{reviewer}
-Beyond the per-chromophore solvatochromism audit (R2-4), it would be useful to know whether prediction quality depends systematically on the polarity class of the solvent. Are models worse on polar protic solvents (where hydrogen bonding dominates) than on nonpolar solvents? A by-tier RMSE breakdown would clarify this.
-\end{reviewer}
-
-\response{We have added the per-(model, polarity-tier) breakdown as new Supporting Information Section~S19, using the standard four-tier $E_T(30)$-style classification (nonpolar / moderate / polar aprotic / polar protic, plus an ``other'' bucket for long-tail solvents not represented in the standard tier definitions). The headline finding is a null result: \emph{no polarity tier is dramatically worse across all models}, and the relative ranking (RF $\lesssim$ Chemprop $<$ BiGRU $\ll$ ChemBERTa) is preserved on every tier. Two specific patterns are noteworthy: (a) all four models perform best on nonpolar solvents (RF $= 27.7$~nm, Chemprop $= 28.4$~nm, vs.\ ALL $= 31.5$ and $33.3$~nm respectively), consistent with the solubility-constraint observation that the nonpolar tier is enriched in less complex chromophores; (b) ChemBERTa's degradation is concentrated on the ``other'' tier ($84.4$~nm vs.\ $54.2$~nm aggregate), this is the same prediction-ceiling artefact diagnosed elsewhere in the manuscript (R1-16). Because no tier reveals a systematic relative-ranking shift, we placed the analysis in the SI only; no main-text edit is needed.}
-
-\begin{changes}
-  \item \textbf{Supporting Information, new Section~S19 ``Solvent Polarity Stratification (R2-5).''} Contains tier definitions, the per-(model, tier) RMSE table for the four headline models on the full v3 test pool, and a three-point discussion of the cross-architecture-consistency, nonpolar-easiest, and ChemBERTa-fails-on-``other'' findings. Cross-references the R1-16 ChemBERTa-ceiling section forward.
-  \item \textbf{Main text.} \emph{No change.} The polarity-grouped analysis does not change the headline cross-architecture ranking or the statistical-tie claim, so it stays in the SI.
-  \item \textbf{Code release.} Added \texttt{analyze\_solvent\_polarity.py}; outputs land in \texttt{results/r2\_5\_polarity\_breakdown.\{json,csv,png\}} and \texttt{results/r2\_5\_summary.md}.
-\end{changes}
-
-\subsection*{Comment R1-16: ChemBERTa $\sim$600~nm prediction ceiling explanation}
-\begin{reviewer}
-ChemBERTa's parity plot shows a noticeable horizontal cluster of predictions near 600~nm, with experimental $\lambda_{\max}$ values extending well beyond that. What is the source of this prediction ceiling? Is it an artefact of input truncation, target normalisation, training-data imbalance, or some combination?
-\end{reviewer}
-
-\response{We diagnosed this with a three-hypothesis investigation reported in new Supporting Information Section~S20. The key finding is that ChemBERTa's predictions \emph{never exceed $556.4$~nm} (a hard ceiling, not gradual degradation) even though the v3 training distribution extends to $1{,}100$~nm; on the $1{,}555$ test records with experimental $\lambda_{\max} > 600$~nm, $98.5$\% are underpredicted by $\geq 50$~nm (median underprediction $= 126$~nm).
-
-\textbf{Hypothesis testing:}
-\begin{itemize}[leftmargin=2em,itemsep=2pt]
-  \item \textbf{(H1) Training-target imbalance, supported.} Fold-0 train contains only $8.3$\% of records with $\lambda_{\max} > 600$~nm, $2.3$\% with $> 700$~nm, and $0.4$\% with $> 800$~nm. The deep-coloured chromophores are a long thin tail in the training distribution.
-  \item \textbf{(H2) Output-range constraint, supported.} Max ChemBERTa prediction = $556$~nm regardless of input. With target normalisation (mean $= 0$, std $= 1$ during training) and MAE loss, the regression head minimises pooled MAE by regressing toward the training mean for inputs it cannot discriminate, and the maximum achievable output is bounded by the magnitudes of [CLS] activations the model has learned to produce.
-  \item \textbf{(H3) SMILES-length truncation, ruled out.} Only $0.23$\% of test records exceed the MAX\_LEN $= 256$ token cap. Mean SMILES length increases from $61$ chars at $\lambda_{\max} < 400$~nm to $102$ chars at $\lambda_{\max} > 700$~nm, but the truncation rate per bin is uniformly $\leq 0.5$\%. Truncation is not the dominant cause.
-\end{itemize}
-
-\textbf{Diagnosis.} The proximate cause is the regression head's output range (H2). The deeper cause is the pretraining-representation mismatch: ChemBERTa was pretrained on ZINC (\texttt{seyonec/ChemBERTa-zinc-base-v1}), whose drug-like molecules are dominated by short-wavelength absorbers; the [CLS] embeddings ChemBERTa produces for long-wavelength chromophores (extended polyenes, push--pull cyanines, BODIPYs, porphyrins) are not well-separated in the pretrained representation from those of medium-wavelength absorbers, and the regression head fine-tuned on top of these collapsed embeddings cannot push its predictions beyond the $\sim$556~nm boundary even when shown long-wavelength training targets, because the input representations are not sufficiently distinct. Training-target imbalance (H1) compounds this. The remedy is either to pretrain on a UV-Vis-rich corpus (a different pretraining task than ZINC's drug-likeness) or to augment v3 with long-wavelength chromophores.
-
-We have added (a) a paragraph titled ``ChemBERTa's $\sim$556~nm prediction ceiling'' to the Error Analysis subsection in the main text with the headline numbers and the three-factor diagnosis, (b) a new Limitations bullet warning practitioners not to rely on ChemBERTa's point predictions for deep-coloured chromophores, and (c) new SI Section~S20 with the full three-hypothesis investigation, a three-panel diagnostic figure (train/test distributions, parity colour-coded by SMILES truncation, SMILES length by $\lambda_{\max}$ bin), and the per-bin truncation table.}
-
-\begin{changes}
-  \item \textbf{Error Analysis subsection (pg.\ 28).} Added a new paragraph titled ``ChemBERTa's $\sim$556~nm prediction ceiling'' summarising the diagnostic and ruling out SMILES truncation as the cause. Forward pointer to SI Section~S20.
-  \item \textbf{Limitations section (pg.\ 40).} Added a new bullet ``\textbf{ChemBERTa has a hard $\sim$556~nm prediction ceiling}'' giving practitioners guidance for deep-coloured chromophore use cases.
-  \item \textbf{Supporting Information, new Section~S20 ``ChemBERTa $\sim$556~nm Prediction-Ceiling Diagnostic (R1-16).''} Contains the three-hypothesis investigation, the per-bin SMILES-length table (Table~S27), the three-panel diagnostic figure (Figure~S7), the mechanistic explanation, and reproducibility pointer to \texttt{analyze\_chemberta\_ceiling.py}.
-  \item \textbf{Code release.} Added \texttt{analyze\_chemberta\_ceiling.py}; outputs land in \texttt{results/r1\_16\_chemberta\_diagnostic.\{json,png\}}, \texttt{results/r1\_16\_chemberta\_diagnostic\_top\_y.csv}, and \texttt{results/r1\_16\_summary.md}.
-\end{changes}
-
-\clearpage
 
 \section*{Summary of Major Changes}
 \begin{itemize}[leftmargin=2em]
