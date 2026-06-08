@@ -11,6 +11,12 @@
 \usepackage{graphicx}
 \usepackage{caption}
 
+% Margin relief: let LaTeX stretch interword spaces by up to 3em before
+% emitting overfull-hbox warnings. Helps with long \texttt{} tokens
+% (file paths, env var names) and prose-heavy paragraphs.
+\setlength{\emergencystretch}{3em}
+\sloppy
+
 % Reviewer comments shown in indented italics
 \newenvironment{reviewer}{%
   \begin{quote}\itshape\color{black!70}}{%
@@ -398,7 +404,7 @@ Scaffold-known 11 (Tan $\in (0.5, 1)$)   & 30.40 & 32.19 & 36.43 & 25.33 & 25.89
 
 The DL-vs-RF gap actually \emph{widens} on the strict-5 subset (RF degrades $38.46 \to 46.09$~nm; BiGRU default and Chemprop both improve slightly; ChemBERTa degrades modestly). This strengthens rather than weakens the complementary-strengths narrative: the DL architectures retain their advantage over RF precisely on the molecules most chemically removed from training. The single most striking strict-5 result is Octocrylene, where RF over-predicts by $87.7$~nm (and Chemprop by $81.3$~nm) while BiGRU's error is $42.5$~nm; the molecule's $\alpha$-cyano-cinnamate substitution and long branched ester chain shift its absorption blue of what fingerprint-based similarity to other cinnamates would predict.
 
-\textbf{Headline narrative impact.} The complementary-strengths narrative and the Table~2/abstract/conclusion bullet 1 statistical-tie language are unchanged: the qualifier shifts the \emph{interpretation} of what the wetlab set demonstrates (molecule-level rather than scaffold-class generalisation), but the wetlab still demonstrates DL retaining or widening its advantage over RF on novel substitution patterns, which is the operational scenario most relevant to deployment.}
+\textbf{Headline narrative impact.} The complementary-strengths narrative and the statistical-tie language in Table~2, the abstract, and conclusion bullet 1 are unchanged: the qualifier shifts the \emph{interpretation} of what the wetlab set demonstrates (molecule-level rather than scaffold-class generalisation), but the wetlab still demonstrates DL retaining or widening its advantage over RF on novel substitution patterns, which is the operational scenario most relevant to deployment.}
 
 \begin{changes}
   \item \textbf{Experimental Validation section (pg.\ 32).} Replaced the ``15 are entirely absent from the training dataset, providing a genuine out-of-distribution test'' / ``Ferulic Acid appears with a different solvent'' phrasing with a 5-sentence audit summary: at SMILES level, only Ferulic Acid is an exact duplicate (nearest-train Tanimoto mean $= 0.58$, 5/16 below $0.5$); at scaffold level, 15/16 generic Bemis--Murcko scaffolds are in training (only Avobenzone scaffold-novel); the wetlab set therefore tests molecule-level rather than scaffold-class generalisation; the strict Tanimoto-$\leq 0.5$ subset (in which the DL-vs-RF MAE gap widens) and the per-molecule audit are in SI Section~S14.

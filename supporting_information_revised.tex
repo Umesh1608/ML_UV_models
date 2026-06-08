@@ -8,6 +8,11 @@
 \usepackage[dvipsnames]{xcolor}
 \usepackage{enumitem}
 
+% Margin relief
+\setlength{\emergencystretch}{3em}
+\setlength{\tabcolsep}{4pt}
+\sloppy
+
 % Mirror the vector/matrix shorthand from the main paper (needed for the
 % moved equation blocks in the new Detailed Model Architectures section).
 \newcommand{\vect}[1]{\mathbf{#1}}
@@ -302,6 +307,7 @@ The donor-count column shows the number of distinct atom-set matches per molecul
 \caption{Donor SMARTS patterns used to identify D-A and D-A-D molecules.}
 \label{tab:si_donor_smarts}
 \small
+\resizebox{\textwidth}{!}{%
 \begin{tabular}{lll}
 \toprule
 \textbf{Rule name} & \textbf{SMARTS} & \textbf{Matches} \\
@@ -314,7 +320,8 @@ aryl\_OR   & \verb|[c]-[OX2;H0]-[CX4]|                                       & a
 aryl\_SH   & \verb|[c]-[SX2H1]|                                              & aryl thiol \\
 aryl\_SR   & \verb|[c]-[SX2;H0]-[CX4]|                                       & aryl sulfide \\
 \bottomrule
-\end{tabular}
+\end{tabular}%
+}
 \end{table}
 
 \begin{table}[htbp]
@@ -347,6 +354,7 @@ malononitrile  & \verb|[CX4H1]([CX2]#N)[CX2]#N|                  & malononitrile
 \caption{Specific dye motifs.}
 \label{tab:si_motif_smarts}
 \small
+\resizebox{\textwidth}{!}{%
 \begin{tabular}{lll}
 \toprule
 \textbf{Rule name} & \textbf{SMARTS} & \textbf{Matches} \\
@@ -357,7 +365,8 @@ cyanine   & \verb|[NX3,nX3]-,=[CX3]=,-[CX3]-,=[CX3]=,-[CX3]-,=[NX3+,nX3+]|      
 squaraine & \verb|C1(=O)C(=*)C(=O)C1=*|                                                             & squaric-acid-derived push--pull \\
 stilbene  & \verb|[c]-[CH]=[CH]-[c]|                                                                & 1,2-diarylethene scaffold \\
 \bottomrule
-\end{tabular}
+\end{tabular}%
+}
 \end{table}
 
 \begin{table}[htbp]
@@ -763,6 +772,7 @@ We additionally re-computed the per-model wetlab MAE on the five truly fingerpri
 \caption{Per-model wetlab MAE (nm) on three nested subsets defined by Tanimoto similarity to the v3 training set: the full aggregate (16 molecules), the scaffold-known 11 (excluding Ferulic Acid and the five with Tanimoto $\leq 0.5$), and the strict-5 subset of truly fingerprint-novel molecules. Each subset row aggregates over the EtOH and MeOH measurements.}
 \label{tab:si_wetlab_strict5}
 \small
+\resizebox{\textwidth}{!}{%
 \begin{tabular}{lccccc}
 \toprule
 \textbf{Subset} & \textbf{BiGRU (def)} & \textbf{BiGRU (tuned)} & \textbf{RF} & \textbf{ChemBERTa} & \textbf{Chemprop} \\
@@ -773,7 +783,8 @@ Strict-5 (Tan $\leq 0.5$)                & \textbf{28.35} & 35.66 & \textbf{46.0
 \bottomrule
 \multicolumn{6}{l}{\footnotesize Strict-5 set: Amiloxate, Avobenzone, Homosalate, Octisalate, Octocrylene. Bold values denote} \\
 \multicolumn{6}{l}{\footnotesize the strict-5 best (BiGRU default) and worst (RF). Numbers from \texttt{results/r1\_13\_subset\_mae.json}.} \\
-\end{tabular}
+\end{tabular}%
+}
 \end{table}
 
 The single most striking strict-5 result is Octocrylene, where RF over-predicts by $87.7$~nm (and Chemprop by $81.3$~nm) while BiGRU's error is $42.5$~nm; the molecule's $\alpha$-cyano-cinnamate substitution and long branched ester chain shift its absorption blue of what fingerprint-based similarity to other cinnamates would predict. Conversely, on Amiloxate the D-MPNN's near-exact prediction (error $2.1$~nm) versus RF's $55.6$~nm over-prediction indicates that the multi-component graph encoder captures the long aliphatic ester linker as essentially absorption-inactive while RF's Morgan fingerprint treats the long-chain ester as a novel substructure.
@@ -839,6 +850,7 @@ In response to reviewer concern R1-14 (whether the solvent-encoding ablation sho
 \label{tab:si_multisolvent}
 \small
 \setlength{\tabcolsep}{4pt}
+\resizebox{\textwidth}{!}{%
 \begin{tabular}{lcccccccc}
 \toprule
 & \multicolumn{2}{c}{\textbf{Full (3{,}750)}} & \multicolumn{3}{c}{\textbf{Multi-solv subset ($\sim$2{,}260)}} & \multicolumn{3}{c}{\textbf{Single/novel subset ($\sim$1{,}490)}} \\
@@ -853,7 +865,8 @@ BiGRU      & 36.45 & 39.03 & \textbf{20.97} & \textbf{26.62} & \textbf{5.65 (21.
 \multicolumn{9}{l}{\footnotesize Solute-only) were trained on v2; the v3 Greenman--Song cleaning removes records uniformly across chromophore-coverage} \\
 \multicolumn{9}{l}{\footnotesize strata (Section~\ref{si:v2_v3_comparison} confirms the 1.81\% loss is independent of multi-solvent membership), so the multi-solvent} \\
 \multicolumn{9}{l}{\footnotesize vs.\ single-or-novel ratios are expected to be preserved on v3.} \\
-\end{tabular}
+\end{tabular}%
+}
 \end{table}
 
 \paragraph{Discussion.}
@@ -1066,6 +1079,7 @@ Combined solute--solvent SMILES strings have median length $61$ chars, p95 $135$
 \caption{Combined solute--solvent SMILES length statistics by experimental $\lambda_{\max}$ bin (v3 pooled-5-fold test set). ``Frac trunc'' = fraction of records in that bin whose combined SMILES exceeds the MAX\_LEN $= 256$ token cap used by the ChemBERTa tokenizer.}
 \label{tab:si_chemberta_smileslen}
 \small
+\resizebox{\textwidth}{!}{%
 \begin{tabular}{lrrr}
 \toprule
 \textbf{$\lambda_{\max}$ bin (nm)} & $\boldsymbol{n}$ & \textbf{Mean SMILES len (chars)} & \textbf{Frac trunc at MAX\_LEN $= 256$} \\
@@ -1076,7 +1090,8 @@ $500$--$600$       & 2{,}318 & 84.8  & $0.47$\% \\
 $600$--$700$       & 1{,}139 & 90.1  & $0.26$\% \\
 $700$--$1100$      &    430  & 101.6 & $0.23$\% \\
 \bottomrule
-\end{tabular}
+\end{tabular}%
+}
 \end{table}
 
 \paragraph{Diagnosis.}

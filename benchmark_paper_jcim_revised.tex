@@ -17,6 +17,12 @@
 \usepackage{placeins}
 \usepackage{url}
 
+% Margin relief
+\setlength{\emergencystretch}{3em}
+\setlength{\tabcolsep}{4pt}
+\sloppy
+
+
 % ===== Custom Commands =====
 \newcommand{\vect}[1]{\mathbf{#1}}
 \newcommand{\matr}[1]{\mathbf{#1}}
@@ -619,14 +625,8 @@ BiGRU (tuned, 3L/256u)& 36.20 $\pm$ 1.20          & 18.81 $\pm$ 0.58          & 
 XGBoost (MAE loss)    & 40.75 $\pm$ 1.58$^{\dagger}$ & 21.99 $\pm$ 0.47$^{\dagger}$ & 0.854 $\pm$ 0.010$^{\dagger}$ & 0.927 $\pm$ 0.005$^{\dagger}$ \\
 ChemBERTa (pretrained)& 54.09 $\pm$ 3.57          & 26.78 $\pm$ 2.35          & 0.744 $\pm$ 0.035          & 0.880 $\pm$ 0.020 \\
 \bottomrule
-\multicolumn{5}{l}{\footnotesize $^{\dagger}$The default BiGRU and MAE-loss XGBoost rows are reported on the v2 (18{,}755-row, first-occurrence-dedup)} \\
-\multicolumn{5}{l}{\footnotesize dataset; v3 retraining of these ablation variants is not in scope for the current revision and the qualitative comparisons} \\
-\multicolumn{5}{l}{\footnotesize (default vs.\ tuned BiGRU; MSE vs.\ MAE XGBoost) do not depend on which dedup protocol was used.} \\
-\multicolumn{5}{l}{\footnotesize $^{\ddagger}$Tuned via a 25-trial Optuna probe matching the BiGRU HPO budget (best config: $d_h = 900$, depth $= 4$, dropout $= 0.1$,} \\
-\multicolumn{5}{l}{\footnotesize FFN $2\text{L}\times 800$, batch $= 32$, 5.6M params; configuration in SI Section~S13). The 2.67~nm advantage of tuned Chemprop over RF is} \\
-\multicolumn{5}{l}{\footnotesize borderline at $n = 5$ folds: paired $t$-test $p = 0.044$ but Wilcoxon $p = 0.125$; the conservative non-parametric test does not reject} \\
-\multicolumn{5}{l}{\footnotesize the null. Default Chemprop is retained as the bolded primary row to match the evaluation convention used by published Chemprop} \\
-\multicolumn{5}{l}{\footnotesize benchmarks on these data~\cite{joung2021deep,beard2019comparative,greenman2022multifidelity,jung2024machine,chempropv2_2024}.} \\
+\multicolumn{5}{@{}p{\dimexpr\linewidth-2\tabcolsep\relax}@{}}{\footnotesize $^{\dagger}$The default BiGRU and MAE-loss XGBoost rows are reported on the v2 (18{,}755-row, first-occurrence-dedup) dataset; v3 retraining of these ablation variants is not in scope for the current revision and the qualitative comparisons (default vs.\ tuned BiGRU; MSE vs.\ MAE XGBoost) do not depend on which dedup protocol was used.} \\
+\multicolumn{5}{@{}p{\dimexpr\linewidth-2\tabcolsep\relax}@{}}{\footnotesize $^{\ddagger}$Tuned via a 25-trial Optuna probe matching the BiGRU HPO budget (best config: $d_h = 900$, depth $= 4$, dropout $= 0.1$, FFN $2\text{L}\times 800$, batch $= 32$, 5.6M params; configuration in SI Section~S13). The 2.67~nm advantage of tuned Chemprop over RF is borderline at $n = 5$ folds: paired $t$-test $p = 0.044$ but Wilcoxon $p = 0.125$; the conservative non-parametric test does not reject the null. Default Chemprop is retained as the bolded primary row to match the evaluation convention used by published Chemprop benchmarks on these data~\cite{joung2021deep,beard2019comparative,greenman2022multifidelity,jung2024machine,chempropv2_2024}.} \\
 \end{tabular}
 \end{table}
 
