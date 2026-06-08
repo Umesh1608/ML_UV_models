@@ -78,21 +78,21 @@ Recent work has highlighted that well-tuned classical models can match or exceed
 
 The UV absorption prediction task is well-suited for systematic architecture comparison for several reasons:
 \begin{enumerate}
-    \item \textbf{Solvent dependence:} $\lambda_{\max}$ varies with solvent environment (solvatochromism), requiring models to encode both solute structure and solvent identity.
-    \item \textbf{Representation diversity:} Although absorption fundamentally depends on electronic structure influenced by molecular geometry, our results show that 1D and 2D representations (Morgan fingerprints, SMILES strings, molecular graphs) capture the dominant structure--property relationships for UV absorption without requiring explicit 3D coordinates. Methods that incorporate 3D conformational information are not evaluated in this work and are discussed in the Limitations and Future Work sections.
-    \item \textbf{Diverse benchmarks:} Multiple published datasets with varying sizes, chemical spaces, and evaluation protocols enable comprehensive assessment.
-    \item \textbf{Practical relevance:} ICH~S10 guidelines require photosafety screening of pharmaceutical compounds, where $\lambda_{\max}$ prediction serves as a first-pass filter.
+ \item \textbf{Solvent dependence:} $\lambda_{\max}$ varies with solvent environment (solvatochromism), requiring models to encode both solute structure and solvent identity.
+ \item \textbf{Representation diversity:} Although absorption fundamentally depends on electronic structure influenced by molecular geometry, our results show that 1D and 2D representations (Morgan fingerprints, SMILES strings, molecular graphs) capture the dominant structure--property relationships for UV absorption without requiring explicit 3D coordinates. Methods that incorporate 3D conformational information are not evaluated in this work and are discussed in the Limitations and Future Work sections.
+ \item \textbf{Diverse benchmarks:} Multiple published datasets with varying sizes, chemical spaces, and evaluation protocols enable comprehensive assessment.
+ \item \textbf{Practical relevance:} ICH~S10 guidelines require photosafety screening of pharmaceutical compounds, where $\lambda_{\max}$ prediction serves as a first-pass filter.
 \end{enumerate}
 
 In this work, we present a study comparing five ML models spanning four architecture families (fingerprint-based ensembles (Random Forest, XGBoost), a directed message-passing graph neural network (D-MPNN), a bidirectional gated recurrent network (BiGRU), and a pretrained Transformer) for $\lambda_{\max}$ prediction.
 Our key contributions are:
 \begin{itemize}
-    \item \textbf{Practical model selection guidance:} on in-distribution screening, RF is statistically tied with the best deep learning model (D-MPNN, $p = 0.16$) but trains $\sim$100$\times$ faster with no hyperparameter tuning; on novel compounds, deep learning models generalize better. We validate this on 16 experimentally measured UV-absorbing molecules.
-    \item \textbf{Controlled multi-architecture comparison} across three datasets using published evaluation protocols. The D-MPNN with default hyperparameters sets new state-of-the-art results on both external datasets, while RF and D-MPNN are statistically tied on primary cross-validation.
-    \item \textbf{Optimized BiGRU architecture} via Bayesian hyperparameter search (3-layer, 256-unit, 4.8\% RMSE improvement), demonstrating that a sequence-based approach operating on raw SMILES can match graph and fingerprint methods without compromising prediction accuracy.
+ \item \textbf{Practical model selection guidance:} on in-distribution screening, RF is statistically tied with the best deep learning model (D-MPNN, $p = 0.16$) but trains $\sim$100$\times$ faster with no hyperparameter tuning; on novel compounds, deep learning models generalize better. We validate this on 16 experimentally measured UV-absorbing molecules.
+ \item \textbf{Controlled multi-architecture comparison} across three datasets using published evaluation protocols. The D-MPNN with default hyperparameters sets new state-of-the-art results on both external datasets, while RF and D-MPNN are statistically tied on primary cross-validation.
+ \item \textbf{Optimized BiGRU architecture} via Bayesian hyperparameter search (3-layer, 256-unit, 4.8\% RMSE improvement), demonstrating that a sequence-based approach operating on raw SMILES can match graph and fingerprint methods without compromising prediction accuracy.
  \item \textbf{Concatenation-based solvent encoding generalizes across architectures:} the same strategy of concatenating native solute and solvent representations (Morgan fingerprints for the tree ensembles, string-level SMILES concatenation for the sequence models, and the Chemprop multicomponent dual-encoder for the D-MPNN) yields 6--8\% aggregate and 21--32\% multi-solvent-subset RMSE reductions across all three architecture families ($p < 0.02$). The uniformity of the benefit across families is evidence that concatenation works as a general principle rather than as a model-specific trick, complementing Greenman et al.'s~\cite{greenman2022multifidelity} four-strategy benchmark which varied encoding within a single D-MPNN backbone.
-    \item \textbf{Locality-of-property hypothesis:} architectures with local inductive bias systematically outperform global-attention Transformers on UV absorption, which is determined by local electronic structure~\cite{chenMolecularLanguage2023}. All three encode molecular structure with an implicit spatial cutoff (Morgan fingerprints through a fixed radius, D-MPNN through bounded message-passing depth, and BiGRU through gradient decay in the recurrent hidden state), while Transformers impose no such locality constraint through global self-attention. RF feature importance and BiGRU gradient saliency independently highlight the same chromophore motifs, confirming that both architectures learn meaningful photochemistry.
-    \item \textbf{Photosafety application:} ICH~S10 classification on a reconstructed Reaxys dataset validates practical utility.
+ \item \textbf{Locality-of-property hypothesis:} architectures with local inductive bias systematically outperform global-attention Transformers on UV absorption, which is determined by local electronic structure~\cite{chenMolecularLanguage2023}. All three encode molecular structure with an implicit spatial cutoff (Morgan fingerprints through a fixed radius, D-MPNN through bounded message-passing depth, and BiGRU through gradient decay in the recurrent hidden state), while Transformers impose no such locality constraint through global self-attention. RF feature importance and BiGRU gradient saliency independently highlight the same chromophore motifs, confirming that both architectures learn meaningful photochemistry.
+ \item \textbf{Photosafety application:} ICH~S10 classification on a reconstructed Reaxys dataset validates practical utility.
 \end{itemize}
 
 The choice of molecular representation fundamentally determines which ML methods can be applied.
@@ -101,141 +101,141 @@ Our benchmark compares three representation families: fingerprint-based models (
 Figure~\ref{fig:benchmark_framework} provides an overview of this multi-pathway framework.
 
 \begin{figure}[!ht]
-    \centering
-    % ===== (a) Input and Representation =====
-    \begin{subfigure}[b]{\textwidth}
-    \centering
-    \begin{tikzpicture}[scale=0.88, every node/.style={scale=0.88},
-        >=Stealth,
-        box/.style={draw, rounded corners=4pt, align=center, font=\small, inner sep=5pt},
-        arr/.style={->, thick, draw=gray!50},
-    ]
-    % ---- Input boxes (identical size) ----
-    \node[box, fill=gray!6, draw=gray!50, minimum width=3.4cm] (mol) at (0, 1.0)
-        {Solute SMILES\\[-1pt]{\scriptsize\texttt{CC(/C=C/c1cc(OC)c(O)c1)=O}}};
-    \node[box, fill=gray!6, draw=gray!50, minimum width=3.4cm] (solv) at (0, -1.0)
-        {Solvent SMILES\\[-1pt]{\scriptsize\texttt{CCO} (ethanol)}};
+ \centering
+ % ===== (a) Input and Representation =====
+ \begin{subfigure}[b]{\textwidth}
+ \centering
+ \begin{tikzpicture}[scale=0.88, every node/.style={scale=0.88},
+ >=Stealth,
+ box/.style={draw, rounded corners=4pt, align=center, font=\small, inner sep=5pt},
+ arr/.style={->, thick, draw=gray!50},
+ ]
+ % ---- Input boxes (identical size) ----
+ \node[box, fill=gray!6, draw=gray!50, minimum width=3.4cm] (mol) at (0, 1.0)
+ {Solute SMILES\\[-1pt]{\scriptsize\texttt{CC(/C=C/c1cc(OC)c(O)c1)=O}}};
+ \node[box, fill=gray!6, draw=gray!50, minimum width=3.4cm] (solv) at (0, -1.0)
+ {Solvent SMILES\\[-1pt]{\scriptsize\texttt{CCO} (ethanol)}};
 
-    % ---- Input arrows: two lines join into one arrow ----
-    \draw[thick, draw=gray!50] (mol.east) -- (2.5, 1.0) -- (2.5, 0);
-    \draw[thick, draw=gray!50] (solv.east) -- (2.5, -1.0) -- (2.5, 0);
-    % Single arrow from join point to fork
-    \coordinate (fork) at (4.2, 0);
-    \draw[arr] (2.5, 0) -- (fork);
+ % ---- Input arrows: two lines join into one arrow ----
+ \draw[thick, draw=gray!50] (mol.east) -- (2.5, 1.0) -- (2.5, 0);
+ \draw[thick, draw=gray!50] (solv.east) -- (2.5, -1.0) -- (2.5, 0);
+ % Single arrow from join point to fork
+ \coordinate (fork) at (4.2, 0);
+ \draw[arr] (2.5, 0) -- (fork);
 
-    % ---- Green path (top): independent FPs, then hstacked ----
-    \node[draw, circle, fill=green!12, draw=green!40!black, inner sep=2pt,
-          font=\scriptsize\bfseries] (fpnode) at (5.5, 1.8) {FP};
-    \node[font=\tiny, green!40!black, below=1pt of fpnode] {per-mol.};
+ % ---- Green path (top): independent FPs, then hstacked ----
+ \node[draw, circle, fill=green!12, draw=green!40!black, inner sep=2pt,
+ font=\scriptsize\bfseries] (fpnode) at (5.5, 1.8) {FP};
+ \node[font=\tiny, green!40!black, below=1pt of fpnode] {per-mol.};
 
-    \node[box, fill=green!6, draw=green!40!black, minimum width=4.4cm, text width=4.0cm] (fp) at (9.5, 1.8)
-        {Morgan Fingerprint\\[-1pt]{\scriptsize FP(solute) $\|$ FP(solvent), $\{0,1\}^{4096}$ hstacked}};
+ \node[box, fill=green!6, draw=green!40!black, minimum width=4.4cm, text width=4.0cm] (fp) at (9.5, 1.8)
+ {Morgan Fingerprint\\[-1pt]{\scriptsize FP(solute) $\|$ FP(solvent), $\{0,1\}^{4096}$ hstacked}};
 
-    \draw[arr, draw=green!40!black] (fork) -- (4.2, 1.8) -- (fpnode);
-    \draw[arr, draw=green!40!black] (fpnode) -- (fp.west);
+ \draw[arr, draw=green!40!black] (fork) -- (4.2, 1.8) -- (fpnode);
+ \draw[arr, draw=green!40!black] (fpnode) -- (fp.west);
 
-    % ---- Red path (middle): molecular graph ----
-    \node[draw, circle, fill=red!10, draw=red!40!black, inner sep=2pt,
-          font=\scriptsize\bfseries] (graphnode) at (5.5, 0) {G};
-    \node[font=\tiny, red!40!black, below=1pt of graphnode] {per-mol.};
+ % ---- Red path (middle): molecular graph ----
+ \node[draw, circle, fill=red!10, draw=red!40!black, inner sep=2pt,
+ font=\scriptsize\bfseries] (graphnode) at (5.5, 0) {G};
+ \node[font=\tiny, red!40!black, below=1pt of graphnode] {per-mol.};
 
-    \node[box, fill=red!6, draw=red!40!black, minimum width=4.4cm, text width=4.0cm] (mg) at (9.5, 0)
-        {Molecular Graph\\[-1pt]{\scriptsize Atom/bond features per molecule, separate encoders}};
+ \node[box, fill=red!6, draw=red!40!black, minimum width=4.4cm, text width=4.0cm] (mg) at (9.5, 0)
+ {Molecular Graph\\[-1pt]{\scriptsize Atom/bond features per molecule, separate encoders}};
 
-    \draw[arr, draw=red!40!black] (fork) -- (4.2, 0) -- (graphnode);
-    \draw[arr, draw=red!40!black] (graphnode) -- (mg.west);
+ \draw[arr, draw=red!40!black] (fork) -- (4.2, 0) -- (graphnode);
+ \draw[arr, draw=red!40!black] (graphnode) -- (mg.west);
 
-    % ---- Blue path (bottom): SMILES concat, then tokenized ----
-    \node[draw, circle, fill=blue!10, draw=blue!40!black, inner sep=2pt,
-          font=\scriptsize\bfseries] (cat) at (5.5, -1.8) {$\oplus$};
-    \node[font=\tiny, blue!40!black, below=1pt of cat] {concat};
+ % ---- Blue path (bottom): SMILES concat, then tokenized ----
+ \node[draw, circle, fill=blue!10, draw=blue!40!black, inner sep=2pt,
+ font=\scriptsize\bfseries] (cat) at (5.5, -1.8) {$\oplus$};
+ \node[font=\tiny, blue!40!black, below=1pt of cat] {concat};
 
-    \node[box, fill=blue!6, draw=blue!40!black, minimum width=4.4cm, text width=4.0cm] (seq) at (9.5, -1.8)
-        {Token Sequence\\[-1pt]{\scriptsize \texttt{solute\,!\,solvent} string, 57-token vocabulary}};
+ \node[box, fill=blue!6, draw=blue!40!black, minimum width=4.4cm, text width=4.0cm] (seq) at (9.5, -1.8)
+ {Token Sequence\\[-1pt]{\scriptsize \texttt{solute\,!\,solvent} string, 57-token vocabulary}};
 
-    \draw[arr, draw=blue!40!black] (fork) -- (4.2, -1.8) -- (cat);
-    \draw[arr, draw=blue!40!black] (cat) -- (seq.west);
+ \draw[arr, draw=blue!40!black] (fork) -- (4.2, -1.8) -- (cat);
+ \draw[arr, draw=blue!40!black] (cat) -- (seq.west);
 
-    % ---- Stage labels ----
-    \node[font=\footnotesize\bfseries, gray!60] at (0, -3.0) {\textsc{Input}};
-    \node[font=\footnotesize\bfseries, gray!60] at (9.5, -3.0) {\textsc{Representation}};
+ % ---- Stage labels ----
+ \node[font=\footnotesize\bfseries, gray!60] at (0, -3.0) {\textsc{Input}};
+ \node[font=\footnotesize\bfseries, gray!60] at (9.5, -3.0) {\textsc{Representation}};
 
-    \end{tikzpicture}
-    \caption{Input and representation. Both solute and solvent SMILES feed three pathways. The fingerprint path (green) computes Morgan FPs independently per molecule and hstacks them (2048+2048 = 4096-bit). The graph path (red) converts each SMILES to a molecular graph with atom and bond features. The sequence path (blue) concatenates the SMILES strings before tokenization.}
-    \label{fig:framework_input}
-    \end{subfigure}
+ \end{tikzpicture}
+ \caption{Input and representation. Both solute and solvent SMILES feed three pathways. The fingerprint path (green) computes Morgan FPs independently per molecule and hstacks them (2048+2048 = 4096-bit). The graph path (red) converts each SMILES to a molecular graph with atom and bond features. The sequence path (blue) concatenates the SMILES strings before tokenization.}
+ \label{fig:framework_input}
+ \end{subfigure}
 
-    \vspace{0.3cm}
+ \vspace{0.3cm}
 
-    % ===== (b) Models and Prediction =====
-    \begin{subfigure}[b]{\textwidth}
-    \centering
-    \begin{tikzpicture}[scale=0.88, every node/.style={scale=0.88},
-        >=Stealth,
-        box/.style={draw, rounded corners=4pt, align=center, font=\small,
-                     inner sep=5pt, text width=4.6cm, minimum height=1.0cm},
-        arr/.style={->, thick},
-    ]
+ % ===== (b) Models and Prediction =====
+ \begin{subfigure}[b]{\textwidth}
+ \centering
+ \begin{tikzpicture}[scale=0.88, every node/.style={scale=0.88},
+ >=Stealth,
+ box/.style={draw, rounded corners=4pt, align=center, font=\small,
+ inner sep=5pt, text width=4.6cm, minimum height=1.0cm},
+ arr/.style={->, thick},
+ ]
 
-    % ---- Five models, equal spacing, grouped by color ----
-    \node[box, fill=green!12, draw=green!40!black] (rf) at (0, 2.9)
-        {\textbf{Random Forest}\\[-1pt]{\scriptsize 1000 trees, \texttt{max\_features}$= 0.3d$}};
+ % ---- Five models, equal spacing, grouped by color ----
+ \node[box, fill=green!12, draw=green!40!black] (rf) at (0, 2.9)
+ {\textbf{Random Forest}\\[-1pt]{\scriptsize 1000 trees, \texttt{max\_features}$= 0.3d$}};
 
-    \node[box, fill=green!12, draw=green!40!black] (xgb) at (0, 1.6)
-        {\textbf{XGBoost}\\[-1pt]{\scriptsize 500 rounds, depth 6, $\eta = 0.1$}};
+ \node[box, fill=green!12, draw=green!40!black] (xgb) at (0, 1.6)
+ {\textbf{XGBoost}\\[-1pt]{\scriptsize 500 rounds, depth 6, $\eta = 0.1$}};
 
-    \node[box, fill=red!10, draw=red!40!black] (chemprop) at (0, 0)
-        {\textbf{GNN}\\[-1pt]{\scriptsize D-MPNN (Chemprop), 636K params}};
+ \node[box, fill=red!10, draw=red!40!black] (chemprop) at (0, 0)
+ {\textbf{GNN}\\[-1pt]{\scriptsize D-MPNN (Chemprop), 636K params}};
 
-    \node[box, fill=blue!12, draw=blue!40!black] (bigru) at (0, -1.8)
-        {\textbf{BiGRU RNN}\\[-1pt]{\scriptsize 3$\times$256 bidirectional GRU, 3.0M params}};
+ \node[box, fill=blue!12, draw=blue!40!black] (bigru) at (0, -1.8)
+ {\textbf{BiGRU RNN}\\[-1pt]{\scriptsize 3$\times$256 bidirectional GRU, 3.0M params}};
 
-    \node[box, fill=blue!12, draw=blue!40!black] (cb) at (0, -3.4)
-        {\textbf{Transformer}\\[-1pt]{\scriptsize ChemBERTa, 44.1M params}};
+ \node[box, fill=blue!12, draw=blue!40!black] (cb) at (0, -3.4)
+ {\textbf{Transformer}\\[-1pt]{\scriptsize ChemBERTa, 44.1M params}};
 
-    % ---- Group labels (rotated, centered on each group) ----
-    \node[font=\scriptsize\bfseries, green!40!black, rotate=90, anchor=center,
-          text width=, minimum height=0pt] at (-3.5, 2.25) {Fingerprint};
-    \node[font=\scriptsize\bfseries, red!40!black, rotate=90, anchor=center,
-          text width=, minimum height=0pt] at (-3.5, 0) {Graph};
-    \node[font=\scriptsize\bfseries, blue!40!black, rotate=90, anchor=center,
-          text width=, minimum height=0pt] at (-3.5, -2.6) {Sequence};
+ % ---- Group labels (rotated, centered on each group) ----
+ \node[font=\scriptsize\bfseries, green!40!black, rotate=90, anchor=center,
+ text width=, minimum height=0pt] at (-3.5, 2.25) {Fingerprint};
+ \node[font=\scriptsize\bfseries, red!40!black, rotate=90, anchor=center,
+ text width=, minimum height=0pt] at (-3.5, 0) {Graph};
+ \node[font=\scriptsize\bfseries, blue!40!black, rotate=90, anchor=center,
+ text width=, minimum height=0pt] at (-3.5, -2.6) {Sequence};
 
-    % ---- Output box ----
-    \node[box, fill=orange!8, draw=orange!50!black, text width=2.0cm,
-          minimum height=3.4cm] (out) at (6.8, 0)
-        {\textbf{\large $\hat{\lambda}_{\max}$}\\[3pt]{\scriptsize UV absorption}\\{\scriptsize wavelength (nm)}};
+ % ---- Output box ----
+ \node[box, fill=orange!8, draw=orange!50!black, text width=2.0cm,
+ minimum height=3.4cm] (out) at (6.8, 0)
+ {\textbf{\large $\hat{\lambda}_{\max}$}\\[3pt]{\scriptsize UV absorption}\\{\scriptsize wavelength (nm)}};
 
-    % ---- Arrows: five models to output ----
-    \draw[arr, draw=green!40!black] (rf.east)       -- (3.6, 2.9)   |- ([yshift=12pt]out.west);
-    \draw[arr, draw=green!40!black] (xgb.east)      -- (3.6, 1.6)   |- ([yshift=6pt]out.west);
-    \draw[arr, draw=red!40!black]   (chemprop.east) -- (3.6, 0)     |- (out.west);
-    \draw[arr, draw=blue!40!black]  (bigru.east)    -- (3.6, -1.8)  |- ([yshift=-6pt]out.west);
-    \draw[arr, draw=blue!40!black]  (cb.east)       -- (3.6, -3.4)  |- ([yshift=-12pt]out.west);
+ % ---- Arrows: five models to output ----
+ \draw[arr, draw=green!40!black] (rf.east) -- (3.6, 2.9) |- ([yshift=12pt]out.west);
+ \draw[arr, draw=green!40!black] (xgb.east) -- (3.6, 1.6) |- ([yshift=6pt]out.west);
+ \draw[arr, draw=red!40!black] (chemprop.east) -- (3.6, 0) |- (out.west);
+ \draw[arr, draw=blue!40!black] (bigru.east) -- (3.6, -1.8) |- ([yshift=-6pt]out.west);
+ \draw[arr, draw=blue!40!black] (cb.east) -- (3.6, -3.4) |- ([yshift=-12pt]out.west);
 
-    % ---- Mini UV spectrum ----
-    \begin{scope}[shift={(9.5, 0)}]
-        \draw[gray!40, ->] (0,-0.9) -- (0,1.0);
-        \node[font=\tiny, gray!50, rotate=90, text width=, minimum height=0pt] at (-0.25, 0.05) {Abs.};
-        \draw[gray!40, ->] (0,-0.9) -- (1.8,-0.9);
-        \node[font=\tiny, gray!50, text width=, minimum height=0pt] at (0.9, -1.1) {$\lambda$ (nm)};
-        \draw[orange!70!red, thick, smooth, tension=0.7]
-            plot coordinates {(0.1,-0.7) (0.3,-0.5) (0.55,-0.1) (0.8,0.45) (0.95,0.7) (1.1,0.45) (1.3,0.0) (1.5,-0.55) (1.65,-0.7)};
-        \draw[dashed, orange!60!black] (0.95,0.7) -- (0.95,-0.9);
-        \node[font=\tiny\bfseries, orange!60!black, text width=, minimum height=0pt] at (0.95, -1.05) {$\lambda_{\max}$};
-    \end{scope}
+ % ---- Mini UV spectrum ----
+ \begin{scope}[shift={(9.5, 0)}]
+ \draw[gray!40, ->] (0,-0.9) -- (0,1.0);
+ \node[font=\tiny, gray!50, rotate=90, text width=, minimum height=0pt] at (-0.25, 0.05) {Abs.};
+ \draw[gray!40, ->] (0,-0.9) -- (1.8,-0.9);
+ \node[font=\tiny, gray!50, text width=, minimum height=0pt] at (0.9, -1.1) {$\lambda$ (nm)};
+ \draw[orange!70!red, thick, smooth, tension=0.7]
+ plot coordinates {(0.1,-0.7) (0.3,-0.5) (0.55,-0.1) (0.8,0.45) (0.95,0.7) (1.1,0.45) (1.3,0.0) (1.5,-0.55) (1.65,-0.7)};
+ \draw[dashed, orange!60!black] (0.95,0.7) -- (0.95,-0.9);
+ \node[font=\tiny\bfseries, orange!60!black, text width=, minimum height=0pt] at (0.95, -1.05) {$\lambda_{\max}$};
+ \end{scope}
 
-    % ---- Stage labels ----
-    \node[font=\footnotesize\bfseries, gray!60, text width=, minimum height=0pt] at (0, -4.3) {\textsc{Models}};
-    \node[font=\footnotesize\bfseries, gray!60, text width=, minimum height=0pt] at (8.0, -4.3) {\textsc{Prediction}};
+ % ---- Stage labels ----
+ \node[font=\footnotesize\bfseries, gray!60, text width=, minimum height=0pt] at (0, -4.3) {\textsc{Models}};
+ \node[font=\footnotesize\bfseries, gray!60, text width=, minimum height=0pt] at (8.0, -4.3) {\textsc{Prediction}};
 
-    \end{tikzpicture}
-    \caption{Models and prediction. Fingerprint representations feed tree ensembles (green); molecular graphs feed the D-MPNN (red); token sequences feed recurrent and Transformer networks (blue). All five models predict $\lambda_{\max}$.}
-    \label{fig:framework_models}
-    \end{subfigure}
+ \end{tikzpicture}
+ \caption{Models and prediction. Fingerprint representations feed tree ensembles (green); molecular graphs feed the D-MPNN (red); token sequences feed recurrent and Transformer networks (blue). All five models predict $\lambda_{\max}$.}
+ \label{fig:framework_models}
+ \end{subfigure}
 
-    \caption{Benchmark framework for UV absorption prediction. (a)~Three representation pathways: Morgan fingerprints computed independently per molecule and horizontally stacked (4096-bit), molecular graphs with atom and bond features, and token sequences formed by SMILES concatenation. (b)~Five models spanning fingerprint, graph, and sequence architectures, all predicting $\lambda_{\max}$.}
-    \label{fig:benchmark_framework}
+ \caption{Benchmark framework for UV absorption prediction. (a)~Three representation pathways: Morgan fingerprints computed independently per molecule and horizontally stacked (4096-bit), molecular graphs with atom and bond features, and token sequences formed by SMILES concatenation. (b)~Five models spanning fingerprint, graph, and sequence architectures, all predicting $\lambda_{\max}$.}
+ \label{fig:benchmark_framework}
 \end{figure}
 
 \FloatBarrier
@@ -291,10 +291,10 @@ Our study extends this perspective specifically to UV absorption prediction, pro
 Our primary dataset combines the Joung et al.\ Experimental Database of Optical Properties~\cite{joung2020experimental} and the Beard et al.\ Comparative Dataset of UV/Vis Absorption Spectra~\cite{beard2019comparative}.
 A number of other UV absorption / dye datasets exist (Song et al.~\cite{song2025fluortools} survey nine sources in their Table 3, including ChemFluor, SMFluo, ChemDataExtractor, DSSCDB, Fluor-predictor, and Ksenofontov's data). We selected Joung+Beard as the primary dataset for four reasons: (i)~it is the largest unified collection of \emph{purely experimental} solute--solvent $\lambda_{\max}$ measurements available without paywall or license restrictions at the time of submission, with each record carrying an experimental wavelength and an explicit solvent label; (ii)~it has \emph{published baselines} from independent groups (Joung et al.\ GCNN on Deep4Chem~\cite{joung2021deep}, Beard et al.\ DR-CNN, Jung et al.\ multifidelity and GBFS~\cite{jung2024machine}) that enable apples-to-apples comparison without our team training every baseline from scratch; (iii)~combining the two source collections yields broader chromophore coverage than either alone (Deep4Chem 6{,}480 and ChemFluor 4{,}386 unique solutes, vs.\ approximately 7{,}000 in the curated Joung+Beard primary set after our preprocessing); and (iv)~the dataset is dominated by drug-like organic chromophores rather than the dye-aggregation or solar-cell-specific compositions of DSSCDB and Dye-aggregation, matching our intended downstream applications (photosafety screening and wetlab UV-absorber discovery, see Sections~the Photosafety Classification section and the Experimental Validation section).
 Among Song's Table 3 entries, several (ChemFluor, SMFluo, Fluor-predictor) measure fluorescence emission rather than UV absorption and are therefore not direct alternatives for our $\lambda_{\max}$ regression task; ChemDataExtractor and Ksenofontov's data provide smaller NLP-extracted or curated subsets that we did not adopt as primary. The Mamede et al.~\cite{mamede2021machine} Reaxys-derived dataset provides binary photosafety labels rather than continuous $\lambda_{\max}$ values, and is used in this work as the basis for the photosafety classification benchmark (the Photosafety Classification section) rather than as a primary regression source.
-Data curation proceeded as follows: (1)~SMILES strings were canonicalized using RDKit~\cite{landrumRdkitRdkit2020_03_12020} to ensure consistent molecular representations; (2)~entries with invalid or unparseable SMILES were removed; (3)~records were grouped by (canonical solute SMILES, canonical solvent SMILES) and the Greenman--Song duplicate-handling protocol~\cite{greenman2022multifidelity,song2025fluortools} was applied: groups whose within-group spread $\max(\lambda_{\max}) - \min(\lambda_{\max}) \leq 5$~nm were collapsed to the mean, and groups whose spread exceeded 5~nm were discarded entirely on the grounds that a within-key disagreement larger than typical instrument resolution likely reflects either a labelling error or a genuinely ambiguous measurement; singletons were retained unchanged; (4)~solvent names were standardized and mapped to canonical SMILES where possible. Of the 18{,}755 records that pass dropna and SMILES validation, 18{,}162 were singletons, 253 duplicate groups (508 records) were averaged, and 41 duplicate groups (84 records) were dropped, yielding a cleaned dataset of 18{,}415 unique (solute, solvent) records. We adopt this protocol in preference to the ``retain first occurrence'' rule used in our earlier preprint in response to reviewer feedback (see Supporting Information Section~S9 and the R1-8 entry in the response document).
+Data curation proceeded as follows: (1)~SMILES strings were canonicalized using RDKit~\cite{landrumRdkitRdkit2020_03_12020} to ensure consistent molecular representations; (2)~entries with invalid or unparseable SMILES were removed; (3)~records were grouped by (canonical solute SMILES, canonical solvent SMILES) and the Greenman--Song duplicate-handling protocol~\cite{greenman2022multifidelity,song2025fluortools} was applied: groups whose within-group spread $\max(\lambda_{\max}) - \min(\lambda_{\max}) \leq 5$~nm were collapsed to the mean, and groups whose spread exceeded 5~nm were discarded entirely on the grounds that a within-key disagreement larger than typical instrument resolution likely reflects either a labelling error or a genuinely ambiguous measurement; singletons were retained unchanged; (4)~solvent names were standardized and mapped to canonical SMILES where possible. Of the 18{,}755 records that pass dropna and SMILES validation, 18{,}162 were singletons, 253 duplicate groups (508 records) were averaged, and 41 duplicate groups (84 records) were dropped, yielding a cleaned dataset of 18{,}415 unique (solute, solvent) records. We adopt this protocol in preference to the ``retain first occurrence'' rule used in our earlier preprint in response to reviewer feedback (see Supporting Information Section~S9).
 After merging and applying the duplicate-handling protocol, the combined dataset contains \textbf{18,415 solute--solvent pairs} spanning 7,846 unique canonical chromophores and 726 unique canonical solvent SMILES. A visual overview of the dataset (the $\lambda_{\max}$ distribution, the top-20 solvent frequencies (log scale), and eight representative chromophore structures spanning the major class diversity) is given in Supporting Information Figure~S1.
 
-\textbf{Experimental measurement uncertainty.} To contextualise the model errors reported in Table~\ref{tab:model_comparison}, we quantified the inherent measurement noise in the underlying experimental data using two complementary audits (full results in Supporting Information Section~S17). \emph{Within-source} duplicates ((canonical solute, canonical solvent) pairs reported multiple times within the combined v2 dataset before Greenman--Song cleaning) show a heavily right-skewed spread distribution: of $294$ multi-record groups (592 records), the median spread is $0$~nm, $86$\% of groups have spread $\leq 5$~nm, $91$\% are within $20$~nm, and $4.1$\% have spread $> 50$~nm. The Greenman--Song 5-nm cleaning rule (adopted in response to R1-8) therefore retains essentially all duplicates whose spread is consistent with typical UV-Vis instrument precision while discarding the long tail of measurements that disagree by amounts likely attributable to lab-to-lab protocol differences or labelling errors. \emph{Inter-source} disagreement, measured on the $n = 21$ (canonical solute, canonical solvent) pairs reported in both Joung 2020 and Beard 2019, is substantially larger: median $|\Delta\lambda_{\max}| = 49$~nm, RMSD = $48$~nm; note that this small-$n$ sample is dominated by compounds appearing in multiple papers because of solvatochromic interest, which are exactly the chromophores most sensitive to subtle solvent-purity, temperature, or concentration differences across labs. The reported Table~\ref{tab:model_comparison} RMSEs ($31$--$54$~nm) are therefore comparable to the typical $95$th-percentile within-source spread ($21$~nm in Beard alone; $38$~nm in the v2-combined view), and the headline RF$\approx$Chemprop tie may be partially attributable to both architectures operating near the data noise floor on a substantial fraction of test molecules.
+\textbf{Experimental measurement uncertainty.} To contextualise the model errors reported in Table~\ref{tab:model_comparison}, we quantified the inherent measurement noise in the underlying experimental data using two complementary audits (full results in Supporting Information Section~S17). \emph{Within-source} duplicates ((canonical solute, canonical solvent) pairs reported multiple times within the combined v2 dataset before Greenman--Song cleaning) show a heavily right-skewed spread distribution: of $294$ multi-record groups (592 records), the median spread is $0$~nm, $86$\% of groups have spread $\leq 5$~nm, $91$\% are within $20$~nm, and $4.1$\% have spread $> 50$~nm. The Greenman--Song 5-nm cleaning rule therefore retains essentially all duplicates whose spread is consistent with typical UV-Vis instrument precision while discarding the long tail of measurements that disagree by amounts likely attributable to lab-to-lab protocol differences or labelling errors. \emph{Inter-source} disagreement, measured on the $n = 21$ (canonical solute, canonical solvent) pairs reported in both Joung 2020 and Beard 2019, is substantially larger: median $|\Delta\lambda_{\max}| = 49$~nm, RMSD = $48$~nm; note that this small-$n$ sample is dominated by compounds appearing in multiple papers because of solvatochromic interest, which are exactly the chromophores most sensitive to subtle solvent-purity, temperature, or concentration differences across labs. The reported Table~\ref{tab:model_comparison} RMSEs ($31$--$54$~nm) are therefore comparable to the typical $95$th-percentile within-source spread ($21$~nm in Beard alone; $38$~nm in the v2-combined view), and the headline RF$\approx$Chemprop tie may be partially attributable to both architectures operating near the data noise floor on a substantial fraction of test molecules.
 No outlier filtering on $\lambda_{\max}$ values was applied; all experimentally reported values (162--1100~nm) were retained.
 Target values ($\lambda_{\max}$) range from 162 to 1100~nm, with a median of 396~nm; 99.9\% of records lie within 200--900~nm.
 
@@ -355,18 +355,18 @@ Figure~\ref{fig:model_overview} provides a high-level comparison of the three mo
 \begin{minipage}[t]{0.23\textwidth}
 \centering
 \begin{tikzpicture}[node distance=1.35cm, scale=0.78, transform shape, baseline=(current bounding box.north)]
-\node (smi)   [archboxnarrow, fill=gray!15]                     {SMILES Input};
-\node (fp)    [archboxnarrow, fill=green!12, below of=smi]      {Morgan FP ($r{=}2$)};
-\node (vec)   [archboxnarrow, fill=green!20, below of=fp]       {2048-bit vector};
-\node (trees) [archboxnarrow, fill=green!30, below of=vec]      {1000 Decision Trees};
-\node (avg)   [archboxnarrow, fill=green!15, below of=trees]    {Ensemble Average};
-\node (out)   [archboxnarrow, fill=red!12, below of=avg]        {$\hat{\lambda}_{\max}$};
+\node (smi) [archboxnarrow, fill=gray!15] {SMILES Input};
+\node (fp) [archboxnarrow, fill=green!12, below of=smi] {Morgan FP ($r{=}2$)};
+\node (vec) [archboxnarrow, fill=green!20, below of=fp] {2048-bit vector};
+\node (trees) [archboxnarrow, fill=green!30, below of=vec] {1000 Decision Trees};
+\node (avg) [archboxnarrow, fill=green!15, below of=trees] {Ensemble Average};
+\node (out) [archboxnarrow, fill=red!12, below of=avg] {$\hat{\lambda}_{\max}$};
 
-\draw [archarrow] (smi)   -- (fp);
-\draw [archarrow] (fp)    -- (vec);
-\draw [archarrow] (vec)   -- (trees);
+\draw [archarrow] (smi) -- (fp);
+\draw [archarrow] (fp) -- (vec);
+\draw [archarrow] (vec) -- (trees);
 \draw [archarrow] (trees) -- (avg);
-\draw [archarrow] (avg)   -- (out);
+\draw [archarrow] (avg) -- (out);
 
 % Invisible spacers to match height of taller panels — 3 extra nodes
 \node[below of=out, minimum width=3.0cm, minimum height=0.85cm] (sp1) {};
@@ -382,21 +382,21 @@ Figure~\ref{fig:model_overview} provides a high-level comparison of the three mo
 \begin{minipage}[t]{0.23\textwidth}
 \centering
 \begin{tikzpicture}[node distance=1.35cm, scale=0.78, transform shape, baseline=(current bounding box.north)]
-\node (smi)  [archboxnarrow, fill=gray!15]                      {Solute + Solvent\\SMILES};
-\node (grp)  [archboxnarrow, fill=cyan!10, below of=smi]        {RDKit $\to$ graphs};
-\node (mp1)  [archboxnarrow, fill=cyan!20, below of=grp]        {Solute D-MPNN\\($T{=}3$, $d_h{=}300$)};
-\node (mp2)  [archboxnarrow, fill=cyan!20, below of=mp1]        {Solvent D-MPNN\\($T{=}3$, $d_h{=}300$)};
-\node (pool) [archboxnarrow, fill=cyan!30, below of=mp2]        {Mean-pool $\oplus$ concat};
-\node (ffn)  [archboxnarrow, fill=purple!12, below of=pool]     {FFN (300, ReLU)};
-\node (head) [archboxnarrow, fill=purple!15, below of=ffn]      {Linear head};
-\node (out)  [archboxnarrow, fill=red!12, below of=head]        {$\hat{\lambda}_{\max}$};
+\node (smi) [archboxnarrow, fill=gray!15] {Solute + Solvent\\SMILES};
+\node (grp) [archboxnarrow, fill=cyan!10, below of=smi] {RDKit $\to$ graphs};
+\node (mp1) [archboxnarrow, fill=cyan!20, below of=grp] {Solute D-MPNN\\($T{=}3$, $d_h{=}300$)};
+\node (mp2) [archboxnarrow, fill=cyan!20, below of=mp1] {Solvent D-MPNN\\($T{=}3$, $d_h{=}300$)};
+\node (pool) [archboxnarrow, fill=cyan!30, below of=mp2] {Mean-pool $\oplus$ concat};
+\node (ffn) [archboxnarrow, fill=purple!12, below of=pool] {FFN (300, ReLU)};
+\node (head) [archboxnarrow, fill=purple!15, below of=ffn] {Linear head};
+\node (out) [archboxnarrow, fill=red!12, below of=head] {$\hat{\lambda}_{\max}$};
 
-\draw [archarrow] (smi)  -- (grp);
-\draw [archarrow] (grp)  -- (mp1);
-\draw [archarrow] (mp1)  -- (mp2);
-\draw [archarrow] (mp2)  -- (pool);
+\draw [archarrow] (smi) -- (grp);
+\draw [archarrow] (grp) -- (mp1);
+\draw [archarrow] (mp1) -- (mp2);
+\draw [archarrow] (mp2) -- (pool);
 \draw [archarrow] (pool) -- (ffn);
-\draw [archarrow] (ffn)  -- (head);
+\draw [archarrow] (ffn) -- (head);
 \draw [archarrow] (head) -- (out);
 
 % one spacer to match height
@@ -411,23 +411,23 @@ Figure~\ref{fig:model_overview} provides a high-level comparison of the three mo
 \begin{minipage}[t]{0.23\textwidth}
 \centering
 \begin{tikzpicture}[node distance=1.35cm, scale=0.78, transform shape, baseline=(current bounding box.north)]
-\node (smi)  [archboxnarrow, fill=gray!15]                     {SMILES Input};
-\node (tok)  [archboxnarrow, fill=teal!10, below of=smi]       {Char Tokenization};
-\node (emb)  [archboxnarrow, fill=teal!20, below of=tok]       {Embedding ($d{=}50$)};
-\node (gru1) [archboxnarrow, fill=teal!30, below of=emb]       {BiGRU L1 (256$\times$2)};
-\node (gru2) [archboxnarrow, fill=teal!30, below of=gru1]      {BiGRU L2 (256$\times$2)};
-\node (gru3) [archboxnarrow, fill=teal!30, below of=gru2]      {BiGRU L3 (256$\times$2)};
-\node (den)  [archboxnarrow, fill=purple!12, below of=gru3]    {Dense (128, ReLU)};
-\node (drop) [archboxnarrow, fill=orange!10, below of=den]     {Dropout (0.105)};
-\node (out)  [archboxnarrow, fill=red!12, below of=drop]       {$\hat{\lambda}_{\max}$};
+\node (smi) [archboxnarrow, fill=gray!15] {SMILES Input};
+\node (tok) [archboxnarrow, fill=teal!10, below of=smi] {Char Tokenization};
+\node (emb) [archboxnarrow, fill=teal!20, below of=tok] {Embedding ($d{=}50$)};
+\node (gru1) [archboxnarrow, fill=teal!30, below of=emb] {BiGRU L1 (256$\times$2)};
+\node (gru2) [archboxnarrow, fill=teal!30, below of=gru1] {BiGRU L2 (256$\times$2)};
+\node (gru3) [archboxnarrow, fill=teal!30, below of=gru2] {BiGRU L3 (256$\times$2)};
+\node (den) [archboxnarrow, fill=purple!12, below of=gru3] {Dense (128, ReLU)};
+\node (drop) [archboxnarrow, fill=orange!10, below of=den] {Dropout (0.105)};
+\node (out) [archboxnarrow, fill=red!12, below of=drop] {$\hat{\lambda}_{\max}$};
 
-\draw [archarrow] (smi)  -- (tok);
-\draw [archarrow] (tok)  -- (emb);
-\draw [archarrow] (emb)  -- (gru1);
+\draw [archarrow] (smi) -- (tok);
+\draw [archarrow] (tok) -- (emb);
+\draw [archarrow] (emb) -- (gru1);
 \draw [archarrow] (gru1) -- (gru2);
 \draw [archarrow] (gru2) -- (gru3);
 \draw [archarrow] (gru3) -- (den);
-\draw [archarrow] (den)  -- (drop);
+\draw [archarrow] (den) -- (drop);
 \draw [archarrow] (drop) -- (out);
 \end{tikzpicture}
 
@@ -439,23 +439,23 @@ Figure~\ref{fig:model_overview} provides a high-level comparison of the three mo
 \begin{minipage}[t]{0.23\textwidth}
 \centering
 \begin{tikzpicture}[node distance=1.35cm, scale=0.78, transform shape, baseline=(current bounding box.north)]
-\node (smi)  [archboxnarrow, fill=gray!15]                      {SMILES Input};
-\node (tok)  [archboxnarrow, fill=violet!10, below of=smi]      {BPE Tokenization};
-\node (pre)  [archboxnarrow, fill=violet!18, below of=tok]      {Pretrained (ZINC)};
-\node (trn1) [archboxnarrow, fill=violet!28, below of=pre]      {Transformer Layer 1};
-\node (trn2) [archboxnarrow, fill=violet!28, below of=trn1]     {$\vdots$ (6 layers total)};
-\node (trn6) [archboxnarrow, fill=violet!28, below of=trn2]     {Transformer Layer 6};
-\node (cls)  [archboxnarrow, fill=violet!12, below of=trn6]     {{[CLS]} Pooling};
-\node (head) [archboxnarrow, fill=purple!15, below of=cls]      {Regression Head};
-\node (out)  [archboxnarrow, fill=red!12, below of=head]        {$\hat{\lambda}_{\max}$};
+\node (smi) [archboxnarrow, fill=gray!15] {SMILES Input};
+\node (tok) [archboxnarrow, fill=violet!10, below of=smi] {BPE Tokenization};
+\node (pre) [archboxnarrow, fill=violet!18, below of=tok] {Pretrained (ZINC)};
+\node (trn1) [archboxnarrow, fill=violet!28, below of=pre] {Transformer Layer 1};
+\node (trn2) [archboxnarrow, fill=violet!28, below of=trn1] {$\vdots$ (6 layers total)};
+\node (trn6) [archboxnarrow, fill=violet!28, below of=trn2] {Transformer Layer 6};
+\node (cls) [archboxnarrow, fill=violet!12, below of=trn6] {{[CLS]} Pooling};
+\node (head) [archboxnarrow, fill=purple!15, below of=cls] {Regression Head};
+\node (out) [archboxnarrow, fill=red!12, below of=head] {$\hat{\lambda}_{\max}$};
 
-\draw [archarrow] (smi)  -- (tok);
-\draw [archarrow] (tok)  -- (pre);
-\draw [archarrow] (pre)  -- (trn1);
+\draw [archarrow] (smi) -- (tok);
+\draw [archarrow] (tok) -- (pre);
+\draw [archarrow] (pre) -- (trn1);
 \draw [archarrow] (trn1) -- (trn2);
 \draw [archarrow] (trn2) -- (trn6);
 \draw [archarrow] (trn6) -- (cls);
-\draw [archarrow] (cls)  -- (head);
+\draw [archarrow] (cls) -- (head);
 \draw [archarrow] (head) -- (out);
 \end{tikzpicture}
 
@@ -504,23 +504,23 @@ Figure~\ref{fig:bigru_architectures} compares the default and optimized BiGRU ar
 \begin{minipage}[t]{0.45\textwidth}
 \centering
 \begin{tikzpicture}[node distance=1.3cm, scale=0.82, transform shape, baseline=(current bounding box.north)]
-\node (emb)  [layerbox, fill=blue!15]                    {Embedding ($d=50$)};
-\node (gru1) [layerbox, fill=green!20, below of=emb]     {BiGRU Layer 1 (128$\times$2)};
-\node (gru2) [layerbox, fill=green!20, below of=gru1]    {BiGRU Layer 2 (128$\times$2)};
-\node (den)  [layerbox, fill=purple!15, below of=gru2]   {Dense (128, ReLU)};
-\node (drop) [layerbox, fill=orange!15, below of=den]    {Dropout (0.20)};
-\node (out)  [layerbox, fill=red!15, below of=drop]      {Linear Output $\rightarrow$ 1};
-\draw [layerarrow] (emb)  -- (gru1);
+\node (emb) [layerbox, fill=blue!15] {Embedding ($d=50$)};
+\node (gru1) [layerbox, fill=green!20, below of=emb] {BiGRU Layer 1 (128$\times$2)};
+\node (gru2) [layerbox, fill=green!20, below of=gru1] {BiGRU Layer 2 (128$\times$2)};
+\node (den) [layerbox, fill=purple!15, below of=gru2] {Dense (128, ReLU)};
+\node (drop) [layerbox, fill=orange!15, below of=den] {Dropout (0.20)};
+\node (out) [layerbox, fill=red!15, below of=drop] {Linear Output $\rightarrow$ 1};
+\draw [layerarrow] (emb) -- (gru1);
 \draw [layerarrow] (gru1) -- (gru2);
 \draw [layerarrow] (gru2) -- (den);
-\draw [layerarrow] (den)  -- (drop);
+\draw [layerarrow] (den) -- (drop);
 \draw [layerarrow] (drop) -- (out);
-\node[font=\scriptsize, gray, right] at (2.4, 0)     {$T \times 50$};
-\node[font=\scriptsize, gray, right] at (2.4, -1.3)  {$T \times 256$};
-\node[font=\scriptsize, gray, right] at (2.4, -2.6)  {$256$};
-\node[font=\scriptsize, gray, right] at (2.4, -3.9)  {$128$};
-\node[font=\scriptsize, gray, right] at (2.4, -5.2)  {$128$};
-\node[font=\scriptsize, gray, right] at (2.4, -6.5)  {$1$};
+\node[font=\scriptsize, gray, right] at (2.4, 0) {$T \times 50$};
+\node[font=\scriptsize, gray, right] at (2.4, -1.3) {$T \times 256$};
+\node[font=\scriptsize, gray, right] at (2.4, -2.6) {$256$};
+\node[font=\scriptsize, gray, right] at (2.4, -3.9) {$128$};
+\node[font=\scriptsize, gray, right] at (2.4, -5.2) {$128$};
+\node[font=\scriptsize, gray, right] at (2.4, -6.5) {$1$};
 % Invisible spacer to match height of (b)
 \node[below=1.3cm of out] (spacer) {};
 \end{tikzpicture}
@@ -532,26 +532,26 @@ Figure~\ref{fig:bigru_architectures} compares the default and optimized BiGRU ar
 \begin{minipage}[t]{0.45\textwidth}
 \centering
 \begin{tikzpicture}[node distance=1.3cm, scale=0.82, transform shape, baseline=(current bounding box.north)]
-\node (emb)  [layerbox, fill=blue!15]                    {Embedding ($d=50$)};
-\node (gru1) [layerbox, fill=green!35, below of=emb]     {BiGRU Layer 1 (256$\times$2)};
-\node (gru2) [layerbox, fill=green!35, below of=gru1]    {BiGRU Layer 2 (256$\times$2)};
-\node (gru3) [layerbox, fill=green!35, below of=gru2]    {BiGRU Layer 3 (256$\times$2)};
-\node (den)  [layerbox, fill=purple!15, below of=gru3]   {Dense (128, ReLU)};
-\node (drop) [layerbox, fill=orange!15, below of=den]    {Dropout (0.105)};
-\node (out)  [layerbox, fill=red!15, below of=drop]      {Linear Output $\rightarrow$ 1};
-\draw [layerarrow] (emb)  -- (gru1);
+\node (emb) [layerbox, fill=blue!15] {Embedding ($d=50$)};
+\node (gru1) [layerbox, fill=green!35, below of=emb] {BiGRU Layer 1 (256$\times$2)};
+\node (gru2) [layerbox, fill=green!35, below of=gru1] {BiGRU Layer 2 (256$\times$2)};
+\node (gru3) [layerbox, fill=green!35, below of=gru2] {BiGRU Layer 3 (256$\times$2)};
+\node (den) [layerbox, fill=purple!15, below of=gru3] {Dense (128, ReLU)};
+\node (drop) [layerbox, fill=orange!15, below of=den] {Dropout (0.105)};
+\node (out) [layerbox, fill=red!15, below of=drop] {Linear Output $\rightarrow$ 1};
+\draw [layerarrow] (emb) -- (gru1);
 \draw [layerarrow] (gru1) -- (gru2);
 \draw [layerarrow] (gru2) -- (gru3);
 \draw [layerarrow] (gru3) -- (den);
-\draw [layerarrow] (den)  -- (drop);
+\draw [layerarrow] (den) -- (drop);
 \draw [layerarrow] (drop) -- (out);
-\node[font=\scriptsize, gray, right] at (2.4, 0)     {$T \times 50$};
-\node[font=\scriptsize, gray, right] at (2.4, -1.3)  {$T \times 512$};
-\node[font=\scriptsize, gray, right] at (2.4, -2.6)  {$T \times 512$};
-\node[font=\scriptsize, gray, right] at (2.4, -3.9)  {$512$};
-\node[font=\scriptsize, gray, right] at (2.4, -5.2)  {$128$};
-\node[font=\scriptsize, gray, right] at (2.4, -6.5)  {$128$};
-\node[font=\scriptsize, gray, right] at (2.4, -7.8)  {$1$};
+\node[font=\scriptsize, gray, right] at (2.4, 0) {$T \times 50$};
+\node[font=\scriptsize, gray, right] at (2.4, -1.3) {$T \times 512$};
+\node[font=\scriptsize, gray, right] at (2.4, -2.6) {$T \times 512$};
+\node[font=\scriptsize, gray, right] at (2.4, -3.9) {$512$};
+\node[font=\scriptsize, gray, right] at (2.4, -5.2) {$128$};
+\node[font=\scriptsize, gray, right] at (2.4, -6.5) {$128$};
+\node[font=\scriptsize, gray, right] at (2.4, -7.8) {$1$};
 \end{tikzpicture}
 
 \textbf{(b)} Optimized BiGRU\\[2pt]
@@ -580,7 +580,7 @@ Mixed-precision (float16) training is used on the same NVIDIA RTX 4090 GPU.
 \subsection{Graph Neural Network (D-MPNN)}
 \label{sec:chemprop}
 
-The Directed Message Passing Neural Network (D-MPNN) implemented in Chemprop v2~\cite{yangAnalyzingLearnedMolecular2019,chempropv2_2024} operates on the molecular graph by passing messages along directed bonds (rather than atoms), avoiding redundant information flow to the source atom at each step. We use Chemprop's built-in multicomponent configuration for solute--solvent prediction: separate D-MPNN encoders process the solute and solvent molecular graphs independently (hidden dimension $d_h = 300$ each, $T = 3$ message-passing steps, mean-pool readout), and their pooled representations are concatenated before a feed-forward regression head. The default D-MPNN hyperparameters are taken from Chemprop's published v2 release~\cite{yangAnalyzingLearnedMolecular2019,chempropv2_2024}, yielding 636K trainable parameters; in response to reviewer concern R1-12 we also ran a 25-trial Optuna probe of Chemprop's hyperparameters (matching the budget used for BiGRU), which improves cross-validated RMSE from $33.15 \pm 3.27$ to $28.83 \pm 1.32$~nm by primarily eliminating fold-4's early-stopping outlier in the default run (full search space and per-fold comparison in Supporting Information Section~S13). The tuned configuration is reported as a separate row in Table~\ref{tab:model_comparison}; we retain the default configuration as the primary Table~\ref{tab:model_comparison} comparison to match the evaluation convention used by published Chemprop benchmarks on these data~\cite{joung2021deep,beard2019comparative,greenman2022multifidelity,jung2024machine,chempropv2_2024}, and the tuned vs.\ RF advantage is borderline at $n = 5$ folds (parametric paired $t$-test $p = 0.044$, Wilcoxon $p = 0.125$). Target values are normalised to zero mean and unit variance during training. We use the Noam learning-rate schedule (warmup from $10^{-4}$ to $10^{-3}$ over 2 epochs, then exponential decay to $10^{-4}$), batch size 64, and early stopping on validation loss (patience 15, maximum 100 epochs). With $\sim$11{,}780 training records per fold (the 64\% train portion of the v3 dataset), the default configuration corresponds to a parameter-to-sample ratio of $\sim$54 parameters per training example, higher than the $\sim$10--20 typical of from-scratch QSPR models but well below the $\geq 10^3$ characteristic of pretrained transfer-learning regimes. The Chemprop v2 release paper~\cite{chempropv2_2024} validates this regime across moderate-size molecular property datasets and relies on three regularisation mechanisms in lieu of explicit parameter reduction: the Noam learning-rate decay (which limits effective gradient magnitude in late training), early stopping on val loss with patience 15 (which truncates training as soon as overfitting begins), and a default dropout of $0.0$ in the message-passing and FFN heads (deliberately disabled because Chemprop's authors found target-normalisation plus early stopping sufficient on the datasets it was tuned for). The R1-12 HPO probe confirms that adding a modest $0.1$ dropout improves cross-validated RMSE by $\sim$4~nm and reduces fold variance (Section~S13), so the published defaults are conservative but not pathological at this dataset size. Full message-passing recurrence and the initialisation of bond hidden states from concatenated atom and bond features in Supporting Information Section~S12.
+The Directed Message Passing Neural Network (D-MPNN) implemented in Chemprop v2~\cite{yangAnalyzingLearnedMolecular2019,chempropv2_2024} operates on the molecular graph by passing messages along directed bonds (rather than atoms), avoiding redundant information flow to the source atom at each step. We use Chemprop's built-in multicomponent configuration for solute--solvent prediction: separate D-MPNN encoders process the solute and solvent molecular graphs independently (hidden dimension $d_h = 300$ each, $T = 3$ message-passing steps, mean-pool readout), and their pooled representations are concatenated before a feed-forward regression head. The default D-MPNN hyperparameters are taken from Chemprop's published v2 release~\cite{yangAnalyzingLearnedMolecular2019,chempropv2_2024}, yielding 636K trainable parameters; we also ran a 25-trial Optuna probe of Chemprop's hyperparameters (matching the budget used for BiGRU), which improves cross-validated RMSE from $33.15 \pm 3.27$ to $28.83 \pm 1.32$~nm by primarily eliminating fold-4's early-stopping outlier in the default run (full search space and per-fold comparison in Supporting Information Section~S13). The tuned configuration is reported as a separate row in Table~\ref{tab:model_comparison}; we retain the default configuration as the primary Table~\ref{tab:model_comparison} comparison to match the evaluation convention used by published Chemprop benchmarks on these data~\cite{joung2021deep,beard2019comparative,greenman2022multifidelity,jung2024machine,chempropv2_2024}, and the tuned vs.\ RF advantage is borderline at $n = 5$ folds (parametric paired $t$-test $p = 0.044$, Wilcoxon $p = 0.125$). Target values are normalised to zero mean and unit variance during training. We use the Noam learning-rate schedule (warmup from $10^{-4}$ to $10^{-3}$ over 2 epochs, then exponential decay to $10^{-4}$), batch size 64, and early stopping on validation loss (patience 15, maximum 100 epochs). With $\sim$11{,}780 training records per fold (the 64\% train portion of the v3 dataset), the default configuration corresponds to a parameter-to-sample ratio of $\sim$54 parameters per training example, higher than the $\sim$10--20 typical of from-scratch QSPR models but well below the $\geq 10^3$ characteristic of pretrained transfer-learning regimes. The Chemprop v2 release paper~\cite{chempropv2_2024} validates this regime across moderate-size molecular property datasets and relies on three regularisation mechanisms in lieu of explicit parameter reduction: the Noam learning-rate decay (which limits effective gradient magnitude in late training), early stopping on val loss with patience 15 (which truncates training as soon as overfitting begins), and a default dropout of $0.0$ in the message-passing and FFN heads (deliberately disabled because Chemprop's authors found target-normalisation plus early stopping sufficient on the datasets it was tuned for). The HPO probe confirms that adding a modest $0.1$ dropout improves cross-validated RMSE by $\sim$4~nm and reduces fold variance (Section~S13), so the published defaults are conservative but not pathological at this dataset size. Full message-passing recurrence and the initialisation of bond hidden states from concatenated atom and bond features in Supporting Information Section~S12.
 
 
 % --- Solvent Concatenation ---
@@ -590,7 +590,7 @@ The Directed Message Passing Neural Network (D-MPNN) implemented in Chemprop v2~
 UV absorption wavelengths are solvent-dependent properties: the same chromophore can exhibit different $\lambda_{\max}$ values in different solvents (solvatochromism)~\cite{reichardt2011solvents}. An empirical audit of the v3 dataset quantifies the size of this effect: of the $7{,}846$ unique chromophores, $2{,}516$ ($32$\%) appear under $\geq 2$ canonical solvents in the v3 cleaning; for these, the per-chromophore span $\max(\lambda_{\max}) - \min(\lambda_{\max})$ has median $10$~nm and $95$th percentile $52$~nm, with a long tail extending to $> 200$~nm for the strongest solvatochromic compounds in the dataset. The top-decile chromophores by span are dominated by classical solvatochromism standards (Reichardt's $E_T(30)$ dye reaches a $494$~nm span across $334$ different solvents in the dataset) and push--pull merocyanines / stilbene-pyridinium cyanines whose intramolecular charge transfer is strongly stabilised in polar solvents (full per-chromophore distribution and top-15 table in Supporting Information Section~S18).
 We encode solvent information by concatenating the solute and solvent SMILES into a single input string:
 \begin{equation}
-    S_{\text{input}} = \texttt{!} \oplus S_{\text{solute}} \oplus \texttt{!} \oplus S_{\text{solvent}} \oplus \texttt{E}
+ S_{\text{input}} = \texttt{!} \oplus S_{\text{solute}} \oplus \texttt{!} \oplus S_{\text{solvent}} \oplus \texttt{E}
 \end{equation}
 where \texttt{!} serves as the start/separator token and \texttt{E} as the end/padding token.
 
@@ -616,14 +616,14 @@ Table~\ref{tab:model_comparison} presents the performance of all models on the p
 \toprule
 \textbf{Model} & \textbf{RMSE (nm)} & \textbf{MAE (nm)} & $\boldsymbol{R^2}$ & \textbf{Pearson $r$} \\
 \midrule
-RF + Morgan FP        & \textbf{31.50 $\pm$ 1.47} & \textbf{15.37 $\pm$ 0.22} & \textbf{0.914 $\pm$ 0.007} & \textbf{0.956 $\pm$ 0.004} \\
-Chemprop (D-MPNN)     & 33.15 $\pm$ 3.27          & 18.11 $\pm$ 3.02          & 0.904 $\pm$ 0.020          & 0.952 $\pm$ 0.011 \\
-Chemprop (tuned, R1-12)$^{\ddagger}$ & 28.83 $\pm$ 1.32 & 13.19 $\pm$ 2.16 & 0.928 $\pm$ 0.006 & 0.963 $\pm$ 0.003 \\
-XGBoost + Morgan FP   & 33.92 $\pm$ 1.26          & 20.25 $\pm$ 0.41          & 0.900 $\pm$ 0.006          & 0.950 $\pm$ 0.003 \\
-BiGRU + Solvent       & 36.45 $\pm$ 1.12$^{\dagger}$ & 20.70 $\pm$ 0.51$^{\dagger}$ & 0.884 $\pm$ 0.006$^{\dagger}$ & 0.940 $\pm$ 0.003$^{\dagger}$ \\
-BiGRU (tuned, 3L/256u)& 36.20 $\pm$ 1.20          & 18.81 $\pm$ 0.58          & 0.886 $\pm$ 0.007          & 0.944 $\pm$ 0.004 \\
-XGBoost (MAE loss)    & 40.75 $\pm$ 1.58$^{\dagger}$ & 21.99 $\pm$ 0.47$^{\dagger}$ & 0.854 $\pm$ 0.010$^{\dagger}$ & 0.927 $\pm$ 0.005$^{\dagger}$ \\
-ChemBERTa (pretrained)& 54.09 $\pm$ 3.57          & 26.78 $\pm$ 2.35          & 0.744 $\pm$ 0.035          & 0.880 $\pm$ 0.020 \\
+RF + Morgan FP & \textbf{31.50 $\pm$ 1.47} & \textbf{15.37 $\pm$ 0.22} & \textbf{0.914 $\pm$ 0.007} & \textbf{0.956 $\pm$ 0.004} \\
+Chemprop (D-MPNN) & 33.15 $\pm$ 3.27 & 18.11 $\pm$ 3.02 & 0.904 $\pm$ 0.020 & 0.952 $\pm$ 0.011 \\
+Chemprop (tuned)$^{\ddagger}$ & 28.83 $\pm$ 1.32 & 13.19 $\pm$ 2.16 & 0.928 $\pm$ 0.006 & 0.963 $\pm$ 0.003 \\
+XGBoost + Morgan FP & 33.92 $\pm$ 1.26 & 20.25 $\pm$ 0.41 & 0.900 $\pm$ 0.006 & 0.950 $\pm$ 0.003 \\
+BiGRU + Solvent & 36.45 $\pm$ 1.12$^{\dagger}$ & 20.70 $\pm$ 0.51$^{\dagger}$ & 0.884 $\pm$ 0.006$^{\dagger}$ & 0.940 $\pm$ 0.003$^{\dagger}$ \\
+BiGRU (tuned, 3L/256u)& 36.20 $\pm$ 1.20 & 18.81 $\pm$ 0.58 & 0.886 $\pm$ 0.007 & 0.944 $\pm$ 0.004 \\
+XGBoost (MAE loss) & 40.75 $\pm$ 1.58$^{\dagger}$ & 21.99 $\pm$ 0.47$^{\dagger}$ & 0.854 $\pm$ 0.010$^{\dagger}$ & 0.927 $\pm$ 0.005$^{\dagger}$ \\
+ChemBERTa (pretrained)& 54.09 $\pm$ 3.57 & 26.78 $\pm$ 2.35 & 0.744 $\pm$ 0.035 & 0.880 $\pm$ 0.020 \\
 \bottomrule
 \multicolumn{5}{@{}p{\dimexpr\linewidth-2\tabcolsep\relax}@{}}{\footnotesize $^{\dagger}$The default BiGRU and MAE-loss XGBoost rows are reported on the v2 (18{,}755-row, first-occurrence-dedup) dataset; v3 retraining of these ablation variants is not in scope for the current revision and the qualitative comparisons (default vs.\ tuned BiGRU; MSE vs.\ MAE XGBoost) do not depend on which dedup protocol was used.} \\
 \multicolumn{5}{@{}p{\dimexpr\linewidth-2\tabcolsep\relax}@{}}{\footnotesize $^{\ddagger}$Tuned via a 25-trial Optuna probe matching the BiGRU HPO budget (best config: $d_h = 900$, depth $= 4$, dropout $= 0.1$, FFN $2\text{L}\times 800$, batch $= 32$, 5.6M params; configuration in SI Section~S13). The 2.67~nm advantage of tuned Chemprop over RF is borderline at $n = 5$ folds: paired $t$-test $p = 0.044$ but Wilcoxon $p = 0.125$; the conservative non-parametric test does not reject the null. Default Chemprop is retained as the bolded primary row to match the evaluation convention used by published Chemprop benchmarks on these data~\cite{joung2021deep,beard2019comparative,greenman2022multifidelity,jung2024machine,chempropv2_2024}.} \\
@@ -649,58 +649,58 @@ All three architectures encode molecular structure with an implicit spatial cuto
 Kang et al.~\cite{kang2020prediction} and Urbina et al.~\cite{beard2022uvadvisor} similarly found that fingerprint- and RNN-based models excel at electronic transition prediction, further supporting the hypothesis that UV absorption is a local-feature-dependent property.
 
 \begin{figure}[htbp]
-    \centering
-    \begin{tikzpicture}[
-        >=Stealth,
-        box/.style={draw, rounded corners=3pt, minimum width=2.8cm, minimum height=0.9cm, align=center, font=\small},
-        localbox/.style={box, fill=green!12, draw=green!50!black},
-        globalbox/.style={box, fill=red!10, draw=red!50!black},
-        propbox/.style={draw, rounded corners=5pt, fill=blue!8, draw=blue!40!black, minimum width=4cm, minimum height=0.8cm, align=center, font=\small\bfseries},
-        annot/.style={font=\scriptsize, text=black},
-        every node/.style={inner sep=4pt}
-    ]
-    % --- Header: UV absorption property ---
-    \node[annot] (uvsub) at (0, 5.0) {Woodward--Fieser rules: $\lambda_{\max} = \text{base} + \sum \Delta_i$ (local substituent contributions)};
-    \node[propbox, below=1pt of uvsub] (uvprop) {UV $\lambda_{\max}$ = local chromophore property};
+ \centering
+ \begin{tikzpicture}[
+ >=Stealth,
+ box/.style={draw, rounded corners=3pt, minimum width=2.8cm, minimum height=0.9cm, align=center, font=\small},
+ localbox/.style={box, fill=green!12, draw=green!50!black},
+ globalbox/.style={box, fill=red!10, draw=red!50!black},
+ propbox/.style={draw, rounded corners=5pt, fill=blue!8, draw=blue!40!black, minimum width=4cm, minimum height=0.8cm, align=center, font=\small\bfseries},
+ annot/.style={font=\scriptsize, text=black},
+ every node/.style={inner sep=4pt}
+ ]
+ % --- Header: UV absorption property ---
+ \node[annot] (uvsub) at (0, 5.0) {Woodward--Fieser rules: $\lambda_{\max} = \text{base} + \sum \Delta_i$ (local substituent contributions)};
+ \node[propbox, below=1pt of uvsub] (uvprop) {UV $\lambda_{\max}$ = local chromophore property};
 
-    % --- Four model columns ---
-    % RF column
-    \node[localbox] (rf) at (-6.0, 1.8) {RF + Morgan FP};
-    \node[annot, below=0pt of rf] (rfdesc) {Radius-2 substructures};
-    \node[font=\scriptsize\bfseries, text=green!50!black] at (-6.0, 0.7) {LOCAL bits};
+ % --- Four model columns ---
+ % RF column
+ \node[localbox] (rf) at (-6.0, 1.8) {RF + Morgan FP};
+ \node[annot, below=0pt of rf] (rfdesc) {Radius-2 substructures};
+ \node[font=\scriptsize\bfseries, text=green!50!black] at (-6.0, 0.7) {LOCAL bits};
 
-    % Chemprop column
-    \node[localbox] (chemprop) at (-2.0, 1.8) {Chemprop (D-MPNN)};
-    \node[annot, below=0pt of chemprop] (chempropdesc) {3-hop bond messages};
-    \node[font=\scriptsize\bfseries, text=green!50!black] at (-2.0, 0.7) {LOCAL graph};
+ % Chemprop column
+ \node[localbox] (chemprop) at (-2.0, 1.8) {Chemprop (D-MPNN)};
+ \node[annot, below=0pt of chemprop] (chempropdesc) {3-hop bond messages};
+ \node[font=\scriptsize\bfseries, text=green!50!black] at (-2.0, 0.7) {LOCAL graph};
 
-    % BiGRU column
-    \node[localbox] (bigru) at (2.0, 1.8) {BiGRU (RNN)};
-    \node[annot, below=0pt of bigru] (bigrudesc) {Sequential context};
-    \node[font=\scriptsize\bfseries, text=green!50!black] at (2.0, 0.7) {LOCAL seq.};
+ % BiGRU column
+ \node[localbox] (bigru) at (2.0, 1.8) {BiGRU (RNN)};
+ \node[annot, below=0pt of bigru] (bigrudesc) {Sequential context};
+ \node[font=\scriptsize\bfseries, text=green!50!black] at (2.0, 0.7) {LOCAL seq.};
 
-    % ChemBERTa column
-    \node[globalbox] (bert) at (6.0, 1.8) {ChemBERTa};
-    \node[annot, below=0pt of bert] (bertdesc) {Full self-attention};
-    \node[font=\scriptsize\bfseries, text=red!50!black] at (6.0, 0.7) {GLOBAL attn.};
+ % ChemBERTa column
+ \node[globalbox] (bert) at (6.0, 1.8) {ChemBERTa};
+ \node[annot, below=0pt of bert] (bertdesc) {Full self-attention};
+ \node[font=\scriptsize\bfseries, text=red!50!black] at (6.0, 0.7) {GLOBAL attn.};
 
-    % --- Arrows from property to models ---
-    \draw[->, thick, green!50!black] (uvprop.south west) ++(0.2,0) -- (rf.north) node[midway, left, annot] {matches};
-    \draw[->, thick, green!50!black] (uvprop.south) ++(-0.6,0) -- (chemprop.north) node[midway, left, annot] {matches};
-    \draw[->, thick, green!50!black] (uvprop.south) ++(0.6,0) -- (bigru.north) node[midway, right, annot] {matches};
-    \draw[->, thick, red!40!black, dashed] (uvprop.south east) ++(-0.2,0) -- (bert.north) node[midway, right, annot] {mismatch};
+ % --- Arrows from property to models ---
+ \draw[->, thick, green!50!black] (uvprop.south west) ++(0.2,0) -- (rf.north) node[midway, left, annot] {matches};
+ \draw[->, thick, green!50!black] (uvprop.south) ++(-0.6,0) -- (chemprop.north) node[midway, left, annot] {matches};
+ \draw[->, thick, green!50!black] (uvprop.south) ++(0.6,0) -- (bigru.north) node[midway, right, annot] {matches};
+ \draw[->, thick, red!40!black, dashed] (uvprop.south east) ++(-0.2,0) -- (bert.north) node[midway, right, annot] {mismatch};
 
-    % --- Result boxes at bottom ---
-    \node[draw, rounded corners=2pt, fill=green!5, font=\scriptsize, align=center] (rfres) at (-6.0, -0.2) {RMSE = \textbf{31.50} nm\\(best cross-val)};
-    \node[draw, rounded corners=2pt, fill=green!5, font=\scriptsize, align=center] (chempropres) at (-2.0, -0.2) {RMSE = \textbf{33.15} nm\\(636K params)};
-    \node[draw, rounded corners=2pt, fill=green!5, font=\scriptsize, align=center] (bigrures) at (2.0, -0.2) {RMSE = \textbf{36.20} nm\\(3.0M params)};
-    \node[draw, rounded corners=2pt, fill=red!5, font=\scriptsize, align=center] (bertres) at (6.0, -0.2) {RMSE = \textbf{54.09} nm\\(44.1M params)};
+ % --- Result boxes at bottom ---
+ \node[draw, rounded corners=2pt, fill=green!5, font=\scriptsize, align=center] (rfres) at (-6.0, -0.2) {RMSE = \textbf{31.50} nm\\(best cross-val)};
+ \node[draw, rounded corners=2pt, fill=green!5, font=\scriptsize, align=center] (chempropres) at (-2.0, -0.2) {RMSE = \textbf{33.15} nm\\(636K params)};
+ \node[draw, rounded corners=2pt, fill=green!5, font=\scriptsize, align=center] (bigrures) at (2.0, -0.2) {RMSE = \textbf{36.20} nm\\(3.0M params)};
+ \node[draw, rounded corners=2pt, fill=red!5, font=\scriptsize, align=center] (bertres) at (6.0, -0.2) {RMSE = \textbf{54.09} nm\\(44.1M params)};
 
-    % --- Bottom citation ---
-    \node[annot, text width=12cm, align=center] at (0, -1.3) {Local-feature models (RF, D-MPNN, BiGRU) outperform the global-attention Transformer on in-distribution UV data.};
-    \end{tikzpicture}
-    \caption{Conceptual alignment between UV absorption physics and model architectures. UV $\lambda_{\max}$ is determined by local chromophore features (conjugation, substituents), favoring models whose inductive bias encodes local molecular neighborhoods. RF (radius-2 fingerprints) and Chemprop (3-hop message passing) achieve nearly identical RMSE, reinforcing the locality hypothesis. The dashed red arrow indicates ChemBERTa's architectural mismatch, though out-of-distribution performance (Table~\ref{tab:wetlab_summary}) reveals complementary strengths from pretraining.}
-    \label{fig:local_vs_global}
+ % --- Bottom citation ---
+ \node[annot, text width=12cm, align=center] at (0, -1.3) {Local-feature models (RF, D-MPNN, BiGRU) outperform the global-attention Transformer on in-distribution UV data.};
+ \end{tikzpicture}
+ \caption{Conceptual alignment between UV absorption physics and model architectures. UV $\lambda_{\max}$ is determined by local chromophore features (conjugation, substituents), favoring models whose inductive bias encodes local molecular neighborhoods. RF (radius-2 fingerprints) and Chemprop (3-hop message passing) achieve nearly identical RMSE, reinforcing the locality hypothesis. The dashed red arrow indicates ChemBERTa's architectural mismatch, though out-of-distribution performance (Table~\ref{tab:wetlab_summary}) reveals complementary strengths from pretraining.}
+ \label{fig:local_vs_global}
 \end{figure}
 
 Figure~\ref{fig:local_vs_global} illustrates this conceptual alignment: models whose inductive bias matches the locality of the target property (RF encoding radius-2 atom neighborhoods, Chemprop aggregating 3-hop bond messages, BiGRU capturing sequential SMILES context) achieve better in-distribution performance than Transformers whose self-attention distributes information globally~\cite{chenMolecularLanguage2023, jiang2023trangru}.
@@ -729,14 +729,14 @@ To quantify the contribution of solvent information, we compare models trained w
 \toprule
 \textbf{Model} & \textbf{RMSE (nm)} & \textbf{MAE (nm)} & $\boldsymbol{R^2}$ & \textbf{Pearson $r$} \\
 \midrule
-RF + Solvent          & \textbf{31.34 $\pm$ 1.82} & \textbf{15.16 $\pm$ 0.44} & \textbf{0.914 $\pm$ 0.010} & \textbf{0.956 $\pm$ 0.005} \\
-RF Solute only        & 34.13 $\pm$ 1.44          & 16.45 $\pm$ 0.33          & 0.898 $\pm$ 0.008          & 0.948 $\pm$ 0.004 \\
+RF + Solvent & \textbf{31.34 $\pm$ 1.82} & \textbf{15.16 $\pm$ 0.44} & \textbf{0.914 $\pm$ 0.010} & \textbf{0.956 $\pm$ 0.005} \\
+RF Solute only & 34.13 $\pm$ 1.44 & 16.45 $\pm$ 0.33 & 0.898 $\pm$ 0.008 & 0.948 $\pm$ 0.004 \\
 \midrule
-Chemprop + Solvent    & 31.69 $\pm$ 3.18          & 16.84 $\pm$ 1.74          & 0.911 $\pm$ 0.016          & 0.955 $\pm$ 0.008 \\
-Chemprop Solute only  & 33.78 $\pm$ 2.73          & 16.48 $\pm$ 0.64          & 0.900 $\pm$ 0.015          & 0.949 $\pm$ 0.008 \\
+Chemprop + Solvent & 31.69 $\pm$ 3.18 & 16.84 $\pm$ 1.74 & 0.911 $\pm$ 0.016 & 0.955 $\pm$ 0.008 \\
+Chemprop Solute only & 33.78 $\pm$ 2.73 & 16.48 $\pm$ 0.64 & 0.900 $\pm$ 0.015 & 0.949 $\pm$ 0.008 \\
 \midrule
-BiGRU + Solvent       & 36.45 $\pm$ 1.12          & 20.70 $\pm$ 0.51          & 0.884 $\pm$ 0.006          & 0.940 $\pm$ 0.003 \\
-BiGRU Solute only     & 39.03 $\pm$ 1.37          & 22.53 $\pm$ 0.32          & 0.866 $\pm$ 0.009          & 0.931 $\pm$ 0.005 \\
+BiGRU + Solvent & 36.45 $\pm$ 1.12 & 20.70 $\pm$ 0.51 & 0.884 $\pm$ 0.006 & 0.940 $\pm$ 0.003 \\
+BiGRU Solute only & 39.03 $\pm$ 1.37 & 22.53 $\pm$ 0.32 & 0.866 $\pm$ 0.009 & 0.931 $\pm$ 0.005 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -763,20 +763,20 @@ Table~\ref{tab:cross_dataset} presents results on two external datasets, with pu
 \textbf{Dataset (Split)} & \textbf{Model} & \textbf{RMSE (nm)} & \textbf{MAE (nm)} & $\boldsymbol{R^2}$ \\
 \midrule
 \multirow{5}{*}{Deep4Chem (80/10/10)}
-  & GCNN$^\dagger$            & 26.6   & ---    &, \\
-  & Our Chemprop              & \textbf{19.13}  & \textbf{10.66}  & \textbf{0.967} \\
-  & Our RF                    & 22.70  & 11.32  & 0.954 \\
-  & Our ChemBERTa             & 35.90  & 17.43  & 0.884 \\
-  & Our BiGRU                 & 27.07  & 17.22  & 0.934 \\
+ & GCNN$^\dagger$ & 26.6 & --- &, \\
+ & Our Chemprop & \textbf{19.13} & \textbf{10.66} & \textbf{0.967} \\
+ & Our RF & 22.70 & 11.32 & 0.954 \\
+ & Our ChemBERTa & 35.90 & 17.43 & 0.884 \\
+ & Our BiGRU & 27.07 & 17.22 & 0.934 \\
 \midrule
 \multirow{7}{*}{Jung 2024 (72/18/10)}
-  & Multifidelity$^\dagger$   & 31.3   & 14.6   & 0.91  \\
-  & GBFS$^\dagger$            & 32.2   & 16.2   & 0.91  \\
-  & DR-CNN$^\dagger$          & 44.4   & 23.3   & 0.82  \\
-  & Our Chemprop              & \textbf{27.36}  & \textbf{15.50}  & \textbf{0.936} \\
-  & Our RF                    & 29.82  & 15.31  & 0.924 \\
-  & Our ChemBERTa             & 38.27  & 19.27  & 0.874 \\
-  & Our BiGRU                 & 36.31  & 21.54  & 0.887 \\
+ & Multifidelity$^\dagger$ & 31.3 & 14.6 & 0.91 \\
+ & GBFS$^\dagger$ & 32.2 & 16.2 & 0.91 \\
+ & DR-CNN$^\dagger$ & 44.4 & 23.3 & 0.82 \\
+ & Our Chemprop & \textbf{27.36} & \textbf{15.50} & \textbf{0.936} \\
+ & Our RF & 29.82 & 15.31 & 0.924 \\
+ & Our ChemBERTa & 38.27 & 19.27 & 0.874 \\
+ & Our BiGRU & 36.31 & 21.54 & 0.887 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -810,13 +810,13 @@ Subset definitions: \textit{long-wavelength} compounds ($\lambda_{\max} > 500$~n
 \toprule
 \textbf{Subset} & $n$ & \textbf{RF} & \textbf{Chemprop} & \textbf{BiGRU} & \textbf{ChemBERTa} & \textbf{XGBoost} \\
 \midrule
-Full dataset                     & 3683 & \textbf{31.50 $\pm$ 1.64} & 33.15 $\pm$ 3.65  & 36.20 $\pm$ 1.34 & 54.09 $\pm$ 3.99 & 33.92 $\pm$ 1.41 \\
-$\lambda_{\max} > 500$~nm        &  766 & 51.81 $\pm$ 3.91          & \textbf{47.02 $\pm$ 7.79} & 57.45 $\pm$ 3.96 & 105.81 $\pm$ 8.46 & 51.20 $\pm$ 3.60 \\
-$\lambda_{\max} > 600$~nm        &  311 & 69.54 $\pm$ 4.20          & \textbf{63.19 $\pm$ 8.67} & 77.14 $\pm$ 4.93 & 159.06 $\pm$ 12.48 & 67.63 $\pm$ 5.11 \\
-Azo (Ar--N$=$N--Ar)              &   53 & \textbf{33.84 $\pm$ 7.39} & 37.36 $\pm$ 9.22          & 38.86 $\pm$ 8.26 & 45.62 $\pm$ 7.07  & 35.61 $\pm$ 3.64 \\
-D-A                              & 1189 & 25.04 $\pm$ 0.41          & \textbf{24.54 $\pm$ 4.77} & 27.78 $\pm$ 1.31 & 47.26 $\pm$ 3.34  & 27.21 $\pm$ 1.11 \\
-D-A-D                            &  436 & 26.86 $\pm$ 2.08          & \textbf{25.68 $\pm$ 5.83} & 29.25 $\pm$ 1.92 & 42.59 $\pm$ 4.29  & 28.50 $\pm$ 1.33 \\
-BODIPY core                      &  343 & \textbf{21.59 $\pm$ 2.14} & 22.83 $\pm$ 5.03          & 28.79 $\pm$ 0.64 & 78.02 $\pm$ 8.50  & 24.47 $\pm$ 2.69 \\
+Full dataset & 3683 & \textbf{31.50 $\pm$ 1.64} & 33.15 $\pm$ 3.65 & 36.20 $\pm$ 1.34 & 54.09 $\pm$ 3.99 & 33.92 $\pm$ 1.41 \\
+$\lambda_{\max} > 500$~nm & 766 & 51.81 $\pm$ 3.91 & \textbf{47.02 $\pm$ 7.79} & 57.45 $\pm$ 3.96 & 105.81 $\pm$ 8.46 & 51.20 $\pm$ 3.60 \\
+$\lambda_{\max} > 600$~nm & 311 & 69.54 $\pm$ 4.20 & \textbf{63.19 $\pm$ 8.67} & 77.14 $\pm$ 4.93 & 159.06 $\pm$ 12.48 & 67.63 $\pm$ 5.11 \\
+Azo (Ar--N$=$N--Ar) & 53 & \textbf{33.84 $\pm$ 7.39} & 37.36 $\pm$ 9.22 & 38.86 $\pm$ 8.26 & 45.62 $\pm$ 7.07 & 35.61 $\pm$ 3.64 \\
+D-A & 1189 & 25.04 $\pm$ 0.41 & \textbf{24.54 $\pm$ 4.77} & 27.78 $\pm$ 1.31 & 47.26 $\pm$ 3.34 & 27.21 $\pm$ 1.11 \\
+D-A-D & 436 & 26.86 $\pm$ 2.08 & \textbf{25.68 $\pm$ 5.83} & 29.25 $\pm$ 1.92 & 42.59 $\pm$ 4.29 & 28.50 $\pm$ 1.33 \\
+BODIPY core & 343 & \textbf{21.59 $\pm$ 2.14} & 22.83 $\pm$ 5.03 & 28.79 $\pm$ 0.64 & 78.02 $\pm$ 8.50 & 24.47 $\pm$ 2.69 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -831,25 +831,25 @@ Second, the rank between RF and Chemprop is \emph{not stable} across subsets, bu
 \label{sec:error_analysis}
 
 \begin{figure}[htbp]
-    \centering
-    \includegraphics[width=0.95\textwidth]{results/parity_plot_5models.png}
-    \caption{Parity plots for all five model families (pooled 5-fold CV predictions). Green shaded bands indicate $\pm 20$~nm from perfect prediction. RF and Chemprop show the tightest clustering around the diagonal, while ChemBERTa exhibits the most scatter, particularly for long-wavelength compounds. All models show increased error for $\lambda_{\max} > 500$~nm.}
-    \label{fig:parity_5models}
+ \centering
+ \includegraphics[width=0.95\textwidth]{results/parity_plot_5models.png}
+ \caption{Parity plots for all five model families (pooled 5-fold CV predictions). Green shaded bands indicate $\pm 20$~nm from perfect prediction. RF and Chemprop show the tightest clustering around the diagonal, while ChemBERTa exhibits the most scatter, particularly for long-wavelength compounds. All models show increased error for $\lambda_{\max} > 500$~nm.}
+ \label{fig:parity_5models}
 \end{figure}
 
 \begin{figure}[htbp]
-    \centering
-    \begin{subfigure}[t]{0.48\textwidth}
-        \includegraphics[width=\textwidth]{results/error_by_wavelength.png}
-        \caption{MAE by wavelength range. Prediction accuracy is highest for $\lambda_{\max} < 400$~nm where training data is most abundant.}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}[t]{0.48\textwidth}
-        \includegraphics[width=\textwidth]{results/error_by_solvent.png}
-        \caption{MAE by solvent type for the five most common solvents in the dataset.}
-    \end{subfigure}
-    \caption{Error breakdown by wavelength range and solvent type for all five model families (pooled 5-fold CV predictions).}
-    \label{fig:error_breakdown}
+ \centering
+ \begin{subfigure}[t]{0.48\textwidth}
+ \includegraphics[width=\textwidth]{results/error_by_wavelength.png}
+ \caption{MAE by wavelength range. Prediction accuracy is highest for $\lambda_{\max} < 400$~nm where training data is most abundant.}
+ \end{subfigure}
+ \hfill
+ \begin{subfigure}[t]{0.48\textwidth}
+ \includegraphics[width=\textwidth]{results/error_by_solvent.png}
+ \caption{MAE by solvent type for the five most common solvents in the dataset.}
+ \end{subfigure}
+ \caption{Error breakdown by wavelength range and solvent type for all five model families (pooled 5-fold CV predictions).}
+ \label{fig:error_breakdown}
 \end{figure}
 
 Figure~\ref{fig:parity_5models} shows parity plots for all five model families on the primary dataset.
@@ -872,32 +872,32 @@ Since each bit in a Morgan fingerprint corresponds to a specific molecular subst
 We averaged Gini importances across all five fold models and decoded the top features using RDKit.
 
 \begin{figure*}[htbp]
-    \centering
-    \begin{subfigure}[t]{0.48\textwidth}
-        \includegraphics[width=\textwidth]{results/rf_feature_importance.png}
-        \caption{Top 15 Morgan fingerprint bits ranked by Gini importance, with mean $\Delta\lambda_{\max}$ annotations. Red indicates bathochromic (red-shifting) substructures; gray indicates neutral or ubiquitous features. All high-importance features are bathochromic, reflecting the dominance of conjugation-extending motifs in determining $\lambda_{\max}$.}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}[t]{0.48\textwidth}
-        \includegraphics[width=\textwidth]{results/rf_solute_vs_solvent.png}
-        \caption{Relative importance of solute vs.\ solvent fingerprint bits. Solute structure accounts for 96.1\% of total feature importance.}
-    \end{subfigure}
-    \caption{RF feature importance analysis. The model learns chemically meaningful patterns: the top features correspond to known chromophore motifs that produce large bathochromic shifts.}
-    \label{fig:rf_interpretability}
+ \centering
+ \begin{subfigure}[t]{0.48\textwidth}
+ \includegraphics[width=\textwidth]{results/rf_feature_importance.png}
+ \caption{Top 15 Morgan fingerprint bits ranked by Gini importance, with mean $\Delta\lambda_{\max}$ annotations. Red indicates bathochromic (red-shifting) substructures; gray indicates neutral or ubiquitous features. All high-importance features are bathochromic, reflecting the dominance of conjugation-extending motifs in determining $\lambda_{\max}$.}
+ \end{subfigure}
+ \hfill
+ \begin{subfigure}[t]{0.48\textwidth}
+ \includegraphics[width=\textwidth]{results/rf_solute_vs_solvent.png}
+ \caption{Relative importance of solute vs.\ solvent fingerprint bits. Solute structure accounts for 96.1\% of total feature importance.}
+ \end{subfigure}
+ \caption{RF feature importance analysis. The model learns chemically meaningful patterns: the top features correspond to known chromophore motifs that produce large bathochromic shifts.}
+ \label{fig:rf_interpretability}
 \end{figure*}
 
 \begin{figure}[htbp]
-    \centering
-    \includegraphics[width=0.65\textwidth]{results/rf_cumulative_importance.png}
-    \caption{Cumulative feature importance. The top 41 features (out of 4096) account for 50\% of total importance, and 327 features reach 80\%, indicating a sparse, interpretable model.}
-    \label{fig:rf_cumulative}
+ \centering
+ \includegraphics[width=0.65\textwidth]{results/rf_cumulative_importance.png}
+ \caption{Cumulative feature importance. The top 41 features (out of 4096) account for 50\% of total importance, and 327 features reach 80\%, indicating a sparse, interpretable model.}
+ \label{fig:rf_cumulative}
 \end{figure}
 
 \begin{figure}[htbp]
-    \centering
-    \includegraphics[width=0.65\textwidth]{results/rf_training_comparison.png}
-    \caption{Training time vs.\ performance comparison. (a)~RF attains performance statistically tied with the best deep learning model in 15~minutes of total training compared to BiGRU's 25~hours (100$\times$ faster). (b)~Computational cost on log scale highlights the practical advantage of fingerprint-based models.}
-    \label{fig:rf_practical}
+ \centering
+ \includegraphics[width=0.65\textwidth]{results/rf_training_comparison.png}
+ \caption{Training time vs.\ performance comparison. (a)~RF attains performance statistically tied with the best deep learning model in 15~minutes of total training compared to BiGRU's 25~hours (100$\times$ faster). (b)~Computational cost on log scale highlights the practical advantage of fingerprint-based models.}
+ \label{fig:rf_practical}
 \end{figure}
 
 \textbf{Feature importance reveals known photochemistry.}
@@ -932,10 +932,10 @@ This convergence between RF's substructure-level Gini importance and BiGRU's ato
 We note that gradient saliency identifies correlations rather than causal mechanisms, and that attention weights in Transformer-based models are even less reliable for interpretability~\cite{jain2019attention} (see Supporting Information, Figure~S5, for character-type importance analysis).
 
 \begin{figure}[htbp]
-    \centering
-    \includegraphics[width=\textwidth]{results/bigru_saliency_atoms.png}
-    \caption{BiGRU gradient saliency mapped to 2D molecular structures for six wetlab validation molecules. Atom color intensity reflects gradient-based importance (red = high saliency). Top row: well-predicted molecules ($|\text{error}| < 22$~nm); bottom row: poorly predicted molecules ($|\text{error}| > 28$~nm). In both groups, heteroatoms (O, N) and atoms adjacent to double bonds receive the highest saliency, consistent with the character-type analysis (Figure~S5) where bond symbols (\texttt{=}, \texttt{\#}) and heteroatoms rank $2.5\text{--}3.5\times$ above aliphatic carbons. This overlap with the chromophore motifs identified by RF feature importance confirms that the BiGRU learns chemically meaningful attention patterns. Large prediction errors (e.g., Octocrylene +61~nm, Cinnamic Acid +81~nm) therefore arise not from misidentified features but from limitations in encoding extended conjugation length and specific solvent effects from 1D SMILES.}
-    \label{fig:bigru_saliency}
+ \centering
+ \includegraphics[width=\textwidth]{results/bigru_saliency_atoms.png}
+ \caption{BiGRU gradient saliency mapped to 2D molecular structures for six wetlab validation molecules. Atom color intensity reflects gradient-based importance (red = high saliency). Top row: well-predicted molecules ($|\text{error}| < 22$~nm); bottom row: poorly predicted molecules ($|\text{error}| > 28$~nm). In both groups, heteroatoms (O, N) and atoms adjacent to double bonds receive the highest saliency, consistent with the character-type analysis (Figure~S5) where bond symbols (\texttt{=}, \texttt{\#}) and heteroatoms rank $2.5\text{--}3.5\times$ above aliphatic carbons. This overlap with the chromophore motifs identified by RF feature importance confirms that the BiGRU learns chemically meaningful attention patterns. Large prediction errors (e.g., Octocrylene +61~nm, Cinnamic Acid +81~nm) therefore arise not from misidentified features but from limitations in encoding extended conjugation length and specific solvent effects from 1D SMILES.}
+ \label{fig:bigru_saliency}
 \end{figure}
 
 
@@ -956,9 +956,9 @@ We trained a separate RF classifier on this reconstructed data, and additionally
 \toprule
 \textbf{Model} & $\boldsymbol{N_{\text{test}}}$ & \textbf{Sensitivity} & \textbf{Specificity} & \textbf{Accuracy} & \textbf{AUC} \\
 \midrule
-Mamede RF (2021)$^\dagger$  & 998   & 0.90  & 0.88  & 0.89  & ---   \\
-Our RF                      & 1,996 & 0.876 & 0.882 & 0.879 & 0.942 \\
-BiGRU direct cls            & 1,996 & 0.794 & 0.811 & 0.803 & 0.886 \\
+Mamede RF (2021)$^\dagger$ & 998 & 0.90 & 0.88 & 0.89 & --- \\
+Our RF & 1,996 & 0.876 & 0.882 & 0.879 & 0.942 \\
+BiGRU direct cls & 1,996 & 0.794 & 0.811 & 0.803 & 0.886 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -994,22 +994,22 @@ Although ethanol and methanol are well-represented solvents in the training set 
 \cmidrule(lr){2-6} \cmidrule(lr){8-12}
 \textbf{Molecule} & \textbf{Exp.} & \textbf{GNN} & \textbf{CB} & \textbf{BiGRU} & \textbf{RF} & & \textbf{Exp.} & \textbf{GNN} & \textbf{CB} & \textbf{BiGRU} & \textbf{RF} \\
 \midrule
-Amiloxate       & 309 & \gp{309} & 349 & \gp{318} & 359 & & 298 & \gp{302} & 347 & 316 & 359 \\
-Avobenzone      & 358 & \gp{354} & 323 & 329 & 337 & & 358 & \gp{351} & 318 & 327 & 333 \\
-Caffeic Acid    & 325 & \gp{319} & 342 & 338 & 347 & & 325 & 309 & \gp{335} & \gp{335} & 345 \\
-Cinnamic Acid   & 275 & \gp{276} & 348 & 353 & 348 & & 276 & 265 & 341 & 351 & 345 \\
-Coumaric Acid   & 310 & \gp{302} & 340 & 348 & 346 & & 309 & 294 & 333 & 343 & 344 \\
-Dioxybenzone    & 283 & 367 & 314 & 315 & 327 & & 283 & 359 & 308 & 315 & 320 \\
-Ferulic Acid$^*$  & 324 & 311 & \gp{326} & 313 & 346 & & 324 & 302 & \gp{321} & 310 & 344 \\
-Homosalate      & 308 & 336 & 295 & 335 & 332 & & 308 & 335 & 293 & 336 & 327 \\
-Octinoxate      & 309 & 328 & 325 & 326 & 334 & & 308 & 322 & 323 & 323 & 332 \\
-Octisalate      & 308 & 334 & 291 & 339 & 353 & & 308 & 333 & 291 & 333 & 349 \\
-Octocrylene     & 301 & 385 & 357 & 344 & 390 & & 302 & 381 & 350 & 344 & 389 \\
-Oxybenzone      & 287 & 334 & 325 & \gp{301} & 328 & & 287 & 327 & 317 & \gp{299} & 321 \\
-PABA            & 291 & \gp{282} & \gp{295} & 322 & 308 & & 290 & 279 & \gp{294} & 319 & 306 \\
-Padimate O      & 310 & 325 & \gp{320} & 334 & 340 & & 310 & 324 & \gp{316} & 330 & 337 \\
-Sinapic Acid    & 324 & 312 & 343 & \gp{318} & 347 & & 324 & 303 & \gp{332} & \gp{314} & 346 \\
-Sulisobenzone   & 287 & 338 & 330 & 346 & 355 & & 286 & 334 & 326 & 346 & 352 \\
+Amiloxate & 309 & \gp{309} & 349 & \gp{318} & 359 & & 298 & \gp{302} & 347 & 316 & 359 \\
+Avobenzone & 358 & \gp{354} & 323 & 329 & 337 & & 358 & \gp{351} & 318 & 327 & 333 \\
+Caffeic Acid & 325 & \gp{319} & 342 & 338 & 347 & & 325 & 309 & \gp{335} & \gp{335} & 345 \\
+Cinnamic Acid & 275 & \gp{276} & 348 & 353 & 348 & & 276 & 265 & 341 & 351 & 345 \\
+Coumaric Acid & 310 & \gp{302} & 340 & 348 & 346 & & 309 & 294 & 333 & 343 & 344 \\
+Dioxybenzone & 283 & 367 & 314 & 315 & 327 & & 283 & 359 & 308 & 315 & 320 \\
+Ferulic Acid$^*$ & 324 & 311 & \gp{326} & 313 & 346 & & 324 & 302 & \gp{321} & 310 & 344 \\
+Homosalate & 308 & 336 & 295 & 335 & 332 & & 308 & 335 & 293 & 336 & 327 \\
+Octinoxate & 309 & 328 & 325 & 326 & 334 & & 308 & 322 & 323 & 323 & 332 \\
+Octisalate & 308 & 334 & 291 & 339 & 353 & & 308 & 333 & 291 & 333 & 349 \\
+Octocrylene & 301 & 385 & 357 & 344 & 390 & & 302 & 381 & 350 & 344 & 389 \\
+Oxybenzone & 287 & 334 & 325 & \gp{301} & 328 & & 287 & 327 & 317 & \gp{299} & 321 \\
+PABA & 291 & \gp{282} & \gp{295} & 322 & 308 & & 290 & 279 & \gp{294} & 319 & 306 \\
+Padimate O & 310 & 325 & \gp{320} & 334 & 340 & & 310 & 324 & \gp{316} & 330 & 337 \\
+Sinapic Acid & 324 & 312 & 343 & \gp{318} & 347 & & 324 & 303 & \gp{332} & \gp{314} & 346 \\
+Sulisobenzone & 287 & 338 & 330 & 346 & 355 & & 286 & 334 & 326 & 346 & 352 \\
 \midrule
 \textbf{MAE (nm)} & & \textbf{25.5} & 27.8 & 28.9 & 39.3 & & & \textbf{26.9} & 24.9 & 28.4 & 37.7 \\
 \textbf{RMSE (nm)} & & 36.5 & \textbf{33.5} & 34.4 & 44.4 & & & 34.8 & \textbf{30.8} & 33.4 & 43.0 \\
@@ -1025,11 +1025,11 @@ Sulisobenzone   & 287 & 338 & 330 & 346 & 355 & & 286 & 334 & 326 & 346 & 352 \\
 \toprule
 \textbf{Model} & \textbf{MAE (nm) [95\% CI]} & \textbf{RMSE (nm) [95\% CI]} \\
 \midrule
-Chemprop (D-MPNN) & \textbf{26.2}              & 35.7 \\
-ChemBERTa         & 26.3 [20.1--33.0] & \textbf{32.2} [25.2--38.8] \\
-BiGRU (default)   & 28.6 [22.7--35.0] & 33.9 [26.2--41.2] \\
-BiGRU (tuned)     & 31.5 & 37.0 \\
-RF + Morgan FP    & 38.5 [31.6--45.9]          & 43.7 [35.3--51.7] \\
+Chemprop (D-MPNN) & \textbf{26.2} & 35.7 \\
+ChemBERTa & 26.3 [20.1--33.0] & \textbf{32.2} [25.2--38.8] \\
+BiGRU (default) & 28.6 [22.7--35.0] & 33.9 [26.2--41.2] \\
+BiGRU (tuned) & 31.5 & 37.0 \\
+RF + Morgan FP & 38.5 [31.6--45.9] & 43.7 [35.3--51.7] \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -1055,10 +1055,10 @@ ChemBERTa's weak cross-validated performance but strong wetlab generalization su
 This complementarity extends beyond the local/global distinction: RF's fixed-vocabulary substructure matching excels at interpolation, while learned representations (both BiGRU and ChemBERTa) enable extrapolation to novel scaffolds.
 
 \begin{figure}[htbp]
-    \centering
-    \includegraphics[width=\textwidth]{results/wetlab_per_molecule.png}
-    \caption{Per-molecule comparison of experimental and predicted $\lambda_{\max}$ for 16 sunscreen-related compounds, averaged over EtOH and MeOH solvents. Molecules are sorted by experimental $\lambda_{\max}$. The D-MPNN closely tracks experimental values for small chromophores (Cinnamic Acid, PABA) but overpredicts benzophenones (Dioxybenzone, Octocrylene), while all models struggle with Octocrylene.}
-    \label{fig:wetlab_per_molecule}
+ \centering
+ \includegraphics[width=\textwidth]{results/wetlab_per_molecule.png}
+ \caption{Per-molecule comparison of experimental and predicted $\lambda_{\max}$ for 16 sunscreen-related compounds, averaged over EtOH and MeOH solvents. Molecules are sorted by experimental $\lambda_{\max}$. The D-MPNN closely tracks experimental values for small chromophores (Cinnamic Acid, PABA) but overpredicts benzophenones (Dioxybenzone, Octocrylene), while all models struggle with Octocrylene.}
+ \label{fig:wetlab_per_molecule}
 \end{figure}
 
 Figure~\ref{fig:wetlab_per_molecule} shows per-molecule predictions alongside experimental values, illustrating the pattern more concretely: the D-MPNN achieves near-exact predictions for Cinnamic Acid and PABA where other models overpredict by 60--80~nm, while all models struggle with Octocrylene. ChemBERTa tracks the experimental trend most closely for mid-range absorbers (Padimate~O, Ferulic Acid).
@@ -1072,22 +1072,22 @@ We have presented a systematic benchmark of ML approaches for UV absorption wave
 Our key findings are:
 
 \begin{enumerate}
-    \item \textbf{RF and deep learning have complementary strengths.}
-    RF with Morgan fingerprints and the Chemprop D-MPNN achieve statistically indistinguishable cross-validated performance on the primary Joung+Beard v3 cleaned dataset (RMSE = 31.50 and 33.15~nm, $p = 0.16$, see Methods and Limitations for the chromophore-overlap caveat on in-distribution CV), both outperforming the tuned BiGRU (36.20~nm) and ChemBERTa (54.09~nm). Chemprop surpasses published baselines on both external datasets: Deep4Chem (RMSE = 19.13 vs.\ GCNN 26.6~nm~\cite{joung2021deep}) and Jung 2024 (RMSE = 27.36 vs.\ Multifidelity 31.3~nm), with RF close behind (22.70 and 29.82~nm respectively).
-    However, on 16 experimentally validated novel compounds, all deep learning models (Chemprop MAE = 26.2~nm, ChemBERTa 26.3~nm, BiGRU 28.6~nm) outperform RF (38.5~nm), demonstrating that learned representations generalize to out-of-distribution molecules where fixed fingerprints fall short.
-    This indicates that RF excels at interpolation within known chemical space, while learned representations (from graphs, sequences, or pretraining) generalize beyond fixed substructural features.
+ \item \textbf{RF and deep learning have complementary strengths.}
+ RF with Morgan fingerprints and the Chemprop D-MPNN achieve statistically indistinguishable cross-validated performance on the primary Joung+Beard v3 cleaned dataset (RMSE = 31.50 and 33.15~nm, $p = 0.16$, see Methods and Limitations for the chromophore-overlap caveat on in-distribution CV), both outperforming the tuned BiGRU (36.20~nm) and ChemBERTa (54.09~nm). Chemprop surpasses published baselines on both external datasets: Deep4Chem (RMSE = 19.13 vs.\ GCNN 26.6~nm~\cite{joung2021deep}) and Jung 2024 (RMSE = 27.36 vs.\ Multifidelity 31.3~nm), with RF close behind (22.70 and 29.82~nm respectively).
+ However, on 16 experimentally validated novel compounds, all deep learning models (Chemprop MAE = 26.2~nm, ChemBERTa 26.3~nm, BiGRU 28.6~nm) outperform RF (38.5~nm), demonstrating that learned representations generalize to out-of-distribution molecules where fixed fingerprints fall short.
+ This indicates that RF excels at interpolation within known chemical space, while learned representations (from graphs, sequences, or pretraining) generalize beyond fixed substructural features.
 
-    \item \textbf{Solvent encoding improves all model families.}
-    Encoding solute and solvent as a single concatenated representation reduces RMSE by 21--32\% on multi-solvent-covered chromophores and 6--8\% across the full benchmark ($p < 0.02$), with the contribution concentrated where solvent-specific training data exists.
-    This simple approach requires no domain-specific descriptor engineering and is applicable to any model that accepts molecular representations.
+ \item \textbf{Solvent encoding improves all model families.}
+ Encoding solute and solvent as a single concatenated representation reduces RMSE by 21--32\% on multi-solvent-covered chromophores and 6--8\% across the full benchmark ($p < 0.02$), with the contribution concentrated where solvent-specific training data exists.
+ This simple approach requires no domain-specific descriptor engineering and is applicable to any model that accepts molecular representations.
 
-    \item \textbf{Both model families offer interpretability.}
-    RF provides global interpretability through feature importance: the top 20 Morgan fingerprint bits (out of 4096) explain over 41\% of importance and map to known chromophore motifs (aryl diazo, BODIPY, enamine).
-    BiGRU, optimized via Bayesian HPO (3-layer, 256-unit architecture, 4.8\% RMSE improvement over the default on 5-fold CV), provides instance-level interpretability through gradient saliency analysis, with atom-level heatmaps highlighting the same conjugated regions identified by RF.
-    RF trains 100$\times$ faster (15 minutes CPU vs.\ 25 hours GPU), making it the practical first choice when the target chemical space is well-represented in training data, while BiGRU's learned representations offer better generalization to novel scaffolds.
+ \item \textbf{Both model families offer interpretability.}
+ RF provides global interpretability through feature importance: the top 20 Morgan fingerprint bits (out of 4096) explain over 41\% of importance and map to known chromophore motifs (aryl diazo, BODIPY, enamine).
+ BiGRU, optimized via Bayesian HPO (3-layer, 256-unit architecture, 4.8\% RMSE improvement over the default on 5-fold CV), provides instance-level interpretability through gradient saliency analysis, with atom-level heatmaps highlighting the same conjugated regions identified by RF.
+ RF trains 100$\times$ faster (15 minutes CPU vs.\ 25 hours GPU), making it the practical first choice when the target chemical space is well-represented in training data, while BiGRU's learned representations offer better generalization to novel scaffolds.
 
-    \item \textbf{Practical classification favors fingerprint models.}
-    RF-based photosafety classification (accuracy = 0.879) closely reproduces the published Mamede benchmark (accuracy = 0.89), while BiGRU direct classification reaches only 0.803, confirming that Morgan fingerprints' explicit substructure encoding is superior for binary photosafety screening.
+ \item \textbf{Practical classification favors fingerprint models.}
+ RF-based photosafety classification (accuracy = 0.879) closely reproduces the published Mamede benchmark (accuracy = 0.89), while BiGRU direct classification reaches only 0.803, confirming that Morgan fingerprints' explicit substructure encoding is superior for binary photosafety screening.
 \end{enumerate}
 
 Our results raise a testable hypothesis about model selection: that architectures whose inductive bias matches the locality of the target property will outperform global-attention architectures in-distribution, while pretrained representations can confer out-of-distribution advantages even when the architecture's inductive bias is mismatched, as ChemBERTa illustrates in this work. The present work establishes this pattern for UV absorption $\lambda_{\max}$; whether it extends to fluorescence emission, lipophilicity, aqueous solubility, or other molecular endpoints whose locality differs from UV absorption requires dedicated cross-property benchmarking, which we identify as a priority for future work.

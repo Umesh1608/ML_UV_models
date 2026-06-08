@@ -36,10 +36,10 @@
 
 \begin{document}
 
-\section{Dataset Overview (R2-2)}
+\section{Dataset Overview}
 \label{si:dataset_overview}
 
-In response to reviewer concern R2-2 (request for a visual summary of the v3 cleaned Joung+Beard primary dataset), Figure~\ref{fig:si_dataset_overview} provides a three-panel overview: (a)~the $\lambda_{\max}$ distribution across the $18{,}415$ records (median $= 396$~nm; range $[162, 1100]$~nm, with the bulk in the UV/early-visible region 250--500~nm and a long tail of deep-coloured chromophores extending to the near-IR); (b)~the top-20 solvents by record count, on a log scale to accommodate the $\sim$30$\times$ dynamic range between the most common (DCM, MeCN, CHCl$_3$) and least common solvents in the top-20 set (note the $726$ unique canonical solvent SMILES in the full dataset; the long tail of $\sim$700 rarely-used solvents is not shown); and (c)~eight representative chromophore structures spanning the major class diversity in the dataset (hydroxycinnamic acids, linear acenes, push--pull aromatics, azo dyes, BF$_2$-dipyrromethene BODIPYs, push--pull coumarins, extended-quinoid indigo, and porphyrin macrocycles).
+In response to reviewer concern, Figure~\ref{fig:si_dataset_overview} provides a three-panel overview: (a)~the $\lambda_{\max}$ distribution across the $18{,}415$ records (median $= 396$~nm; range $[162, 1100]$~nm, with the bulk in the UV/early-visible region 250--500~nm and a long tail of deep-coloured chromophores extending to the near-IR); (b)~the top-20 solvents by record count, on a log scale to accommodate the $\sim$30$\times$ dynamic range between the most common (DCM, MeCN, CHCl$_3$) and least common solvents in the top-20 set (note the $726$ unique canonical solvent SMILES in the full dataset; the long tail of $\sim$700 rarely-used solvents is not shown); and (c)~eight representative chromophore structures spanning the major class diversity in the dataset (hydroxycinnamic acids, linear acenes, push--pull aromatics, azo dyes, BF$_2$-dipyrromethene BODIPYs, push--pull coumarins, extended-quinoid indigo, and porphyrin macrocycles).
 
 \begin{figure}[htbp]
 \centering
@@ -205,20 +205,20 @@ With only $n = 5$ folds, the Wilcoxon signed-rank test (a non-parametric alterna
 \toprule
 \textbf{Comparison} & $\boldsymbol{t}$ & $\boldsymbol{p}$ & \textbf{Significant?} \\
 \midrule
-RF vs.\ Chemprop            & $-1.70$ & 0.164 & No \\
-RF vs.\ BiGRU              & $-22.54$ & $<$0.001 & Yes \\
-RF vs.\ XGBoost            & $-7.17$ & 0.002 & Yes \\
-RF vs.\ ChemBERTa          & $-15.78$ & $<$0.001 & Yes \\
-Chemprop vs.\ XGBoost      & $-0.70$ & 0.522 & No \\
-Chemprop vs.\ BiGRU        & $-2.74$ & 0.052 & Borderline \\
-Chemprop vs.\ ChemBERTa    & $-20.54$ & $<$0.001 & Yes \\
-XGBoost vs.\ BiGRU         & $-5.65$ & 0.005 & Yes \\
-XGBoost vs.\ ChemBERTa     & $-14.20$ & $<$0.001 & Yes \\
-BiGRU vs.\ ChemBERTa       & $-11.69$ & $<$0.001 & Yes \\
+RF vs.\ Chemprop & $-1.70$ & 0.164 & No \\
+RF vs.\ BiGRU & $-22.54$ & $<$0.001 & Yes \\
+RF vs.\ XGBoost & $-7.17$ & 0.002 & Yes \\
+RF vs.\ ChemBERTa & $-15.78$ & $<$0.001 & Yes \\
+Chemprop vs.\ XGBoost & $-0.70$ & 0.522 & No \\
+Chemprop vs.\ BiGRU & $-2.74$ & 0.052 & Borderline \\
+Chemprop vs.\ ChemBERTa & $-20.54$ & $<$0.001 & Yes \\
+XGBoost vs.\ BiGRU & $-5.65$ & 0.005 & Yes \\
+XGBoost vs.\ ChemBERTa & $-14.20$ & $<$0.001 & Yes \\
+BiGRU vs.\ ChemBERTa & $-11.69$ & $<$0.001 & Yes \\
 \midrule
-RF: solvent vs.\ no-solvent (v2)            & $-11.46$ & $<$0.001 & Yes \\
-Chemprop: solvent vs.\ no-solvent (v2)      & $-4.33$ & 0.012 & Yes \\
-BiGRU: solvent vs.\ no-solvent (v2)         & $-3.90$ & 0.018 & Yes \\
+RF: solvent vs.\ no-solvent (v2) & $-11.46$ & $<$0.001 & Yes \\
+Chemprop: solvent vs.\ no-solvent (v2) & $-4.33$ & 0.012 & Yes \\
+BiGRU: solvent vs.\ no-solvent (v2) & $-3.90$ & 0.018 & Yes \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -243,10 +243,10 @@ Both models converge within 75--125 epochs, with early stopping preventing overf
 The gap between training and validation curves indicates mild overfitting, consistent with the relatively small dataset size (12K training samples per fold).
 
 \begin{figure}[htbp]
-    \centering
-    \includegraphics[width=0.9\textwidth]{results/learning_curves.png}
-    \caption{BiGRU training curves showing training and validation MAE vs.\ epoch, averaged across folds. Shaded regions denote $\pm 1$ standard deviation. Left: BiGRU with solvent encoding. Right: BiGRU with solute only.}
-    \label{fig:learning_curves}
+ \centering
+ \includegraphics[width=0.9\textwidth]{results/learning_curves.png}
+ \caption{BiGRU training curves showing training and validation MAE vs.\ epoch, averaged across folds. Shaded regions denote $\pm 1$ standard deviation. Left: BiGRU with solvent encoding. Right: BiGRU with solute only.}
+ \label{fig:learning_curves}
 \end{figure}
 
 
@@ -258,10 +258,10 @@ All folds converge within 40--60 epochs, with the final validation MAE plateauin
 The gap between training and validation MAE is larger than for BiGRU, consistent with ChemBERTa's 44.1M parameters being overparameterized for the $\sim$12K training samples available per fold.
 
 \begin{figure}[htbp]
-    \centering
-    \includegraphics[width=\textwidth]{results/chemberta_learning_curves.png}
-    \caption{ChemBERTa fine-tuning learning curves. Left: per-fold validation MAE (solid) and training MAE (dashed). Right: mean $\pm$ 1 standard deviation across folds, with final values annotated.}
-    \label{fig:chemberta_curves}
+ \centering
+ \includegraphics[width=\textwidth]{results/chemberta_learning_curves.png}
+ \caption{ChemBERTa fine-tuning learning curves. Left: per-fold validation MAE (solid) and training MAE (dashed). Right: mean $\pm$ 1 standard deviation across folds, with final values annotated.}
+ \label{fig:chemberta_curves}
 \end{figure}
 
 
@@ -278,10 +278,10 @@ Table~\ref{tab:tuning_asymmetry} compares the effect of hyperparameter tuning fo
 \toprule
 \textbf{Model} & \textbf{RMSE (nm)} & \textbf{MAE (nm)} & \textbf{Improvement} \\
 \midrule
-RF (default, $\sqrt{d}$)         & 32.18 $\pm$ 1.74 & 15.42 $\pm$ 0.47 & --- \\
-RF (tuned, $0.3d$)               & 31.34 $\pm$ 1.82 & 15.16 $\pm$ 0.44 & $-$2.6\% RMSE \\
+RF (default, $\sqrt{d}$) & 32.18 $\pm$ 1.74 & 15.42 $\pm$ 0.47 & --- \\
+RF (tuned, $0.3d$) & 31.34 $\pm$ 1.82 & 15.16 $\pm$ 0.44 & $-$2.6\% RMSE \\
 \midrule
-BiGRU (default, 2L/128u)         & 36.45 $\pm$ 1.12 & 20.70 $\pm$ 0.51 & --- \\
+BiGRU (default, 2L/128u) & 36.45 $\pm$ 1.12 & 20.70 $\pm$ 0.51 & --- \\
 BiGRU (tuned, 3L/256u) & 34.71 $\pm$ 1.40 & 18.09 $\pm$ 0.59 & $-$4.8\% RMSE \\
 \bottomrule
 \end{tabular}
@@ -311,13 +311,13 @@ The donor-count column shows the number of distinct atom-set matches per molecul
 \toprule
 \textbf{Rule name} & \textbf{SMARTS} & \textbf{Matches} \\
 \midrule
-aryl\_NH2  & \verb|[c]-[NX3;H2;!$(N(C=O));!$(N-N=O)]|                       & primary aryl amine \\
-aryl\_NHR  & \verb|[c]-[NX3;H1;!$(N-C=O);!$(N-N=O);!$(N-S(=O))]|            & secondary aryl amine (non-amide) \\
-aryl\_NR2  & \verb|[c]-[NX3;H0;!$(N-C=O);!$(N-N=O);!$(N-S(=O))]([#6])[#6]|  & tertiary aryl amine \\
-aryl\_OH   & \verb|[c]-[OX2H1]|                                              & aryl hydroxyl \\
-aryl\_OR   & \verb|[c]-[OX2;H0]-[CX4]|                                       & aryl ether/methoxy \\
-aryl\_SH   & \verb|[c]-[SX2H1]|                                              & aryl thiol \\
-aryl\_SR   & \verb|[c]-[SX2;H0]-[CX4]|                                       & aryl sulfide \\
+aryl\_NH2 & \verb|[c]-[NX3;H2;!$(N(C=O));!$(N-N=O)]| & primary aryl amine \\
+aryl\_NHR & \verb|[c]-[NX3;H1;!$(N-C=O);!$(N-N=O);!$(N-S(=O))]| & secondary aryl amine (non-amide) \\
+aryl\_NR2 & \verb|[c]-[NX3;H0;!$(N-C=O);!$(N-N=O);!$(N-S(=O))]([#6])[#6]| & tertiary aryl amine \\
+aryl\_OH & \verb|[c]-[OX2H1]| & aryl hydroxyl \\
+aryl\_OR & \verb|[c]-[OX2;H0]-[CX4]| & aryl ether/methoxy \\
+aryl\_SH & \verb|[c]-[SX2H1]| & aryl thiol \\
+aryl\_SR & \verb|[c]-[SX2;H0]-[CX4]| & aryl sulfide \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -331,18 +331,18 @@ aryl\_SR   & \verb|[c]-[SX2;H0]-[CX4]|                                       & a
 \toprule
 \textbf{Rule name} & \textbf{SMARTS} & \textbf{Matches} \\
 \midrule
-nitro          & \verb|sp2-[$([NX3+](=O)[O-]),$([NX3](=O)=O)]|  & nitro \\
-CN             & \verb|sp2-[CX2]#[NX1]|                          & cyano / nitrile \\
-CHO            & \verb|sp2-[CX3H1](=O)|                          & aldehyde \\
-ketone         & \verb|sp2-[CX3](=O)[#6]|                        & ketone \\
-COOH           & \verb|sp2-[CX3](=O)[OX2H1]|                     & carboxylic acid \\
-COOR           & \verb|sp2-[CX3](=O)[OX2H0][#6]|                 & ester \\
-amide          & \verb|sp2-[CX3](=O)[NX3]|                       & amide \\
-SO2            & \verb|sp2-[SX4](=O)(=O)|                        & sulfonyl \\
-CF3            & \verb|sp2-[CX4](F)(F)F|                         & trifluoromethyl \\
-aromatic\_N+   & \verb|[c][n+,N+;X3]|                            & pyridinium / acridinium \\
-dicyanovinyl   & \verb|[#6]=C([CX2]#[NX1])[CX2]#[NX1]|           & dicyanovinyl \\
-malononitrile  & \verb|[CX4H1]([CX2]#N)[CX2]#N|                  & malononitrile \\
+nitro & \verb|sp2-[$([NX3+](=O)[O-]),$([NX3](=O)=O)]| & nitro \\
+CN & \verb|sp2-[CX2]#[NX1]| & cyano / nitrile \\
+CHO & \verb|sp2-[CX3H1](=O)| & aldehyde \\
+ketone & \verb|sp2-[CX3](=O)[#6]| & ketone \\
+COOH & \verb|sp2-[CX3](=O)[OX2H1]| & carboxylic acid \\
+COOR & \verb|sp2-[CX3](=O)[OX2H0][#6]| & ester \\
+amide & \verb|sp2-[CX3](=O)[NX3]| & amide \\
+SO2 & \verb|sp2-[SX4](=O)(=O)| & sulfonyl \\
+CF3 & \verb|sp2-[CX4](F)(F)F| & trifluoromethyl \\
+aromatic\_N+ & \verb|[c][n+,N+;X3]| & pyridinium / acridinium \\
+dicyanovinyl & \verb|[#6]=C([CX2]#[NX1])[CX2]#[NX1]| & dicyanovinyl \\
+malononitrile & \verb|[CX4H1]([CX2]#N)[CX2]#N| & malononitrile \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -356,11 +356,11 @@ malononitrile  & \verb|[CX4H1]([CX2]#N)[CX2]#N|                  & malononitrile
 \toprule
 \textbf{Rule name} & \textbf{SMARTS} & \textbf{Matches} \\
 \midrule
-azo       & \verb|[c]-[N;X2]=[N;X2]-[c]|                                                            & aryl azo bridge \\
-bodipy    & \verb|[B](F)(F)([#7;R])[#7;R]|                                                          & BF$_2$ bonded to two ring nitrogens \\
-cyanine   & \verb|[NX3,nX3]-,=[CX3]=,-[CX3]-,=[CX3]=,-[CX3]-,=[NX3+,nX3+]|                          & open-chain polymethine cyanine \\
-squaraine & \verb|C1(=O)C(=*)C(=O)C1=*|                                                             & squaric-acid-derived push--pull \\
-stilbene  & \verb|[c]-[CH]=[CH]-[c]|                                                                & 1,2-diarylethene scaffold \\
+azo & \verb|[c]-[N;X2]=[N;X2]-[c]| & aryl azo bridge \\
+bodipy & \verb|[B](F)(F)([#7;R])[#7;R]| & BF$_2$ bonded to two ring nitrogens \\
+cyanine & \verb|[NX3,nX3]-,=[CX3]=,-[CX3]-,=[CX3]=,-[CX3]-,=[NX3+,nX3+]| & open-chain polymethine cyanine \\
+squaraine & \verb|C1(=O)C(=*)C(=O)C1=*| & squaric-acid-derived push--pull \\
+stilbene & \verb|[c]-[CH]=[CH]-[c]| & 1,2-diarylethene scaffold \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -374,18 +374,18 @@ stilbene  & \verb|[c]-[CH]=[CH]-[c]|                                            
 \toprule
 \textbf{Subset} & $n$ & \textbf{\% of dataset} \\
 \midrule
-Full dataset                 & 18{,}415 & 100.00 \\
-$\lambda_{\max} > 500$~nm    &  3{,}832 &  20.81 \\
-$\lambda_{\max} > 600$~nm    &  1{,}555 &   8.44 \\
-Azo (Ar--N$=$N--Ar)          &     264  &   1.43 \\
-D-A                          &  5{,}945 &  32.28 \\
-D-A-D                        &  2{,}181 &  11.84 \\
-BODIPY core                  &  1{,}714 &   9.31 \\
-Cyanine                      &      59  &   0.32 \\
-Stilbene                     &  1{,}512 &   8.21 \\
-Squaraine                    &       0  &   0.00 \\
+Full dataset & 18{,}415 & 100.00 \\
+$\lambda_{\max} > 500$~nm & 3{,}832 & 20.81 \\
+$\lambda_{\max} > 600$~nm & 1{,}555 & 8.44 \\
+Azo (Ar--N$=$N--Ar) & 264 & 1.43 \\
+D-A & 5{,}945 & 32.28 \\
+D-A-D & 2{,}181 & 11.84 \\
+BODIPY core & 1{,}714 & 9.31 \\
+Cyanine & 59 & 0.32 \\
+Stilbene & 1{,}512 & 8.21 \\
+Squaraine & 0 & 0.00 \\
 \midrule
-Union (any non-local)        &  9{,}057 &  49.18 \\
+Union (any non-local) & 9{,}057 & 49.18 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -401,40 +401,40 @@ Union (any non-local)        &  9{,}057 &  49.18 \\
 \textbf{Subset / metric} & $n$ & \textbf{RF} & \textbf{Chemprop} & \textbf{BiGRU} & \textbf{ChemBERTa} & \textbf{XGBoost} \\
 \midrule
 \multicolumn{7}{l}{\textbf{RMSE (nm)}} \\
-Full dataset      & 3683 & \textbf{31.50 $\pm$ 1.64} & 33.15 $\pm$ 3.65 & 36.20 $\pm$ 1.34 & 54.09 $\pm$ 3.99 & 33.92 $\pm$ 1.40 \\
-$\lambda > 500$   &  766 & 51.81 $\pm$ 3.91 & \textbf{47.02 $\pm$ 7.78} & 57.45 $\pm$ 3.96 & 105.81 $\pm$ 8.46 & 51.20 $\pm$ 3.60 \\
-$\lambda > 600$   &  311 & 69.54 $\pm$ 4.20 & \textbf{63.19 $\pm$ 8.67} & 77.14 $\pm$ 4.93 & 159.06 $\pm$ 12.48 & 67.63 $\pm$ 5.11 \\
-Azo               &   53 & \textbf{33.84 $\pm$ 7.40} & 37.36 $\pm$ 9.22 & 38.86 $\pm$ 8.26 & 45.62 $\pm$ 7.07 & 35.61 $\pm$ 3.64 \\
-D-A               & 1189 & 25.04 $\pm$ 0.41 & \textbf{24.54 $\pm$ 4.77} & 27.78 $\pm$ 1.31 & 47.26 $\pm$ 3.34 & 27.21 $\pm$ 1.11 \\
-D-A-D             &  436 & 26.86 $\pm$ 2.08 & \textbf{25.68 $\pm$ 5.83} & 29.25 $\pm$ 1.92 & 42.59 $\pm$ 4.29 & 28.50 $\pm$ 1.33 \\
-BODIPY            &  343 & \textbf{21.59 $\pm$ 2.14} & 22.83 $\pm$ 5.03 & 28.79 $\pm$ 0.64 & 78.02 $\pm$ 8.50 & 24.47 $\pm$ 2.69 \\
-Cyanine           &   12 & \textbf{17.39 $\pm$ 3.24} & 30.07 $\pm$ 4.12 & 22.15 $\pm$ 5.19 & 42.59 $\pm$ 10.75 & 25.55 $\pm$ 6.99 \\
-Stilbene          &  302 & \textbf{29.98 $\pm$ 1.54} & 33.36 $\pm$ 5.91 & 35.57 $\pm$ 5.28 & 50.40 $\pm$ 6.55 & 34.97 $\pm$ 3.32 \\
-Non-local union   & 1811 & 36.76 $\pm$ 2.38 & \textbf{35.03 $\pm$ 5.66} & 41.54 $\pm$ 2.41 & 71.11 $\pm$ 5.81 & 37.80 $\pm$ 2.13 \\
+Full dataset & 3683 & \textbf{31.50 $\pm$ 1.64} & 33.15 $\pm$ 3.65 & 36.20 $\pm$ 1.34 & 54.09 $\pm$ 3.99 & 33.92 $\pm$ 1.40 \\
+$\lambda > 500$ & 766 & 51.81 $\pm$ 3.91 & \textbf{47.02 $\pm$ 7.78} & 57.45 $\pm$ 3.96 & 105.81 $\pm$ 8.46 & 51.20 $\pm$ 3.60 \\
+$\lambda > 600$ & 311 & 69.54 $\pm$ 4.20 & \textbf{63.19 $\pm$ 8.67} & 77.14 $\pm$ 4.93 & 159.06 $\pm$ 12.48 & 67.63 $\pm$ 5.11 \\
+Azo & 53 & \textbf{33.84 $\pm$ 7.40} & 37.36 $\pm$ 9.22 & 38.86 $\pm$ 8.26 & 45.62 $\pm$ 7.07 & 35.61 $\pm$ 3.64 \\
+D-A & 1189 & 25.04 $\pm$ 0.41 & \textbf{24.54 $\pm$ 4.77} & 27.78 $\pm$ 1.31 & 47.26 $\pm$ 3.34 & 27.21 $\pm$ 1.11 \\
+D-A-D & 436 & 26.86 $\pm$ 2.08 & \textbf{25.68 $\pm$ 5.83} & 29.25 $\pm$ 1.92 & 42.59 $\pm$ 4.29 & 28.50 $\pm$ 1.33 \\
+BODIPY & 343 & \textbf{21.59 $\pm$ 2.14} & 22.83 $\pm$ 5.03 & 28.79 $\pm$ 0.64 & 78.02 $\pm$ 8.50 & 24.47 $\pm$ 2.69 \\
+Cyanine & 12 & \textbf{17.39 $\pm$ 3.24} & 30.07 $\pm$ 4.12 & 22.15 $\pm$ 5.19 & 42.59 $\pm$ 10.75 & 25.55 $\pm$ 6.99 \\
+Stilbene & 302 & \textbf{29.98 $\pm$ 1.54} & 33.36 $\pm$ 5.91 & 35.57 $\pm$ 5.28 & 50.40 $\pm$ 6.55 & 34.97 $\pm$ 3.32 \\
+Non-local union & 1811 & 36.76 $\pm$ 2.38 & \textbf{35.03 $\pm$ 5.66} & 41.54 $\pm$ 2.41 & 71.11 $\pm$ 5.81 & 37.80 $\pm$ 2.13 \\
 \midrule
 \multicolumn{7}{l}{\textbf{MAE (nm)}} \\
-Full dataset      & 3683 & \textbf{15.37 $\pm$ 0.25} & 18.11 $\pm$ 3.38 & 18.81 $\pm$ 0.64 & 26.78 $\pm$ 2.63 & 20.25 $\pm$ 0.45 \\
-$\lambda > 500$   &  766 & 25.38 $\pm$ 1.66 & \textbf{24.66 $\pm$ 6.28} & 29.20 $\pm$ 2.48 & 72.76 $\pm$ 8.82 & 28.42 $\pm$ 1.28 \\
-$\lambda > 600$   &  311 & 35.61 $\pm$ 2.66 & \textbf{31.62 $\pm$ 6.64} & 40.25 $\pm$ 2.22 & 141.62 $\pm$ 13.94 & 37.02 $\pm$ 2.01 \\
-Azo               &   53 & \textbf{21.06 $\pm$ 3.70} & 25.39 $\pm$ 6.79 & 25.27 $\pm$ 4.38 & 26.66 $\pm$ 4.75 & 25.04 $\pm$ 2.00 \\
-D-A               & 1189 & \textbf{12.92 $\pm$ 0.25} & 15.73 $\pm$ 3.70 & 15.59 $\pm$ 0.76 & 23.19 $\pm$ 2.19 & 17.54 $\pm$ 0.66 \\
-D-A-D             &  436 & \textbf{14.38 $\pm$ 0.85} & 16.56 $\pm$ 3.84 & 17.11 $\pm$ 0.90 & 22.68 $\pm$ 2.25 & 18.58 $\pm$ 0.44 \\
-BODIPY            &  343 & \textbf{10.21 $\pm$ 0.75} & 15.32 $\pm$ 4.40 & 15.75 $\pm$ 1.41 & 50.70 $\pm$ 7.82 & 15.18 $\pm$ 0.99 \\
-Cyanine           &   12 & \textbf{14.43 $\pm$ 3.03} & 23.71 $\pm$ 3.34 & 18.18 $\pm$ 5.47 & 35.71 $\pm$ 10.55 & 22.25 $\pm$ 6.16 \\
-Stilbene          &  302 & \textbf{16.33 $\pm$ 1.34} & 20.79 $\pm$ 3.87 & 19.21 $\pm$ 1.92 & 27.91 $\pm$ 3.92 & 22.48 $\pm$ 1.35 \\
-Non-local union   & 1811 & \textbf{16.95 $\pm$ 0.75} & 18.89 $\pm$ 4.43 & 20.44 $\pm$ 1.34 & 38.22 $\pm$ 4.50 & 21.21 $\pm$ 0.58 \\
+Full dataset & 3683 & \textbf{15.37 $\pm$ 0.25} & 18.11 $\pm$ 3.38 & 18.81 $\pm$ 0.64 & 26.78 $\pm$ 2.63 & 20.25 $\pm$ 0.45 \\
+$\lambda > 500$ & 766 & 25.38 $\pm$ 1.66 & \textbf{24.66 $\pm$ 6.28} & 29.20 $\pm$ 2.48 & 72.76 $\pm$ 8.82 & 28.42 $\pm$ 1.28 \\
+$\lambda > 600$ & 311 & 35.61 $\pm$ 2.66 & \textbf{31.62 $\pm$ 6.64} & 40.25 $\pm$ 2.22 & 141.62 $\pm$ 13.94 & 37.02 $\pm$ 2.01 \\
+Azo & 53 & \textbf{21.06 $\pm$ 3.70} & 25.39 $\pm$ 6.79 & 25.27 $\pm$ 4.38 & 26.66 $\pm$ 4.75 & 25.04 $\pm$ 2.00 \\
+D-A & 1189 & \textbf{12.92 $\pm$ 0.25} & 15.73 $\pm$ 3.70 & 15.59 $\pm$ 0.76 & 23.19 $\pm$ 2.19 & 17.54 $\pm$ 0.66 \\
+D-A-D & 436 & \textbf{14.38 $\pm$ 0.85} & 16.56 $\pm$ 3.84 & 17.11 $\pm$ 0.90 & 22.68 $\pm$ 2.25 & 18.58 $\pm$ 0.44 \\
+BODIPY & 343 & \textbf{10.21 $\pm$ 0.75} & 15.32 $\pm$ 4.40 & 15.75 $\pm$ 1.41 & 50.70 $\pm$ 7.82 & 15.18 $\pm$ 0.99 \\
+Cyanine & 12 & \textbf{14.43 $\pm$ 3.03} & 23.71 $\pm$ 3.34 & 18.18 $\pm$ 5.47 & 35.71 $\pm$ 10.55 & 22.25 $\pm$ 6.16 \\
+Stilbene & 302 & \textbf{16.33 $\pm$ 1.34} & 20.79 $\pm$ 3.87 & 19.21 $\pm$ 1.92 & 27.91 $\pm$ 3.92 & 22.48 $\pm$ 1.35 \\
+Non-local union & 1811 & \textbf{16.95 $\pm$ 0.75} & 18.89 $\pm$ 4.43 & 20.44 $\pm$ 1.34 & 38.22 $\pm$ 4.50 & 21.21 $\pm$ 0.58 \\
 \midrule
 \multicolumn{7}{l}{$\boldsymbol{R^2}$} \\
-Full dataset      & 3683 & \textbf{0.914 $\pm$ 0.007} & 0.904 $\pm$ 0.020 & 0.886 $\pm$ 0.007 & 0.744 $\pm$ 0.035 & 0.900 $\pm$ 0.006 \\
-$\lambda > 500$   &  766 & 0.599 $\pm$ 0.062 & \textbf{0.665 $\pm$ 0.115} & 0.507 $\pm$ 0.073 & $-0.675 \pm 0.285$ & 0.610 $\pm$ 0.048 \\
-$\lambda > 600$   &  311 & $-0.140 \pm 0.183$ & \textbf{0.049 $\pm$ 0.285} & $-0.394 \pm 0.142$ & $-4.967 \pm 1.071$ & $-0.072 \pm 0.140$ \\
-Azo               &   53 & \textbf{0.682 $\pm$ 0.106} & 0.617 $\pm$ 0.123 & 0.566 $\pm$ 0.194 & 0.424 $\pm$ 0.126 & 0.650 $\pm$ 0.042 \\
-D-A               & 1189 & 0.934 $\pm$ 0.004 & \textbf{0.935 $\pm$ 0.026} & 0.919 $\pm$ 0.005 & 0.764 $\pm$ 0.032 & 0.922 $\pm$ 0.007 \\
-D-A-D             &  436 & 0.916 $\pm$ 0.013 & \textbf{0.921 $\pm$ 0.038} & 0.901 $\pm$ 0.010 & 0.788 $\pm$ 0.044 & 0.906 $\pm$ 0.010 \\
-BODIPY            &  343 & \textbf{0.940 $\pm$ 0.009} & 0.930 $\pm$ 0.032 & 0.893 $\pm$ 0.006 & 0.208 $\pm$ 0.167 & 0.923 $\pm$ 0.013 \\
-Cyanine           &   12 & \textbf{0.856 $\pm$ 0.063} & 0.576 $\pm$ 0.135 & 0.768 $\pm$ 0.109 & 0.206 $\pm$ 0.205 & 0.679 $\pm$ 0.156 \\
-Stilbene          &  302 & \textbf{0.903 $\pm$ 0.012} & 0.877 $\pm$ 0.043 & 0.862 $\pm$ 0.040 & 0.723 $\pm$ 0.072 & 0.868 $\pm$ 0.021 \\
-Non-local union   & 1811 & 0.904 $\pm$ 0.012 & \textbf{0.912 $\pm$ 0.030} & 0.878 $\pm$ 0.014 & 0.641 $\pm$ 0.060 & 0.899 $\pm$ 0.010 \\
+Full dataset & 3683 & \textbf{0.914 $\pm$ 0.007} & 0.904 $\pm$ 0.020 & 0.886 $\pm$ 0.007 & 0.744 $\pm$ 0.035 & 0.900 $\pm$ 0.006 \\
+$\lambda > 500$ & 766 & 0.599 $\pm$ 0.062 & \textbf{0.665 $\pm$ 0.115} & 0.507 $\pm$ 0.073 & $-0.675 \pm 0.285$ & 0.610 $\pm$ 0.048 \\
+$\lambda > 600$ & 311 & $-0.140 \pm 0.183$ & \textbf{0.049 $\pm$ 0.285} & $-0.394 \pm 0.142$ & $-4.967 \pm 1.071$ & $-0.072 \pm 0.140$ \\
+Azo & 53 & \textbf{0.682 $\pm$ 0.106} & 0.617 $\pm$ 0.123 & 0.566 $\pm$ 0.194 & 0.424 $\pm$ 0.126 & 0.650 $\pm$ 0.042 \\
+D-A & 1189 & 0.934 $\pm$ 0.004 & \textbf{0.935 $\pm$ 0.026} & 0.919 $\pm$ 0.005 & 0.764 $\pm$ 0.032 & 0.922 $\pm$ 0.007 \\
+D-A-D & 436 & 0.916 $\pm$ 0.013 & \textbf{0.921 $\pm$ 0.038} & 0.901 $\pm$ 0.010 & 0.788 $\pm$ 0.044 & 0.906 $\pm$ 0.010 \\
+BODIPY & 343 & \textbf{0.940 $\pm$ 0.009} & 0.930 $\pm$ 0.032 & 0.893 $\pm$ 0.006 & 0.208 $\pm$ 0.167 & 0.923 $\pm$ 0.013 \\
+Cyanine & 12 & \textbf{0.856 $\pm$ 0.063} & 0.576 $\pm$ 0.135 & 0.768 $\pm$ 0.109 & 0.206 $\pm$ 0.205 & 0.679 $\pm$ 0.156 \\
+Stilbene & 302 & \textbf{0.903 $\pm$ 0.012} & 0.877 $\pm$ 0.043 & 0.862 $\pm$ 0.040 & 0.723 $\pm$ 0.072 & 0.868 $\pm$ 0.021 \\
+Non-local union & 1811 & 0.904 $\pm$ 0.012 & \textbf{0.912 $\pm$ 0.030} & 0.878 $\pm$ 0.014 & 0.641 $\pm$ 0.060 & 0.899 $\pm$ 0.010 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -448,7 +448,7 @@ A few additional observations that did not fit in the main text:
 \section{Overlap Between Primary and Deep4Chem Datasets}
 \label{si:deep4chem_overlap}
 
-In response to reviewer concern R1-7, we quantified the chemical-space overlap between our primary Joung+Beard dataset and the Deep4Chem external benchmark used in main-text the Cross-Dataset Benchmarking section. Joung et al.~\cite{joung2021deep} derived Deep4Chem from a similar literature curation effort to the Joung half of our primary collection, so a non-trivial overlap is expected; the open question is how large it actually is. All SMILES strings were canonicalised through RDKit~\cite{landrumRdkitRdkit2020_03_12020} before set intersection, separately for solutes and for solvents.
+We quantified the chemical-space overlap between our primary Joung+Beard dataset and the Deep4Chem external benchmark used in main-text the Cross-Dataset Benchmarking section. Joung et al.~\cite{joung2021deep} derived Deep4Chem from a similar literature curation effort to the Joung half of our primary collection, so a non-trivial overlap is expected; the open question is how large it actually is. All SMILES strings were canonicalised through RDKit~\cite{landrumRdkitRdkit2020_03_12020} before set intersection, separately for solutes and for solvents.
 
 Table~\ref{tab:si_d4c_overlap} reports the overlap at three granularities. At the level of unique canonical solute SMILES, 77.4\% of Deep4Chem solutes (5{,}018 of 6{,}480) also appear in Joung+Beard; conversely, 63.8\% of Joung+Beard solutes (5{,}018 of 7{,}863) appear in Deep4Chem. The overlap is even more striking at the (solute, solvent) pair level---72.6\% of Deep4Chem records have an exact match in Joung+Beard---and is near-total when measured at the level of generic Bemis--Murcko scaffolds (98.8\%). The scaffold overlap shows that the two datasets explore essentially the same scaffold space, with Deep4Chem providing only modest scaffold-level novelty beyond Joung+Beard.
 
@@ -461,27 +461,27 @@ Table~\ref{tab:si_d4c_overlap} reports the overlap at three granularities. At th
 \toprule
 \textbf{Granularity} & \textbf{J+B} & \textbf{D4C} & \textbf{Intersection} & \textbf{\% of D4C} & \textbf{\% of J+B} \\
 \midrule
-Unique canonical solute SMILES       & 7{,}863  & 6{,}480  & 5{,}018  & 77.4 & 63.8 \\
-(Solute, solvent) pairs              & 18{,}457 & 17{,}427 & 12{,}654 & 72.6 & 68.6 \\
-Generic Bemis--Murcko scaffolds      & 3{,}008  & 2{,}498  & 2{,}467  & 98.8 & 82.0 \\
+Unique canonical solute SMILES & 7{,}863 & 6{,}480 & 5{,}018 & 77.4 & 63.8 \\
+(Solute, solvent) pairs & 18{,}457 & 17{,}427 & 12{,}654 & 72.6 & 68.6 \\
+Generic Bemis--Murcko scaffolds & 3{,}008 & 2{,}498 & 2{,}467 & 98.8 & 82.0 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 \begin{figure}[htbp]
-    \centering
-    \includegraphics[width=0.95\textwidth]{results/r1_7_overlap_venn.png}
-    \caption{Venn diagrams showing the chemical-space overlap between the Joung+Beard primary dataset and the Deep4Chem external benchmark. Left: unique canonical solute SMILES. Right: unique (solute, solvent) pairs after canonicalising both columns.}
-    \label{fig:si_d4c_venn}
+ \centering
+ \includegraphics[width=0.95\textwidth]{results/r1_7_overlap_venn.png}
+ \caption{Venn diagrams showing the chemical-space overlap between the Joung+Beard primary dataset and the Deep4Chem external benchmark. Left: unique canonical solute SMILES. Right: unique (solute, solvent) pairs after canonicalising both columns.}
+ \label{fig:si_d4c_venn}
 \end{figure}
 
 The practical consequence for the main-text Cross-Dataset Benchmarking (the Cross-Dataset Benchmarking section) is that Deep4Chem results characterise \emph{in-distribution} interpolation rather than out-of-distribution extrapolation: roughly three-quarters of the Deep4Chem test set, under the published 80/10/10 random split, will contain chromophores the model has already learned from during training on Joung+Beard. We retain the Deep4Chem evaluation because it reproduces the published baselines of Joung et al.\ (GCNN, RMSE = 26.6~nm) on their own data, but we are explicit in the main text that the more rigorous external test is provided by Jung et al.~\cite{jung2024machine} (48.8\% unique-solute overlap, separate experimental provenance, distinct chromophore families). The scripts used to compute these overlaps are distributed with the code (\texttt{analyze\_deep4chem\_overlap.py}); the numbers above are reproducible from the source CSVs.
 
 
-\section{v2-vs-v3 Cross-Protocol Comparison (R1-8)}
+\section{v2-vs-v3 Cross-Protocol Comparison}
 \label{si:v2_v3_comparison}
 
-In response to reviewer concern R1-8, we adopted the Greenman--Song duplicate-handling protocol~\cite{greenman2022multifidelity,song2025fluortools} (drop within-key groups with $\max - \min > 5$~nm, average the rest, singletons unchanged) and re-trained all five model families on the resulting v3 cleaned dataset (18{,}415 records, vs.\ 18{,}755 under the earlier first-occurrence-dedup rule we used in the original submission). Table~\ref{tab:si_v2v3} reports the side-by-side cross-validated metrics under both protocols.
+We adopted the Greenman--Song duplicate-handling protocol~\cite{greenman2022multifidelity,song2025fluortools} (drop within-key groups with $\max - \min > 5$~nm, average the rest, singletons unchanged) and re-trained all five model families on the resulting v3 cleaned dataset (18{,}415 records, vs.\ 18{,}755 under the earlier first-occurrence-dedup rule we used in the original submission). Table~\ref{tab:si_v2v3} reports the side-by-side cross-validated metrics under both protocols.
 
 The protocol change costs 1.81\% of records overall and re-distributes them across the deep-coloured and well-populated wavelength bins (Section~\ref{si:nonlocal_smarts}). For the four local-feature models the cross-validated RMSE shifts by $\leq 1.5$~nm; for ChemBERTa it shifts by $+3.7$~nm, with fold-to-fold standard deviation also widening (2.30 to 3.57). The headline RF~$\approx$~Chemprop tie is preserved: paired $t$-test $p = 0.16$ on v3 (vs.\ $p = 0.77$ on v2), so the null hypothesis of equal mean RMSE cannot be rejected at $\alpha = 0.05$ on either protocol. The qualitative model ranking---RF $\leq$ Chemprop $<$ XGBoost $<$ BiGRU $\ll$ ChemBERTa---is unchanged.
 
@@ -496,11 +496,11 @@ The protocol change costs 1.81\% of records overall and re-distributes them acro
 \cmidrule(lr){2-3} \cmidrule(lr){4-5} \cmidrule(lr){6-7}
  & v2 & v3 & v2 & v3 & v2 & v3 \\
 \midrule
-RF + Morgan FP (tuned)        & 31.34 $\pm$ 1.82 & \textbf{31.50 $\pm$ 1.47} & 15.16 $\pm$ 0.44 & 15.37 $\pm$ 0.22 & 0.914 & 0.914 \\
-XGBoost + Morgan FP (MSE)     & 33.70 $\pm$ 1.61 & 33.92 $\pm$ 1.26 & 20.05 $\pm$ 0.48 & 20.25 $\pm$ 0.41 & 0.900 & 0.900 \\
-Chemprop (D-MPNN)             & 31.69 $\pm$ 3.18 & 33.15 $\pm$ 3.27 & 16.84 $\pm$ 1.74 & 18.11 $\pm$ 3.02 & 0.911 & 0.904 \\
-BiGRU (tuned, 3L/256u)        & 34.71 $\pm$ 1.40 & 36.20 $\pm$ 1.20 & 18.09 $\pm$ 0.59 & 18.81 $\pm$ 0.58 & 0.894 & 0.886 \\
-ChemBERTa (pretrained)        & 50.39 $\pm$ 2.30 & 54.09 $\pm$ 3.57 & 24.31 $\pm$ 1.04 & 26.78 $\pm$ 2.35 & 0.777 & 0.744 \\
+RF + Morgan FP (tuned) & 31.34 $\pm$ 1.82 & \textbf{31.50 $\pm$ 1.47} & 15.16 $\pm$ 0.44 & 15.37 $\pm$ 0.22 & 0.914 & 0.914 \\
+XGBoost + Morgan FP (MSE) & 33.70 $\pm$ 1.61 & 33.92 $\pm$ 1.26 & 20.05 $\pm$ 0.48 & 20.25 $\pm$ 0.41 & 0.900 & 0.900 \\
+Chemprop (D-MPNN) & 31.69 $\pm$ 3.18 & 33.15 $\pm$ 3.27 & 16.84 $\pm$ 1.74 & 18.11 $\pm$ 3.02 & 0.911 & 0.904 \\
+BiGRU (tuned, 3L/256u) & 34.71 $\pm$ 1.40 & 36.20 $\pm$ 1.20 & 18.09 $\pm$ 0.59 & 18.81 $\pm$ 0.58 & 0.894 & 0.886 \\
+ChemBERTa (pretrained) & 50.39 $\pm$ 2.30 & 54.09 $\pm$ 3.57 & 24.31 $\pm$ 1.04 & 26.78 $\pm$ 2.35 & 0.777 & 0.744 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -514,10 +514,10 @@ Notably:
 The full per-fold values for v3 are reported in Tables~\ref{tab:perfold_rf}--\ref{tab:perfold_chemberta}. The v2 numbers are reproduced verbatim from the original submission.
 
 
-\section{Chromophore-Solvent Leakage Analysis (R1-9)}
+\section{Chromophore-Solvent Leakage Analysis}
 \label{si:chromophore_leakage}
 
-In response to reviewer concern R1-9, we audited the v3 5-fold stratified cross-validation splits used in main-text Table~2 for the chromophore-overlap concern raised by Greenman et al.~\cite{greenman2022multifidelity}: because the Joung+Beard dataset contains many more records (18{,}415) than unique solutes (7{,}846), the same chromophore can appear in both the training and test slices of a single fold under different solvents, giving the model an easier prediction target than would a scaffold-based split. For each fold and each model we partitioned the test records into two subsets---``chromophore seen in training'' (the same canonical solute SMILES appears in the train slice under any solvent) vs.\ ``chromophore novel'' (the solute is absent from train)---and recomputed RMSE/MAE/$R^2$ on each subset using the saved per-fold predictions. The fingerprint-based models (RF, XGBoost) were evaluated against the train-only slice they actually fit on; the deep learning models (BiGRU, Chemprop, ChemBERTa) were evaluated against the train+val slice they have access to (DL models use val for early stopping).
+We audited the v3 5-fold stratified cross-validation splits used in main-text Table~2 for the chromophore-overlap concern raised by Greenman et al.~\cite{greenman2022multifidelity}: because the Joung+Beard dataset contains many more records (18{,}415) than unique solutes (7{,}846), the same chromophore can appear in both the training and test slices of a single fold under different solvents, giving the model an easier prediction target than would a scaffold-based split. For each fold and each model we partitioned the test records into two subsets---``chromophore seen in training'' (the same canonical solute SMILES appears in the train slice under any solvent) vs.\ ``chromophore novel'' (the solute is absent from train)---and recomputed RMSE/MAE/$R^2$ on each subset using the saved per-fold predictions. The fingerprint-based models (RF, XGBoost) were evaluated against the train-only slice they actually fit on; the deep learning models (BiGRU, Chemprop, ChemBERTa) were evaluated against the train+val slice they have access to (DL models use val for early stopping).
 
 The overall leakage rate is high: 66.8\% of test records under the train-only partition and 69.3\% under the train+val partition; equivalently, 54.6\% of the unique solutes in any given test fold also appear in the corresponding train fold (Table~\ref{tab:si_leakage_perfold}).
 
@@ -552,11 +552,11 @@ Table~\ref{tab:si_leakage_per_model} reports the decomposition of each model's t
 \toprule
 \textbf{Model} & \textbf{Leak rate} & \textbf{RMSE (seen)} & \textbf{RMSE (novel)} & $\boldsymbol{\Delta}$\textbf{RMSE} & \textbf{Full-test RMSE} \\
 \midrule
-RF (tuned)        & 66.8\% & 16.36 $\pm$ 0.88 & 49.53 $\pm$ 2.90 & $+33.16$ & 31.50 $\pm$ 1.47 \\
-XGBoost (MSE)     & 66.8\% & 21.33 $\pm$ 0.29 & 50.52 $\pm$ 2.79 & $+29.19$ & 33.92 $\pm$ 1.26 \\
+RF (tuned) & 66.8\% & 16.36 $\pm$ 0.88 & 49.53 $\pm$ 2.90 & $+33.16$ & 31.50 $\pm$ 1.47 \\
+XGBoost (MSE) & 66.8\% & 21.33 $\pm$ 0.29 & 50.52 $\pm$ 2.79 & $+29.19$ & 33.92 $\pm$ 1.26 \\
 Chemprop (D-MPNN) & 69.3\% & 19.65 $\pm$ 4.10 & 51.90 $\pm$ 4.73 & $+32.26$ & 33.15 $\pm$ 3.27 \\
-BiGRU (tuned)     & 69.3\% & 20.96 $\pm$ 1.45 & 57.16 $\pm$ 3.03 & $+36.21$ & 36.20 $\pm$ 1.20 \\
-ChemBERTa         & 69.3\% & 45.13 $\pm$ 4.56 & 70.17 $\pm$ 3.68 & $+25.04$ & 54.09 $\pm$ 3.57 \\
+BiGRU (tuned) & 69.3\% & 20.96 $\pm$ 1.45 & 57.16 $\pm$ 3.03 & $+36.21$ & 36.20 $\pm$ 1.20 \\
+ChemBERTa & 69.3\% & 45.13 $\pm$ 4.56 & 70.17 $\pm$ 3.68 & $+25.04$ & 54.09 $\pm$ 3.57 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -564,7 +564,7 @@ ChemBERTa         & 69.3\% & 45.13 $\pm$ 4.56 & 70.17 $\pm$ 3.68 & $+25.04$ & 54
 Three observations:
 (i) \textbf{All five model families benefit comparably from chromophore overlap.} $\Delta$RMSE spans a narrow 25--36~nm band across architectures spanning four families (tree ensemble, GNN, RNN, Transformer). No model is differentially advantaged: in particular, RF and Chemprop have $\Delta$RMSE of $+33.16$ and $+32.26$~nm respectively. The RF vs.\ Chemprop paired $t$-test on the chromophore-novel subset alone (n~=~5 folds) gives $t = -2.51$, $p = 0.066$---still failing to reject the null at $\alpha = 0.05$---so the RF$\approx$Chemprop statistical tie reported in main-text Table~2 ($p = 0.16$ on the full test set) is preserved when the comparison is restricted to chromophores genuinely absent from the training data.
 (ii) \textbf{The novel-solute RMSEs roughly align with the wetlab OOD numbers.} The wetlab validation set (the Experimental Validation section of the main text, 16 commercial UV-absorbing compounds) gives RF MAE = 38.5~nm, Chemprop MAE = 26.2~nm, ChemBERTa MAE = 26.3~nm; the chromophore-novel subsets here give correspondingly elevated MAEs of comparable order of magnitude (full per-model MAE values in \texttt{results/r1\_9\_leakage\_per\_model.csv}). The pattern is consistent: in-distribution interpolation is substantially easier than true novel-chromophore prediction for all architectures, with the relative ranking of architectures depending on whether the test distribution is close to the training distribution or genuinely out of it.
-(iii) \textbf{The magnitude of the effect is intrinsic to the dataset shape.} With $\sim$2.35 records per unique solute on average, any random or solvent-stratified split that does not group by solute will produce high chromophore-level overlap by construction. A scaffold-based split (separately addressed in our response to R1-13 and our wetlab evaluation) is the methodological complement that controls for this. We retain the standard stratified-CV protocol in Table~2 because it is the convention used by Joung et al., Beard et al., Greenman et al., and Jung et al.\ on these same data, and matching the convention is necessary for apples-to-apples comparison with their published baselines; but readers should interpret those numbers as upper bounds on novel-chromophore generalisation.
+(iii) \textbf{The magnitude of the effect is intrinsic to the dataset shape.} With $\sim$2.35 records per unique solute on average, any random or solvent-stratified split that does not group by solute will produce high chromophore-level overlap by construction. A scaffold-based split (our wetlab evaluation) is the methodological complement that controls for this. We retain the standard stratified-CV protocol in Table~2 because it is the convention used by Joung et al., Beard et al., Greenman et al., and Jung et al.\ on these same data, and matching the convention is necessary for apples-to-apples comparison with their published baselines; but readers should interpret those numbers as upper bounds on novel-chromophore generalisation.
 
 The full analysis is reproducible from the saved v3 per-fold predictions via \texttt{python3 analyze\_chromophore\_leakage.py}, which writes \texttt{results/r1\_9\_leakage\_\{stats.json,per\_model.csv,per\_fold.csv,summary.md\}}.
 
@@ -577,49 +577,49 @@ Bond symbols (\texttt{=}, \texttt{\#}) receive the highest mean saliency, reflec
 Heteroatoms (N, O, S) rank second, consistent with their role as electron donors and acceptors in chromophores, while aromatic atom characters and aliphatic carbons receive lower saliency, and brackets/syntax characters contribute minimally.
 
 \begin{figure}[htbp]
-    \centering
-    \includegraphics[width=0.65\textwidth]{results/bigru_saliency_chartype.png}
-    \caption{Mean BiGRU gradient saliency by SMILES character type, averaged over all wetlab validation molecules. Bond symbols (\texttt{=}, \texttt{\#}) and heteroatoms receive the highest saliency, consistent with the role of conjugated $\pi$-systems and electron-donating/withdrawing groups in determining UV absorption.}
-    \label{fig:bigru_chartype}
+ \centering
+ \includegraphics[width=0.65\textwidth]{results/bigru_saliency_chartype.png}
+ \caption{Mean BiGRU gradient saliency by SMILES character type, averaged over all wetlab validation molecules. Bond symbols (\texttt{=}, \texttt{\#}) and heteroatoms receive the highest saliency, consistent with the role of conjugated $\pi$-systems and electron-donating/withdrawing groups in determining UV absorption.}
+ \label{fig:bigru_chartype}
 \end{figure}
 
 
 \section{Detailed Model Architectures}
 \label{si:architectures}
 
-This section collects the mathematical definitions and component-level explanations of the five model families benchmarked in the main text. The content was moved from the main-text Methods section to the Supporting Information in response to reviewer concern R1-10, on the grounds that the underlying architectures are documented in detail by their original publications (cited per subsection) and that the core findings of the manuscript---the locality argument, the RF$\approx$Chemprop tie, and the complementary OOD strengths of deep learning---do not depend on the equation-level details below.
+This section collects the mathematical definitions and component-level explanations of the five model families benchmarked in the main text. The content was moved from the main-text Methods section to the Supporting Information on the grounds that the underlying architectures are documented in detail by their original publications (cited per subsection) and that the core findings of the manuscript---the locality argument, the RF$\approx$Chemprop tie, and the complementary OOD strengths of deep learning---do not depend on the equation-level details below.
 
 \subsection*{Random Forest (RF)}
 
 Random Forest~\cite{breiman2001random} is an ensemble method that constructs $B$ decision trees, each trained on a bootstrap sample of the data, and averages their predictions to reduce variance. For a regression task, the ensemble prediction is:
 \begin{equation}
-    \hat{y}(\vect{x}) = \frac{1}{B} \sum_{b=1}^{B} T_b(\vect{x})
-    \label{eq:si_rf_predict}
+ \hat{y}(\vect{x}) = \frac{1}{B} \sum_{b=1}^{B} T_b(\vect{x})
+ \label{eq:si_rf_predict}
 \end{equation}
 where $T_b$ denotes the $b$-th decision tree. Each tree partitions the feature space by recursively selecting the feature $j$ and threshold $s$ that minimise the mean squared error (MSE) within each resulting partition:
 \begin{equation}
-    (j^*, s^*) = \arg\min_{j, s} \left[ \sum_{x_i \in R_1(j,s)} (y_i - \bar{y}_{R_1})^2 + \sum_{x_i \in R_2(j,s)} (y_i - \bar{y}_{R_2})^2 \right]
-    \label{eq:si_rf_split}
+ (j^*, s^*) = \arg\min_{j, s} \left[ \sum_{x_i \in R_1(j,s)} (y_i - \bar{y}_{R_1})^2 + \sum_{x_i \in R_2(j,s)} (y_i - \bar{y}_{R_2})^2 \right]
+ \label{eq:si_rf_split}
 \end{equation}
 where $R_1$ and $R_2$ are the two regions defined by the split and $\bar{y}_{R_k}$ is the mean target in region $R_k$. At each split, only a random subset of features (out of $d$ total) is considered, decorrelating the trees and improving generalisation.
 
 The input representation for RF in this work is the Morgan circular fingerprint~\cite{rogers2010extended}, which encodes local chemical environments by enumerating all atom-centred circular substructures up to a specified radius $r$. Each substructure is hashed to a fixed-length binary vector of $n$ bits:
 \begin{equation}
-    \vect{x} = \text{MorganFP}(\text{mol},\, r=2,\, n=2048) \in \{0, 1\}^{2048}
-    \label{eq:si_morgan_fp}
+ \vect{x} = \text{MorganFP}(\text{mol},\, r=2,\, n=2048) \in \{0, 1\}^{2048}
+ \label{eq:si_morgan_fp}
 \end{equation}
 
 \subsection*{XGBoost}
 
 XGBoost~\cite{chen2016xgboost} constructs an additive ensemble of decision trees trained sequentially, where each new tree $f_t$ fits the residual errors of the current ensemble. The prediction after $T$ boosting rounds is:
 \begin{equation}
-    \hat{y}(\vect{x}) = \sum_{t=1}^{T} \eta \cdot f_t(\vect{x})
-    \label{eq:si_xgb_predict}
+ \hat{y}(\vect{x}) = \sum_{t=1}^{T} \eta \cdot f_t(\vect{x})
+ \label{eq:si_xgb_predict}
 \end{equation}
 where $\eta$ is the learning rate (shrinkage parameter) that controls the contribution of each tree. Each tree $f_t$ is trained to minimise a regularised objective combining the loss on residuals and a penalty on tree complexity:
 \begin{equation}
-    \mathcal{L}^{(t)} = \sum_{i=1}^{n} l\!\left(y_i,\; \hat{y}_i^{(t-1)} + f_t(\vect{x}_i)\right) + \Omega(f_t)
-    \label{eq:si_xgb_loss}
+ \mathcal{L}^{(t)} = \sum_{i=1}^{n} l\!\left(y_i,\; \hat{y}_i^{(t-1)} + f_t(\vect{x}_i)\right) + \Omega(f_t)
+ \label{eq:si_xgb_loss}
 \end{equation}
 where $\Omega(f_t) = \gamma \cdot |\text{leaves}| + \tfrac{1}{2}\lambda \sum_j w_j^2$ penalises the number of leaves and the magnitude of leaf weights $w_j$.
 
@@ -627,60 +627,60 @@ where $\Omega(f_t) = \gamma \cdot |\text{leaves}| + \tfrac{1}{2}\lambda \sum_j w
 
 Recurrent neural networks (RNNs)~\cite{elman1990finding} process sequential input by maintaining a hidden state $\vect{h}_t$ that is updated at each time step $t$:
 \begin{equation}
-    \vect{h}_t = \sigma(\matr{W}_h \vect{h}_{t-1} + \matr{W}_x \vect{x}_t + \vect{b})
-    \label{eq:si_rnn}
+ \vect{h}_t = \sigma(\matr{W}_h \vect{h}_{t-1} + \matr{W}_x \vect{x}_t + \vect{b})
+ \label{eq:si_rnn}
 \end{equation}
 where $\vect{x}_t$ is the input at step $t$, $\matr{W}_h$ and $\matr{W}_x$ are weight matrices, and $\sigma$ is a nonlinear activation. Standard RNNs suffer from vanishing gradients over long sequences, motivating gated architectures.
 
 The Gated Recurrent Unit (GRU)~\cite{cho2014learning} addresses this through two gating mechanisms, an update gate $\vect{z}_t$ and a reset gate $\vect{r}_t$, that control information flow:
 \begin{align}
-    \vect{z}_t &= \sigma(\matr{W}_z \vect{x}_t + \matr{U}_z \vect{h}_{t-1} + \vect{b}_z) \label{eq:si_gru_update} \\
-    \vect{r}_t &= \sigma(\matr{W}_r \vect{x}_t + \matr{U}_r \vect{h}_{t-1} + \vect{b}_r) \label{eq:si_gru_reset} \\
-    \tilde{\vect{h}}_t &= \tanh(\matr{W}_h \vect{x}_t + \matr{U}_h (\vect{r}_t \odot \vect{h}_{t-1}) + \vect{b}_h) \label{eq:si_gru_candidate} \\
-    \vect{h}_t &= (1 - \vect{z}_t) \odot \vect{h}_{t-1} + \vect{z}_t \odot \tilde{\vect{h}}_t \label{eq:si_gru_output}
+ \vect{z}_t &= \sigma(\matr{W}_z \vect{x}_t + \matr{U}_z \vect{h}_{t-1} + \vect{b}_z) \label{eq:si_gru_update} \\
+ \vect{r}_t &= \sigma(\matr{W}_r \vect{x}_t + \matr{U}_r \vect{h}_{t-1} + \vect{b}_r) \label{eq:si_gru_reset} \\
+ \tilde{\vect{h}}_t &= \tanh(\matr{W}_h \vect{x}_t + \matr{U}_h (\vect{r}_t \odot \vect{h}_{t-1}) + \vect{b}_h) \label{eq:si_gru_candidate} \\
+ \vect{h}_t &= (1 - \vect{z}_t) \odot \vect{h}_{t-1} + \vect{z}_t \odot \tilde{\vect{h}}_t \label{eq:si_gru_output}
 \end{align}
 where $\sigma$ is the sigmoid function and $\odot$ denotes element-wise multiplication. The update gate $\vect{z}_t$ determines how much of the previous state to retain versus replace with the candidate $\tilde{\vect{h}}_t$, while the reset gate $\vect{r}_t$ controls how much past information is used to compute the candidate. This gating mechanism enables GRUs to capture long-range dependencies without the vanishing-gradient problem.
 
 A Bidirectional GRU (BiGRU)~\cite{schuster1997bidirectional} processes the sequence in both directions, concatenating the forward and backward hidden states to capture context from both ends of the molecular string:
 \begin{equation}
-    \vect{h}_t^{\text{bi}} = [\overrightarrow{\vect{h}_t} \,\|\, \overleftarrow{\vect{h}_t}]
-    \label{eq:si_bigru_concat}
+ \vect{h}_t^{\text{bi}} = [\overrightarrow{\vect{h}_t} \,\|\, \overleftarrow{\vect{h}_t}]
+ \label{eq:si_bigru_concat}
 \end{equation}
 
 \subsection*{Graph Neural Network (D-MPNN)}
 
 The Directed Message Passing Neural Network (D-MPNN)~\cite{yangAnalyzingLearnedMolecular2019} operates on the molecular graph by passing messages along directed bonds rather than atoms, avoiding redundant information flow to the source atom at each step. Given a molecular graph with atom features $\vect{x}_v$ and bond features $\vect{e}_{vw}$, directed bond hidden states $\vect{h}_{vw}^{(t)}$ are updated over $T$ steps:
 \begin{equation}
-    \vect{h}_{vw}^{(t)} = \tau\!\left(\vect{h}_{vw}^{(0)} + \matr{W}_t \sum_{u \in N(v) \setminus w} \vect{h}_{uv}^{(t-1)}\right)
-    \label{eq:si_dmpnn}
+ \vect{h}_{vw}^{(t)} = \tau\!\left(\vect{h}_{vw}^{(0)} + \matr{W}_t \sum_{u \in N(v) \setminus w} \vect{h}_{uv}^{(t-1)}\right)
+ \label{eq:si_dmpnn}
 \end{equation}
 where $\tau$ is ReLU, $N(v) \setminus w$ denotes neighbours of $v$ excluding $w$, and $\vect{h}_{vw}^{(0)} = \tau(\matr{W}_0 \, [\vect{x}_v \,\|\, \vect{e}_{vw}])$ is initialised from concatenated atom and bond features. After $T$ message-passing steps, atom-level representations are obtained by summing incoming bond messages and passed through mean pooling to produce a fixed-length molecular vector.
 
 
-\section{Chemprop Hyperparameter Probe (R1-12)}
+\section{Chemprop Hyperparameter Probe}
 \label{si:chemprop_hpo}
 
-In response to reviewer concern R1-12 (asymmetric tuning between BiGRU, which received 25 Optuna trials, and Chemprop, which was left at its published defaults), we ran an Optuna probe of Chemprop's architecture and regularisation on fold 0 of the v3 cleaned Joung+Beard dataset using a comparable 25-trial budget. The probe used the Tree-structured Parzen Estimator (TPE) sampler with $n_{\text{startup\_trials}} = 5$ and a MedianPruner ($n_{\text{warmup\_steps}} = 20$) to terminate clearly-underperforming runs early. The published default configuration was enqueued explicitly as the first trial so that every study contains an in-distribution baseline measurement.
+In response to reviewer concern, we ran an Optuna probe of Chemprop's architecture and regularisation on fold 0 of the v3 cleaned Joung+Beard dataset using a comparable 25-trial budget. The probe used the Tree-structured Parzen Estimator (TPE) sampler with $n_{\text{startup\_trials}} = 5$ and a MedianPruner ($n_{\text{warmup\_steps}} = 20$) to terminate clearly-underperforming runs early. The published default configuration was enqueued explicitly as the first trial so that every study contains an in-distribution baseline measurement.
 
 \paragraph{Search space.}
 The probe varied six hyperparameters with categorical distributions:
 \begin{itemize}[leftmargin=2em,itemsep=2pt]
-  \item \textbf{MPNN hidden dimension} $d_h \in \{200,\, 300,\, 400,\, 600,\, 900\}$ (default: 300)
-  \item \textbf{Message-passing depth} $T \in \{3,\, 4,\, 5,\, 6\}$ (default: 3)
-  \item \textbf{Dropout} $\in \{0.0,\, 0.1,\, 0.2,\, 0.3\}$ (applied to both BondMessagePassing and RegressionFFN; default: 0.0)
-  \item \textbf{FFN depth} $\in \{1,\, 2,\, 3\}$ (default: 1)
-  \item \textbf{FFN hidden dimension} $\in \{300,\, 500,\, 800\}$ (default: 300)
-  \item \textbf{Batch size} $\in \{32,\, 50,\, 64,\, 128\}$ (default: 64)
+ \item \textbf{MPNN hidden dimension} $d_h \in \{200,\, 300,\, 400,\, 600,\, 900\}$ (default: 300)
+ \item \textbf{Message-passing depth} $T \in \{3,\, 4,\, 5,\, 6\}$ (default: 3)
+ \item \textbf{Dropout} $\in \{0.0,\, 0.1,\, 0.2,\, 0.3\}$ (applied to both BondMessagePassing and RegressionFFN; default: 0.0)
+ \item \textbf{FFN depth} $\in \{1,\, 2,\, 3\}$ (default: 1)
+ \item \textbf{FFN hidden dimension} $\in \{300,\, 500,\, 800\}$ (default: 300)
+ \item \textbf{Batch size} $\in \{32,\, 50,\, 64,\, 128\}$ (default: 64)
 \end{itemize}
 The Noam learning-rate schedule (warmup $10^{-4} \to 10^{-3}$, exponential decay to $10^{-4}$), the maximum-epoch budget (100), the early-stopping patience (15 on val loss), and Chemprop's loss function were all held fixed at the values used for the default-config training, so the only variable across trials is the architecture/regularisation choice.
 
 \paragraph{Best configuration.}
 After 24 completed trials, the best fold-0 validation RMSE was achieved at trial 23 with
 \[
-  d_h = 900,\quad T = 4,\quad \text{dropout} = 0.1,\quad
-  \text{FFN}\ 2\text{L} \times 800,\quad \text{batch} = 32.
+ d_h = 900,\quad T = 4,\quad \text{dropout} = 0.1,\quad
+ \text{FFN}\ 2\text{L} \times 800,\quad \text{batch} = 32.
 \]
-This configuration has 5.6M trainable parameters, about $9\times$ the 636K of the published default, and was re-trained on all 5 v3 folds with best-checkpoint restoration before computing test metrics; results are reported in main-text Table~2 as the ``Chemprop (tuned, R1-12)'' row. Three additional independent runs of the same configuration during the probe gave fold-0 val RMSE values within $\pm 1$~nm of trial 23, indicating that the result is reproducible despite training stochasticity.
+This configuration has 5.6M trainable parameters, about $9\times$ the 636K of the published default, and was re-trained on all 5 v3 folds with best-checkpoint restoration before computing test metrics; results are reported in main-text Table~2 as the ``Chemprop (tuned)'' row. Three additional independent runs of the same configuration during the probe gave fold-0 val RMSE values within $\pm 1$~nm of trial 23, indicating that the result is reproducible despite training stochasticity.
 
 \paragraph{Per-fold comparison: tuned vs.\ default Chemprop on v3.}
 The full 5-fold retrain with best-weight restoration (Table~\ref{tab:si_chemprop_tuned_perfold}) shows that the tuned configuration improves the cross-validated mean by $4.32$~nm and reduces fold-to-fold standard deviation from $3.27$ to $1.32$~nm. The improvement is driven primarily by fold 4, where the default-config Chemprop run produced an early-stopping outlier (RMSE $= 39.21$~nm) that the tuned configuration eliminates (RMSE $= 28.46$~nm, a $10.75$~nm drop).
@@ -743,18 +743,18 @@ Three observations frame the manuscript treatment:
 The probe is reproducible from \texttt{tune\_chemprop.py} and the saved Optuna SQLite store \texttt{results/r1\_12\_chemprop\_optuna.db}; per-trial logs are in \texttt{logs/r1\_12\_chemprop\_trial\_*.log}. The 5-fold retrain with the best configuration is reproducible via \texttt{retrain\_chemprop\_tuned.py}, which calls \texttt{run\_chemprop.py} once per fold with the tuned hyperparameters injected through environment variables (\texttt{CHEMPROP\_D\_H}, \texttt{CHEMPROP\_DEPTH}, \texttt{CHEMPROP\_DROPOUT}, \texttt{CHEMPROP\_FFN\_N\_LAYERS}, \texttt{CHEMPROP\_FFN\_HIDDEN\_DIM}, \texttt{CHEMPROP\_BATCH\_SIZE}); per-fold predictions land in \texttt{results/chemprop\_tuned\_v3\_fold\{0..4\}\_*.npy} alongside the default-configuration files.
 
 
-\section{Wetlab Chemical-Space Audit (R1-13)}
+\section{Wetlab Chemical-Space Audit}
 \label{si:wetlab_audit}
 
-In response to reviewer concern R1-13 (whether the 16-compound wetlab benchmark is truly out-of-distribution relative to the v3 cleaned Joung+Beard training set), we computed two complementary chemical-space-overlap measures for every wetlab molecule against the full $7{,}846$-solute training set: (i)~nearest-neighbour Tanimoto similarity using Morgan fingerprints of radius~$2$ and $2048$ bits, and (ii)~exact-match check on the generic and specific Bemis--Murcko scaffolds. Per-molecule details are in Table~\ref{tab:si_wetlab_per_molecule}; the aggregate decomposition is in the four-bin Tanimoto histogram and the scaffold-match counts immediately below it.
+In response to reviewer concern, we computed two complementary chemical-space-overlap measures for every wetlab molecule against the full $7{,}846$-solute training set: (i)~nearest-neighbour Tanimoto similarity using Morgan fingerprints of radius~$2$ and $2048$ bits, and (ii)~exact-match check on the generic and specific Bemis--Murcko scaffolds. Per-molecule details are in Table~\ref{tab:si_wetlab_per_molecule}; the aggregate decomposition is in the four-bin Tanimoto histogram and the scaffold-match counts immediately below it.
 
 \paragraph{Aggregate findings.}
 At the SMILES level the wetlab set is novel: only Ferulic Acid is an exact duplicate of a training record (Tanimoto $= 1.000$), and the other 15 molecules are absent from the training data with a nearest-neighbour Tanimoto distribution of mean~$= 0.58$, median~$= 0.58$, range $[0.350, 0.676]$. The four-bin breakdown is:
 \begin{itemize}[leftmargin=2em,itemsep=2pt]
-  \item Near-duplicate (Tanimoto $> 0.85$): \textbf{1/16} (Ferulic Acid only).
-  \item High-similar ($0.7 < $ Tanimoto $\leq 0.85$): \textbf{0/16}.
-  \item Some-similar ($0.5 < $ Tanimoto $\leq 0.7$): \textbf{10/16}.
-  \item Dissimilar (Tanimoto $\leq 0.5$): \textbf{5/16} --- Homosalate ($0.350$), Avobenzone ($0.379$), Amiloxate ($0.435$), Octocrylene ($0.458$), Octisalate ($0.491$).
+ \item Near-duplicate (Tanimoto $> 0.85$): \textbf{1/16} (Ferulic Acid only).
+ \item High-similar ($0.7 < $ Tanimoto $\leq 0.85$): \textbf{0/16}.
+ \item Some-similar ($0.5 < $ Tanimoto $\leq 0.7$): \textbf{10/16}.
+ \item Dissimilar (Tanimoto $\leq 0.5$): \textbf{5/16} --- Homosalate ($0.350$), Avobenzone ($0.379$), Amiloxate ($0.435$), Octocrylene ($0.458$), Octisalate ($0.491$).
 \end{itemize}
 
 \noindent
@@ -773,9 +773,9 @@ We additionally re-computed the per-model wetlab MAE on the five truly fingerpri
 \toprule
 \textbf{Subset} & \textbf{BiGRU (def)} & \textbf{BiGRU (tuned)} & \textbf{RF} & \textbf{ChemBERTa} & \textbf{Chemprop} \\
 \midrule
-All 16 (aggregate)                       & 28.64 & 31.52 & 38.46 & 26.29 & 26.18 \\
-Scaffold-known 11 (Tan $\in (0.5, 1)$)   & 30.40 & 32.19 & 36.43 & 25.33 & 25.89 \\
-Strict-5 (Tan $\leq 0.5$)                & \textbf{28.35} & 35.66 & \textbf{46.09} & 33.00 & 28.46 \\
+All 16 (aggregate) & 28.64 & 31.52 & 38.46 & 26.29 & 26.18 \\
+Scaffold-known 11 (Tan $\in (0.5, 1)$) & 30.40 & 32.19 & 36.43 & 25.33 & 25.89 \\
+Strict-5 (Tan $\leq 0.5$) & \textbf{28.35} & 35.66 & \textbf{46.09} & 33.00 & 28.46 \\
 \bottomrule
 \multicolumn{6}{l}{\footnotesize Strict-5 set: Amiloxate, Avobenzone, Homosalate, Octisalate, Octocrylene. Bold values denote} \\
 \multicolumn{6}{l}{\footnotesize the strict-5 best (BiGRU default) and worst (RF). Numbers from \texttt{results/r1\_13\_subset\_mae.json}.} \\
@@ -800,44 +800,44 @@ The full audit is reproducible from the single script \texttt{analyze\_wetlab\_s
 \toprule
 \textbf{Molecule} & \textbf{Exact dup} & \textbf{Gen-scaf} & \textbf{Spec-scaf} & \textbf{Nearest Tan} & \textbf{Nearest train $\lambda_{\max}$ (nm)} \\
 \midrule
-Amiloxate      & N & Y & Y & 0.435 & 362.5 \\
-Avobenzone     & N & N & N & 0.379 & 286.2 \\
-Caffeic Acid   & N & Y & Y & 0.636 & 287.0 \\
-Cinnamic Acid  & N & Y & Y & 0.571 & 355.6 \\
-Coumaric Acid  & N & Y & Y & 0.586 & 355.6 \\
-Dioxybenzone   & N & Y & Y & 0.618 & 295.0 \\
-Ferulic Acid   & Y & Y & Y & 1.000 & 287.0 \\
-Homosalate     & N & Y & Y & 0.350 & 295.0 \\
-Octinoxate     & N & Y & Y & 0.667 & 322.5 \\
-Octisalate     & N & Y & Y & 0.491 & 316.0 \\
-Octocrylene    & N & Y & Y & 0.458 & 316.0 \\
-Oxybenzone     & N & Y & Y & 0.600 & 295.0 \\
-PABA           & N & Y & Y & 0.591 & 329.4 \\
-Padimate O     & N & Y & Y & 0.575 & 303.7 \\
-Sinapic Acid   & N & Y & Y & 0.676 & 287.0 \\
-Sulisobenzone  & N & Y & Y & 0.564 & 295.0 \\
+Amiloxate & N & Y & Y & 0.435 & 362.5 \\
+Avobenzone & N & N & N & 0.379 & 286.2 \\
+Caffeic Acid & N & Y & Y & 0.636 & 287.0 \\
+Cinnamic Acid & N & Y & Y & 0.571 & 355.6 \\
+Coumaric Acid & N & Y & Y & 0.586 & 355.6 \\
+Dioxybenzone & N & Y & Y & 0.618 & 295.0 \\
+Ferulic Acid & Y & Y & Y & 1.000 & 287.0 \\
+Homosalate & N & Y & Y & 0.350 & 295.0 \\
+Octinoxate & N & Y & Y & 0.667 & 322.5 \\
+Octisalate & N & Y & Y & 0.491 & 316.0 \\
+Octocrylene & N & Y & Y & 0.458 & 316.0 \\
+Oxybenzone & N & Y & Y & 0.600 & 295.0 \\
+PABA & N & Y & Y & 0.591 & 329.4 \\
+Padimate O & N & Y & Y & 0.575 & 303.7 \\
+Sinapic Acid & N & Y & Y & 0.676 & 287.0 \\
+Sulisobenzone & N & Y & Y & 0.564 & 295.0 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 
-\section{Solvent-Encoding Gain by Chromophore Multi-Solvent Coverage (R1-14)}
+\section{Solvent-Encoding Gain by Chromophore Multi-Solvent Coverage}
 \label{si:multisolvent_audit}
 
-In response to reviewer concern R1-14 (whether the solvent-encoding ablation should be reported on the multi-solvent subset only, because chromophores represented in training with only one solvent cannot teach the model a solvent-specific delta), we re-computed the +Solvent vs.\ Solute-only paired ablation restricted to test records whose canonical solute SMILES appears in the corresponding (train+val) slice with at least two distinct canonical solvent SMILES. The same per-fold trained checkpoints used for the main-text Table~3 are used here, so the only change is the subsetting; no new training was required.
+In response to reviewer concern, we re-computed the +Solvent vs.\ Solute-only paired ablation restricted to test records whose canonical solute SMILES appears in the corresponding (train+val) slice with at least two distinct canonical solvent SMILES. The same per-fold trained checkpoints used for the main-text Table~3 are used here, so the only change is the subsetting; no new training was required.
 
 \paragraph{Subset definitions.} For each fold $f$:
 \begin{itemize}[leftmargin=2em,itemsep=2pt]
-  \item Let $C^{\text{multi}}_f$ be the set of canonical solute SMILES that appear in the fold-$f$ train+val slice with $\geq 2$ distinct canonical solvent SMILES. Across the five folds, $|C^{\text{multi}}_f|$ ranges from $2{,}187$ to $2{,}208$ unique chromophores (about $28$\% of the $\sim$$7{,}846$ unique training solutes).
-  \item The \textbf{multi-solvent test subset} is the set of test records whose canonical solute belongs to $C^{\text{multi}}_f$. Across folds this is $59.7$--$61.2$\% of test records (mean $= 60.3$\%).
-  \item The \textbf{single-or-novel test subset} is the complement: test records whose canonical solute either appears in train+val with only one solvent or does not appear in train+val at all. This is the regime where solvent encoding has no per-chromophore signal to learn from.
+ \item Let $C^{\text{multi}}_f$ be the set of canonical solute SMILES that appear in the fold-$f$ train+val slice with $\geq 2$ distinct canonical solvent SMILES. Across the five folds, $|C^{\text{multi}}_f|$ ranges from $2{,}187$ to $2{,}208$ unique chromophores (about $28$\% of the $\sim$$7{,}846$ unique training solutes).
+ \item The \textbf{multi-solvent test subset} is the set of test records whose canonical solute belongs to $C^{\text{multi}}_f$. Across folds this is $59.7$--$61.2$\% of test records (mean $= 60.3$\%).
+ \item The \textbf{single-or-novel test subset} is the complement: test records whose canonical solute either appears in train+val with only one solvent or does not appear in train+val at all. This is the regime where solvent encoding has no per-chromophore signal to learn from.
 \end{itemize}
 
 \paragraph{Aggregate result (5-fold mean).} The full per-model decomposition is in Table~\ref{tab:si_multisolvent}. The headline observation is that the solvent-encoding contribution is much larger on the multi-solvent subset than the aggregate Table~3 numbers suggest:
 \begin{itemize}[leftmargin=2em,itemsep=2pt]
-  \item RF (tuned): aggregate gain $= 2.79$~nm (8.2\%); multi-solvent subset gain $= \mathbf{7.22}$~nm ($\mathbf{31.8}$\%); single-or-novel subset gain $= 0.42$~nm ($0.9$\%).
-  \item Chemprop: aggregate gain $= 2.09$~nm (6.2\%); multi-solvent subset gain $= \mathbf{5.91}$~nm ($\mathbf{25.2}$\%); single-or-novel subset gain $= -0.28$~nm ($-0.6$\%).
-  \item BiGRU (+Solv default): aggregate gain $= 2.58$~nm (6.6\%); multi-solvent subset gain $= \mathbf{5.65}$~nm ($\mathbf{21.2}$\%); single-or-novel subset gain $= 0.77$~nm ($1.5$\%).
+ \item RF (tuned): aggregate gain $= 2.79$~nm (8.2\%); multi-solvent subset gain $= \mathbf{7.22}$~nm ($\mathbf{31.8}$\%); single-or-novel subset gain $= 0.42$~nm ($0.9$\%).
+ \item Chemprop: aggregate gain $= 2.09$~nm (6.2\%); multi-solvent subset gain $= \mathbf{5.91}$~nm ($\mathbf{25.2}$\%); single-or-novel subset gain $= -0.28$~nm ($-0.6$\%).
+ \item BiGRU (+Solv default): aggregate gain $= 2.58$~nm (6.6\%); multi-solvent subset gain $= \mathbf{5.65}$~nm ($\mathbf{21.2}$\%); single-or-novel subset gain $= 0.77$~nm ($1.5$\%).
 \end{itemize}
 
 \begin{table}[htbp]
@@ -854,8 +854,8 @@ In response to reviewer concern R1-14 (whether the solvent-encoding ablation sho
 \textbf{Model} & \textbf{+Solv} & \textbf{Solute} & \textbf{+Solv} & \textbf{Solute} & $\boldsymbol{\Delta}$ (\%) & \textbf{+Solv} & \textbf{Solute} & $\boldsymbol{\Delta}$ (\%) \\
 \midrule
 RF (tuned) & 31.34 & 34.13 & \textbf{15.49} & \textbf{22.72} & \textbf{7.22 (31.8\%)} & 45.85 & 46.27 & 0.42 (0.9\%) \\
-Chemprop   & 31.69 & 33.78 & \textbf{17.55} & \textbf{23.46} & \textbf{5.91 (25.2\%)} & 45.28 & 45.00 & $-0.28$ ($-0.6$\%) \\
-BiGRU      & 36.45 & 39.03 & \textbf{20.97} & \textbf{26.62} & \textbf{5.65 (21.2\%)} & 51.70 & 52.47 & 0.77 (1.5\%) \\
+Chemprop & 31.69 & 33.78 & \textbf{17.55} & \textbf{23.46} & \textbf{5.91 (25.2\%)} & 45.28 & 45.00 & $-0.28$ ($-0.6$\%) \\
+BiGRU & 36.45 & 39.03 & \textbf{20.97} & \textbf{26.62} & \textbf{5.65 (21.2\%)} & 51.70 & 52.47 & 0.77 (1.5\%) \\
 \bottomrule
 \multicolumn{9}{l}{\footnotesize All RMSEs in nm. Analysis performed on v2 first-occurrence-dedup splits because both ablation arms (+Solvent and} \\
 \multicolumn{9}{l}{\footnotesize Solute-only) were trained on v2; the v3 Greenman--Song cleaning removes records uniformly across chromophore-coverage} \\
@@ -876,21 +876,21 @@ A consequence relevant to deployment: practitioners screening compounds whose ch
 \paragraph{Reproducibility.} The audit is reproducible from the single script \texttt{analyze\_multisolvent\_subset.py}, which loads the per-fold +Solvent and Solute-only prediction arrays from \texttt{results/} (saved during the existing v2 ablation runs), reconstructs the multi-solvent / single-or-novel partition from the v2 dataset (\texttt{previous\_code/UV\_canonical\_full\_dataset.csv}), and writes the per-fold and aggregate metrics to \texttt{results/r1\_14\_multisolvent\_subset.json} and \texttt{results/r1\_14\_summary.md}.
 
 
-\section{Mamede Photosafety Dataset Reproducibility (R1-15)}
+\section{Mamede Photosafety Dataset Reproducibility}
 \label{si:mamede_reproducibility}
 
-In response to reviewer concern R1-15 (request for detailed reproducibility procedure for the Mamede et al.\ photosafety dataset), this section documents the full pipeline from upstream source to the dataset used for the Table~6 classifier training. We also note that this revision corrects a factual misstatement in the original manuscript regarding the dataset's provenance (see ``Correction to original manuscript'' below).
+In response to reviewer concern, this section documents the full pipeline from upstream source to the dataset used for the Table~6 classifier training. We also note that this revision corrects a factual misstatement in the original manuscript regarding the dataset's provenance (see ``Correction to original manuscript'' below).
 
 \paragraph{Upstream source.}
 The dataset originates with Mamede, de Almeida, et al., \emph{Sci.\ Rep.}\ \textbf{2021}, \textit{11}, 3622 (DOI \texttt{10.1038/s41598-021-83104-4})~\cite{mamede2021machine}, who curated a set of $74{,}784$ compounds from Reaxys with binary photosafety labels (POS = absorbance in $290$--$700$~nm at MEC $\geq 1000$~L\,mol$^{-1}$\,cm$^{-1}$; NEG otherwise). The compound identifiers and SMILES strings were distributed in the article's Supplementary Information, which is publicly accessible without an institutional Reaxys subscription via the Springer Nature article page.
 
 \paragraph{Local pipeline.}
 \begin{enumerate}[leftmargin=2em,itemsep=2pt]
-  \item \textbf{Download.} The Mamede SI table was downloaded as a tab-separated file ($74{,}784$ rows) containing three columns: \texttt{REAXYS\_Registry\_Number}, \texttt{SMILES}, and a Reaxys URL pointing back to the entry. The local copy is stored at \texttt{data/raw/mamede\_supplementary.txt} in the public repository.
-  \item \textbf{Parse + canonicalise.} The pipeline script \texttt{postprocess\_reaxys.py} parses the SI file, drops the URL column, and passes each SMILES string through RDKit's \texttt{Chem.MolFromSmiles}\, $\rightarrow$\, \texttt{Chem.MolToSmiles(canonical=True)} round-trip. Of the $74{,}784$ entries, $74{,}783$ canonicalise successfully and $1$ SMILES fails to parse (logged but discarded), giving an effective recovery rate of $\sim$100\%. The output is \texttt{data/mamede\_classification\_dataset.csv}.
-  \item \textbf{Label join.} Mamede's POS/NEG labels are present in the same SI file and are joined to the canonical-SMILES records without further filtering.
-  \item \textbf{Train/test split.} The orchestrator script \texttt{run\_mamede.py rf\_cls} performs a single-level stratified split via \texttt{sklearn.model\_selection.train\_test\_split} with \texttt{test\_size=1996}, \texttt{stratify=class\_bin}, and \texttt{random\_state=7}, yielding $72{,}787$ train records, $998$ \texttt{test\_I} records, and $998$ \texttt{test\_II} records (the inner $998$/$998$ split uses a second \texttt{train\_test\_split} on the held-out 1996, also with \texttt{random\_state=7}). The Table~6 ``Our RF'' row aggregates predictions across \texttt{test\_I $\cup$ test\_II} ($N_{\text{test}} = 1{,}996$) to match the publication-scale evaluation.
-  \item \textbf{Model.} RandomForestClassifier with $n_{\text{estimators}} = 500$, Morgan fingerprints of radius $2$ and $1024$ bits, default scikit-learn hyperparameters otherwise; same RNG seed (7). Out-of-bag score is reported in the per-run metrics file.
+ \item \textbf{Download.} The Mamede SI table was downloaded as a tab-separated file ($74{,}784$ rows) containing three columns: \texttt{REAXYS\_Registry\_Number}, \texttt{SMILES}, and a Reaxys URL pointing back to the entry. The local copy is stored at \texttt{data/raw/mamede\_supplementary.txt} in the public repository.
+ \item \textbf{Parse + canonicalise.} The pipeline script \texttt{postprocess\_reaxys.py} parses the SI file, drops the URL column, and passes each SMILES string through RDKit's \texttt{Chem.MolFromSmiles}\, $\rightarrow$\, \texttt{Chem.MolToSmiles(canonical=True)} round-trip. Of the $74{,}784$ entries, $74{,}783$ canonicalise successfully and $1$ SMILES fails to parse (logged but discarded), giving an effective recovery rate of $\sim$100\%. The output is \texttt{data/mamede\_classification\_dataset.csv}.
+ \item \textbf{Label join.} Mamede's POS/NEG labels are present in the same SI file and are joined to the canonical-SMILES records without further filtering.
+ \item \textbf{Train/test split.} The orchestrator script \texttt{run\_mamede.py rf\_cls} performs a single-level stratified split via \texttt{sklearn.model\_selection.train\_test\_split} with \texttt{test\_size=1996}, \texttt{stratify=class\_bin}, and \texttt{random\_state=7}, yielding $72{,}787$ train records, $998$ \texttt{test\_I} records, and $998$ \texttt{test\_II} records (the inner $998$/$998$ split uses a second \texttt{train\_test\_split} on the held-out 1996, also with \texttt{random\_state=7}). The Table~6 ``Our RF'' row aggregates predictions across \texttt{test\_I $\cup$ test\_II} ($N_{\text{test}} = 1{,}996$) to match the publication-scale evaluation.
+ \item \textbf{Model.} RandomForestClassifier with $n_{\text{estimators}} = 500$, Morgan fingerprints of radius $2$ and $1024$ bits, default scikit-learn hyperparameters otherwise; same RNG seed (7). Out-of-bag score is reported in the per-run metrics file.
 \end{enumerate}
 
 \paragraph{Software versions.}
@@ -902,8 +902,8 @@ The per-run results file \texttt{results/mamede\_rf\_cls\_metrics.json} contains
 \paragraph{Reproducibility command.}
 From the public repository root:
 \begin{verbatim}
-python3 postprocess_reaxys.py            # parse + canonicalise SI -> CSV
-python3 run_mamede.py --model rf_cls     # train RF + write metrics JSON
+python3 postprocess_reaxys.py # parse + canonicalise SI -> CSV
+python3 run_mamede.py --model rf_cls # train RF + write metrics JSON
 \end{verbatim}
 Both scripts are pinned at \texttt{git} HEAD on the public repository (URL in the Data and Code Availability section).
 
@@ -911,7 +911,7 @@ Both scripts are pinned at \texttt{git} HEAD on the public repository (URL in th
 The original submission stated that ``we reconstructed the Mamede/Reaxys dataset by querying Reaxys using the CAS registry numbers listed in the original study, recovering 93.6\% of the original 74{,}784 compounds.'' In preparing this revision we discovered that the actual reproducibility code reads Mamede's publicly available SI directly (no fresh Reaxys query); the recovery rate is $\sim$100\% (one of $74{,}784$ SMILES fails to canonicalise), not $93.6$\%. The revised the Photosafety Classification section text in the main manuscript reflects the actual procedure. The classification model (RF + Morgan fingerprints) and its reported performance metrics are unchanged because the underlying dataset and training pipeline have always been what is documented above; only the manuscript wording was incorrect.
 
 
-\section{Experimental $\lambda_{\max}$ Uncertainty Audit (R2-1)}
+\section{Experimental $\lambda_{\max}$ Uncertainty Audit}
 \label{si:experimental_uncertainty}
 
 To contextualise the magnitude of the model errors reported in Table~2, we quantified two complementary estimates of the inherent measurement noise in the source data. Both audits operate on the v2 first-occurrence-dedup combination of Joung 2020 and Beard 2019 ($18{,}755$ records pre-cleaning) because the v3 Greenman--Song protocol already removes duplicates with spread $> 5$~nm; the v2 view therefore retains the full noise distribution that the cleaning rule was designed to address.
@@ -921,16 +921,16 @@ For each (canonical solute SMILES, canonical solvent SMILES) key with multiplici
 
 \begin{table}[htbp]
 \centering
-\caption{Within-source duplicate spread distribution. A multi-record key is a (canon, solvent) pair with at least two reported $\lambda_{\max}$ values in the named source. Median spread of $0$~nm indicates that more than half of all multi-record keys contain perfectly-agreeing values (typically re-extractions of the same primary measurement across multiple secondary citations). The $> 50$~nm tail captures large disagreements likely attributable to lab-to-lab protocol differences or labelling errors. The Greenman--Song cleaning rule (adopted in this revision per R1-8) discards groups whose spread exceeds 5~nm; the ``$\leq 5$~nm'' fraction therefore quantifies the proportion of multi-record keys retained after cleaning.}
+\caption{Within-source duplicate spread distribution. A multi-record key is a (canon, solvent) pair with at least two reported $\lambda_{\max}$ values in the named source. Median spread of $0$~nm indicates that more than half of all multi-record keys contain perfectly-agreeing values (typically re-extractions of the same primary measurement across multiple secondary citations). The $> 50$~nm tail captures large disagreements likely attributable to lab-to-lab protocol differences or labelling errors. The Greenman--Song cleaning rule (adopted in this revision per ) discards groups whose spread exceeds 5~nm; the ``$\leq 5$~nm'' fraction therefore quantifies the proportion of multi-record keys retained after cleaning.}
 \label{tab:si_uncertainty_within}
 \small
 \begin{tabular}{lcccccc}
 \toprule
 \textbf{Source} & \textbf{Multi-keys} & \textbf{Median} & \textbf{p95} & \textbf{$\leq 5$~nm} & \textbf{$\leq 20$~nm} & \textbf{$> 50$~nm} \\
 \midrule
-Joung 2020           & 0     & --    & --    & --     & --     & --    \\
-Beard 2019           & 273   & 0~nm  & 21~nm & $89.7$\% & $94.1$\% & $1.1$\% \\
-v2 combined          & 294   & 0~nm  & 38~nm & $86.1$\% & $90.5$\% & $4.1$\% \\
+Joung 2020 & 0 & -- & -- & -- & -- & -- \\
+Beard 2019 & 273 & 0~nm & 21~nm & $89.7$\% & $94.1$\% & $1.1$\% \\
+v2 combined & 294 & 0~nm & 38~nm & $86.1$\% & $90.5$\% & $4.1$\% \\
 \bottomrule
 \multicolumn{7}{l}{\footnotesize Joung 2020 reports each compound at most once per solvent in its published table, so it} \\
 \multicolumn{7}{l}{\footnotesize contributes zero within-source multi-records. The v2-combined view picks up additional} \\
@@ -948,7 +948,7 @@ The reported Table~2 RMSEs range from $31$~nm (RF) to $54$~nm (ChemBERTa). Compa
 The audit is reproducible from the single script \texttt{analyze\_experimental\_uncertainty.py}, which loads the cleaned per-source CSVs (\texttt{previous\_code/UV\_canonical\_dataset1.csv} for Joung and \texttt{previous\_code/UV\_canonical\_dataset2.csv} for Beard) plus the combined v2 file, and writes \texttt{results/r2\_1\_uncertainty.json} and \texttt{results/r2\_1\_uncertainty\_summary.md}.
 
 
-\section{Per-Solute Solvent-Induced Shifts (R2-4)}
+\section{Per-Solute Solvent-Induced Shifts}
 \label{si:solvent_shifts}
 
 To quantify the empirical magnitude of solvatochromism in the v3 cleaned dataset directly from the data (without invoking polarity scales; see Section~\ref{si:polarity_breakdown} for the polarity-grouped analysis), we computed for each chromophore appearing under $\geq 2$ canonical solvents the span $\max(\lambda_{\max}) - \min(\lambda_{\max})$ across its observed solvent set. After collapsing intra-solvent duplicates by averaging, $2{,}516$ of the $7{,}846$ unique chromophores ($32$\%) satisfy the multi-solvent criterion. Figure~\ref{fig:si_solvent_shift_hist} shows the per-chromophore span distribution.
@@ -963,12 +963,12 @@ To quantify the empirical magnitude of solvatochromism in the v3 cleaned dataset
 \paragraph{Summary statistics.}
 Median per-chromophore span = $10$~nm; mean = $16.3$~nm; p75 = $20$~nm; p90 = $36$~nm; p95 = $52$~nm; p99 = $123$~nm; max = $494$~nm. By bins:
 \begin{itemize}[leftmargin=2em,itemsep=2pt]
-  \item Span $= 0$~nm (chromophore reported with identical $\lambda_{\max}$ under multiple solvents): $4.8$\%.
-  \item Span $\leq 5$~nm (within instrument precision): $26.0$\%.
-  \item Span $\leq 10$~nm (typical solvatochromism): $51.6$\%.
-  \item Span $\leq 20$~nm: $75.0$\%.
-  \item Span $> 50$~nm (large solvatochromic shifts): $5.6$\%.
-  \item Span $> 100$~nm (extreme shifts; merocyanines, push--pull cyanines, $E_T(30)$-class dyes): $1.4$\%.
+ \item Span $= 0$~nm (chromophore reported with identical $\lambda_{\max}$ under multiple solvents): $4.8$\%.
+ \item Span $\leq 5$~nm (within instrument precision): $26.0$\%.
+ \item Span $\leq 10$~nm (typical solvatochromism): $51.6$\%.
+ \item Span $\leq 20$~nm: $75.0$\%.
+ \item Span $> 50$~nm (large solvatochromic shifts): $5.6$\%.
+ \item Span $> 100$~nm (extreme shifts; merocyanines, push--pull cyanines, $E_T(30)$-class dyes): $1.4$\%.
 \end{itemize}
 
 \paragraph{Top-15 chromophores by span.}
@@ -984,21 +984,21 @@ Table~\ref{tab:si_solvent_shift_top} reports the fifteen largest per-chromophore
 \toprule
 \textbf{Span (nm)} & \textbf{n solv} & \textbf{Class} & \textbf{Canonical SMILES} \\
 \midrule
-493.5 & 334 & --        & Reichardt's $E_T(30)$ betaine (zwitterionic phenoxide-pyridinium) \\
-418.0 &   2 & --        & \texttt{CC(=O)[O-]} (acetate, edge-case data point) \\
-235.0 &   2 & stilbene  & polythiophene-bridged porphyrin (stilbene-like) \\
-225.0 &   9 & --        & merocyanine (bis-benzimidazole + thiabarbituric acid) \\
-210.0 &  10 & stilbene  & stilbene-pyridinium + hydroxynaphthalene \\
-163.3 &   9 & stilbene  & stilbene-quinolinium + coumarin oxide \\
-153.0 &   3 & --        & merocyanine (cyclobutenedione + dimethylanilino) \\
-153.0 &  12 & stilbene  & stilbene-pyridinium + hydroxyphenyl \\
-152.0 &   3 & --        & merocyanine (cyclobutenedione + anilino) \\
-151.0 &   3 & --        & merocyanine (cyclobutenedione + dimethylanilino) \\
-151.0 &   3 & --        & merocyanine (cyclobutenedione + dimethylanilino) \\
-150.0 &   3 & --        & merocyanine (cyclobutenedione + dimethylanilino) \\
-148.0 &   3 & --        & push--pull coumarin + indolium + sulfonate \\
-145.0 &  13 & --        & extended-aromatic acceptor + naphthyl-aryl wings \\
-145.0 &   3 & --        & push--pull coumarin + indolium + sulfonate \\
+493.5 & 334 & -- & Reichardt's $E_T(30)$ betaine (zwitterionic phenoxide-pyridinium) \\
+418.0 & 2 & -- & \texttt{CC(=O)[O-]} (acetate, edge-case data point) \\
+235.0 & 2 & stilbene & polythiophene-bridged porphyrin (stilbene-like) \\
+225.0 & 9 & -- & merocyanine (bis-benzimidazole + thiabarbituric acid) \\
+210.0 & 10 & stilbene & stilbene-pyridinium + hydroxynaphthalene \\
+163.3 & 9 & stilbene & stilbene-quinolinium + coumarin oxide \\
+153.0 & 3 & -- & merocyanine (cyclobutenedione + dimethylanilino) \\
+153.0 & 12 & stilbene & stilbene-pyridinium + hydroxyphenyl \\
+152.0 & 3 & -- & merocyanine (cyclobutenedione + anilino) \\
+151.0 & 3 & -- & merocyanine (cyclobutenedione + dimethylanilino) \\
+151.0 & 3 & -- & merocyanine (cyclobutenedione + dimethylanilino) \\
+150.0 & 3 & -- & merocyanine (cyclobutenedione + dimethylanilino) \\
+148.0 & 3 & -- & push--pull coumarin + indolium + sulfonate \\
+145.0 & 13 & -- & extended-aromatic acceptor + naphthyl-aryl wings \\
+145.0 & 3 & -- & push--pull coumarin + indolium + sulfonate \\
 \bottomrule
 \multicolumn{4}{l}{\footnotesize Full SMILES strings for all $2{,}516$ multi-solvent chromophores in} \\
 \multicolumn{4}{l}{\footnotesize \texttt{results/r2\_4\_solvent\_shifts.csv}.} \\
@@ -1009,16 +1009,16 @@ Table~\ref{tab:si_solvent_shift_top} reports the fifteen largest per-chromophore
 Reproducible from the single script \texttt{analyze\_solvent\_shifts.py}. Outputs: \texttt{results/r2\_4\_solvent\_shifts.json}, \texttt{results/r2\_4\_solvent\_shifts.csv} (full per-chromophore table), \texttt{results/r2\_4\_solvent\_shifts.png} (the histogram in Figure~\ref{fig:si_solvent_shift_hist}), and \texttt{results/r2\_4\_summary.md}.
 
 
-\section{Solvent Polarity Stratification (R2-5)}
+\section{Solvent Polarity Stratification}
 \label{si:polarity_breakdown}
 
 To test whether any solvent polarity class is disproportionately difficult for the four headline models, we partitioned the $18{,}415$ v3 records into four polarity tiers based on standard $E_T(30)$-style groupings of canonical solvent SMILES (Reichardt 2011~\cite{reichardt2011solvents}), plus an ``other'' bucket for solvents not represented in the standard tier definitions:
 \begin{itemize}[leftmargin=2em,itemsep=2pt]
-  \item \textbf{Nonpolar} ($n = 3{,}010$, $16.4$\%): n-hexane, n-heptane, n-octane, cyclohexane, benzene, toluene, xylene, CCl$_4$.
-  \item \textbf{Moderate} ($n = 6{,}619$, $35.9$\%): DCM, CHCl$_3$, 1,2-DCE, THF, 2-Me-THF, EtOAc, MeOAc, 1,4-dioxane, acetone.
-  \item \textbf{Polar aprotic} ($n = 3{,}625$, $19.7$\%): MeCN, DMF, DMSO, propionitrile, DMA, GBL, NMP.
-  \item \textbf{Polar protic} ($n = 3{,}412$, $18.5$\%): water, MeOH, EtOH, $n$-PrOH, $i$-PrOH, $n$-BuOH, $n$-PenOH, ethylene glycol, glycerol.
-  \item \textbf{Other} ($n = 1{,}749$, $9.5$\%): long-tail solvents not in the standard tier definitions (mixed solvents, less-common substituted aromatics, etc.).
+ \item \textbf{Nonpolar} ($n = 3{,}010$, $16.4$\%): n-hexane, n-heptane, n-octane, cyclohexane, benzene, toluene, xylene, CCl$_4$.
+ \item \textbf{Moderate} ($n = 6{,}619$, $35.9$\%): DCM, CHCl$_3$, 1,2-DCE, THF, 2-Me-THF, EtOAc, MeOAc, 1,4-dioxane, acetone.
+ \item \textbf{Polar aprotic} ($n = 3{,}625$, $19.7$\%): MeCN, DMF, DMSO, propionitrile, DMA, GBL, NMP.
+ \item \textbf{Polar protic} ($n = 3{,}412$, $18.5$\%): water, MeOH, EtOH, $n$-PrOH, $i$-PrOH, $n$-BuOH, $n$-PenOH, ethylene glycol, glycerol.
+ \item \textbf{Other} ($n = 1{,}749$, $9.5$\%): long-tail solvents not in the standard tier definitions (mixed solvents, less-common substituted aromatics, etc.).
 \end{itemize}
 
 \paragraph{Test-fold RMSE by tier.}
@@ -1031,23 +1031,23 @@ Table~\ref{tab:si_polarity_breakdown} reports pooled-5-fold test RMSE per (model
 \small
 \begin{tabular}{lrcccc}
 \toprule
-\textbf{Tier}             & $\boldsymbol{n}$ & \textbf{RF} & \textbf{Chemprop} & \textbf{BiGRU} & \textbf{ChemBERTa} \\
+\textbf{Tier} & $\boldsymbol{n}$ & \textbf{RF} & \textbf{Chemprop} & \textbf{BiGRU} & \textbf{ChemBERTa} \\
 \midrule
-Nonpolar                  &  3{,}010 & \textbf{27.7} & 28.4 & 30.5 & 50.5 \\
-Moderate                  &  6{,}619 & 34.5 & 37.9 & 39.6 & 53.6 \\
-Polar aprotic             &  3{,}625 & 29.7 & 32.0 & 32.6 & 42.5 \\
-Polar protic              &  3{,}412 & 30.2 & 29.7 & 32.7 & 49.7 \\
-Other                     &  1{,}749 & 32.4 & 31.8 & 44.7 & \textbf{84.4} \\
+Nonpolar & 3{,}010 & \textbf{27.7} & 28.4 & 30.5 & 50.5 \\
+Moderate & 6{,}619 & 34.5 & 37.9 & 39.6 & 53.6 \\
+Polar aprotic & 3{,}625 & 29.7 & 32.0 & 32.6 & 42.5 \\
+Polar protic & 3{,}412 & 30.2 & 29.7 & 32.7 & 49.7 \\
+Other & 1{,}749 & 32.4 & 31.8 & 44.7 & \textbf{84.4} \\
 \midrule
-\textbf{ALL}              & 18{,}415 & \textbf{31.5} & 33.3 & 36.2 & 54.2 \\
+\textbf{ALL} & 18{,}415 & \textbf{31.5} & 33.3 & 36.2 & 54.2 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 \begin{itemize}[leftmargin=2em,itemsep=2pt]
-  \item \textbf{Cross-architecture ranking is preserved on every tier.} RF $\lesssim$ Chemprop $<$ BiGRU $\ll$ ChemBERTa holds in nonpolar, moderate, polar aprotic, polar protic, and ``other'' tiers. The R1-2 statistical-tie claim and the complementary-strengths narrative are not artefacts of a specific solvent class.
-  \item \textbf{Nonpolar is the easiest tier across all four models.} RF reaches $27.7$~nm RMSE on nonpolar (vs.\ $31.5$~nm on ALL), Chemprop reaches $28.4$~nm. This is consistent with two compounding effects: (a) nonpolar test records skew toward less complex chromophores due to solubility constraints (highly conjugated push--pull dyes are typically insoluble in hexane/cyclohexane), and (b) absence of strong specific solute--solvent interactions (hydrogen bonding, dipole-dipole) reduces measurement variance.
-  \item \textbf{The ``other'' tier reveals ChemBERTa's failure mode most starkly.} On the long-tail solvents not represented in the standard tier definitions, ChemBERTa's RMSE jumps to $84.4$~nm (vs.\ $54.2$~nm aggregate), while RF and Chemprop stay near their aggregate values ($32.4$ and $31.8$~nm). This is consistent with the prediction-ceiling artefact diagnosed in Section~5.2 of the main text and analysed in more detail in SI Section~\ref{si:chemberta_ceiling}: ChemBERTa's degradation mode is concentrated on inputs that drift far from its pretraining distribution, of which the ``other''-tier solvents are a representative sample.
+ \item \textbf{Cross-architecture ranking is preserved on every tier.} RF $\lesssim$ Chemprop $<$ BiGRU $\ll$ ChemBERTa holds in nonpolar, moderate, polar aprotic, polar protic, and ``other'' tiers. The statistical-tie claim and the complementary-strengths narrative are not artefacts of a specific solvent class.
+ \item \textbf{Nonpolar is the easiest tier across all four models.} RF reaches $27.7$~nm RMSE on nonpolar (vs.\ $31.5$~nm on ALL), Chemprop reaches $28.4$~nm. This is consistent with two compounding effects: (a) nonpolar test records skew toward less complex chromophores due to solubility constraints (highly conjugated push--pull dyes are typically insoluble in hexane/cyclohexane), and (b) absence of strong specific solute--solvent interactions (hydrogen bonding, dipole-dipole) reduces measurement variance.
+ \item \textbf{The ``other'' tier reveals ChemBERTa's failure mode most starkly.} On the long-tail solvents not represented in the standard tier definitions, ChemBERTa's RMSE jumps to $84.4$~nm (vs.\ $54.2$~nm aggregate), while RF and Chemprop stay near their aggregate values ($32.4$ and $31.8$~nm). This is consistent with the prediction-ceiling artefact diagnosed in Section~5.2 of the main text and analysed in more detail in SI Section~\ref{si:chemberta_ceiling}: ChemBERTa's degradation mode is concentrated on inputs that drift far from its pretraining distribution, of which the ``other''-tier solvents are a representative sample.
 \end{itemize}
 
 There is no evidence of a polarity tier where one architecture systematically wins or loses against its peers; the relative ranking is preserved with $\pm 5$~nm shifts at most. The polarity-grouped analysis therefore reinforces rather than complicates the manuscript's headline cross-architecture findings.
@@ -1056,7 +1056,7 @@ There is no evidence of a polarity tier where one architecture systematically wi
 Reproducible from the single script \texttt{analyze\_solvent\_polarity.py}, which loads the per-fold v3 predictions for all four headline models, joins them to the v3 dataset's canonical solvent column, applies the tier mapping, and writes per-(model, tier) RMSE and MAE to \texttt{results/r2\_5\_polarity\_breakdown.\{json,csv,png\}} and \texttt{results/r2\_5\_summary.md}.
 
 
-\section{ChemBERTa $\sim$556~nm Prediction-Ceiling Diagnostic (R1-16)}
+\section{ChemBERTa $\sim$556~nm Prediction-Ceiling Diagnostic}
 \label{si:chemberta_ceiling}
 
 We tested three hypotheses for the prediction-ceiling artefact visible in Figure~5, where ChemBERTa's predictions for long-wavelength chromophores cluster near $556$~nm regardless of the experimental $\lambda_{\max}$ value:
@@ -1080,11 +1080,11 @@ Combined solute--solvent SMILES strings have median length $61$ chars, p95 $135$
 \toprule
 \textbf{$\lambda_{\max}$ bin (nm)} & $\boldsymbol{n}$ & \textbf{Mean SMILES len (chars)} & \textbf{Frac trunc at MAX\_LEN $= 256$} \\
 \midrule
-$150$--$400$       & 9{,}490 & 60.8  & $0.18$\% \\
-$400$--$500$       & 5{,}037 & 70.4  & $0.20$\% \\
-$500$--$600$       & 2{,}318 & 84.8  & $0.47$\% \\
-$600$--$700$       & 1{,}139 & 90.1  & $0.26$\% \\
-$700$--$1100$      &    430  & 101.6 & $0.23$\% \\
+$150$--$400$ & 9{,}490 & 60.8 & $0.18$\% \\
+$400$--$500$ & 5{,}037 & 70.4 & $0.20$\% \\
+$500$--$600$ & 2{,}318 & 84.8 & $0.47$\% \\
+$600$--$700$ & 1{,}139 & 90.1 & $0.26$\% \\
+$700$--$1100$ & 430 & 101.6 & $0.23$\% \\
 \bottomrule
 \end{tabular}%
 }
