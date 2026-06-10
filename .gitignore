@@ -44,3 +44,6 @@ previous_code/
 *.preai
 .build_check/
 *.backup
+
+# Internal planning, not for public repo
+ROADMAP.txt
