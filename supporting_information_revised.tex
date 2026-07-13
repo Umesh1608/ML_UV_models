@@ -35,6 +35,14 @@
 \author{David Demirjian}
 \affiliation{Midwest Bioprocessing Center, Illinois, USA}
 
+% Number the Supporting Information sections (S1, S2, ...) so that "Section~S#"
+% cross-references from the main text resolve to a visible number. achemso defaults
+% to unnumbered sections; \SectionNumbersOn (a preamble-only achemso command)
+% re-enables numbering, and \thesection adds the "S" prefix (achemso already
+% S-prefixes tables and figures).
+\SectionNumbersOn
+\renewcommand{\thesection}{S\arabic{section}}
+
 \begin{document}
 
 \section{Dataset Overview}
@@ -496,7 +504,7 @@ The protocol change costs 1.81\% of records overall and re-distributes them acro
 
 \begin{table}[htbp]
 \centering
-\caption{Cross-validated 5-fold metrics on the Joung+Beard primary dataset under the original first-occurrence-dedup protocol (v2, 18{,}755 records) and the Greenman--Song-style cleaned protocol adopted for the revised manuscript (v3, 18{,}415 records). $\Delta$ is the change in mean. Negative $\Delta R^2$ indicates a slight degradation under the cleaner protocol, which we attribute mainly to the test-fold composition shift rather than to the protocol per se. The BiGRU + Solvent (default) and XGBoost MAE rows are reported on v2 only.}
+\caption{Cross-validated 5-fold metrics on the Joung+Beard primary dataset under the original first-occurrence-dedup protocol (v2, 18{,}755 records) and the Greenman--Song-style spread-filtered protocol (v3, 18{,}415 records). $\Delta$ is the change in mean. Negative $\Delta R^2$ indicates a slight degradation under the cleaner protocol, which we attribute mainly to the test-fold composition shift rather than to the protocol per se. The BiGRU + Solvent (default) and XGBoost MAE rows are reported on v2 only.}
 \label{tab:si_v2v3}
 \small
 \resizebox{\textwidth}{!}{%
@@ -930,7 +938,7 @@ For each (canonical solute SMILES, canonical solvent SMILES) key with multiplici
 
 \begin{table}[htbp]
 \centering
-\caption{Within-source duplicate spread distribution. A multi-record key is a (canon, solvent) pair with at least two reported $\lambda_{\max}$ values in the named source. Median spread of $0$~nm indicates that more than half of all multi-record keys contain perfectly-agreeing values (typically re-extractions of the same primary measurement across multiple secondary citations). The $> 50$~nm tail captures large disagreements likely attributable to lab-to-lab protocol differences or labelling errors. The Greenman--Song cleaning rule (adopted in this revision per ) discards groups whose spread exceeds 5~nm; the ``$\leq 5$~nm'' fraction therefore quantifies the proportion of multi-record keys retained after cleaning.}
+\caption{Within-source duplicate spread distribution. A multi-record key is a (canon, solvent) pair with at least two reported $\lambda_{\max}$ values in the named source. Median spread of $0$~nm indicates that more than half of all multi-record keys contain perfectly-agreeing values (typically re-extractions of the same primary measurement across multiple secondary citations). The $> 50$~nm tail captures large disagreements likely attributable to lab-to-lab protocol differences or labelling errors. The Greenman--Song cleaning rule~\cite{greenman2022multifidelity,song2025fluortools} discards groups whose spread exceeds 5~nm; the ``$\leq 5$~nm'' fraction therefore quantifies the proportion of multi-record keys retained after cleaning.}
 \label{tab:si_uncertainty_within}
 \small
 \begin{tabular}{lcccccc}
