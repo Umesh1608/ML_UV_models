@@ -1,0 +1,44 @@
+\documentclass[11pt]{letter}
+\usepackage[margin=1in]{geometry}
+\usepackage{hyperref}
+
+\signature{Umesh Arampath\\
+Midwest Bioprocessing Center, Peoria, Illinois\\
+\href{mailto:uarampath@mwbioprocessing.com}{uarampath@mwbioprocessing.com}}
+
+\address{Umesh Arampath\\Midwest Bioprocessing Center\\Peoria, IL}
+
+\begin{document}
+
+\begin{letter}{Editorial Office\\
+Journal of Chemical Information and Modeling\\
+American Chemical Society}
+
+\opening{Dear Editors,}
+
+We submit our manuscript ``When Do Simple Models Win? Machine Learning Architectures for UV Absorption Prediction and Insights for General Molecular Property Prediction'' for consideration as an Article in \textit{Journal of Chemical Information and Modeling}.
+
+We benchmark five ML models spanning Random Forest, XGBoost, Graph Neural Network (GNN), Recurrent Neural Network (RNN), and Transformer based deep learning models for UV $\lambda_{\max}$ prediction using identical data splits and evaluation protocols. Our main findings:
+
+\begin{enumerate}
+    \item \textbf{Simple vs.\ deep models fill different roles.} RF and the GNN are statistically tied on cross-validation (RMSE 31.34 vs.\ 31.69~nm, $p = 0.77$), but experimental validation on 16 novel compounds reverses the ranking: deep learning models outperform RF on out-of-distribution molecules (Transformer MAE = 26.3 vs.\ RF 38.5~nm).
+
+    \item \textbf{Solvent encoding helps all models.} Concatenating solvent SMILES or fingerprints gives 6--8\% RMSE reductions across all architectures ($p < 0.02$), with no domain-specific descriptors needed.
+
+    \item \textbf{Consistent interpretability.} RF feature importance and RNN gradient saliency both highlight the same chromophore motifs, confirming that both architectures pick up on real photochemistry.
+
+    \item \textbf{Local inductive bias matters.} Models with a built-in locality constraint (fingerprints, message passing, RNNs) outperform the global-attention Transformer on this locally determined property.
+\end{enumerate}
+
+This work fits JCIM because controlled multi-architecture comparisons with out-of-distribution experimental validation are still rare in molecular ML. The practical takeaway is straightforward: use fingerprint models for screening within known chemical space, deep learning for novel scaffolds, and encode solvent identity for improved predictions across all model families.
+
+All code, trained models, and datasets will be released publicly upon publication.
+
+A preprint was deposited on ChemRxiv on March 25, 2026 (DOI: \href{https://doi.org/10.26434/chemrxiv.15001242/v1}{10.26434/chemrxiv.15001242/v1}). The submitted version is the same as the preprint; formatting has been adapted for JCIM.
+
+The manuscript has not been published in a peer-reviewed journal and is not under consideration elsewhere. All authors have approved the manuscript.
+
+\closing{Sincerely,}
+
+\end{letter}
+\end{document}

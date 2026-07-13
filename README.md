@@ -51,9 +51,11 @@ ML_UV_models/
 ├── README.md                     this file
 ├── pyproject.toml                Python package definition
 ├── requirements.txt              pinned dependencies
-├── benchmark_paper_jcim*.tex     main manuscript LaTeX sources
-├── supporting_information*.tex   Supporting Information sources
-├── response_to_reviewers.tex     point-by-point response (revision)
+├── LICENSE                       MIT license
+├── jcim_secondrevision_submission/  LaTeX sources + compiled PDFs for the current
+│                                 (second) revision. Build with `latexmk -pdf <file>.tex`.
+├── jcim_firstrevision_submission/   first-revision submission, preserved for reference
+├── legacy/                       earlier drafts, LaTeX templates, and standalone assets
 ├── paper1_new_cl/                Python package (shared utilities, models, splits)
 ├── data/                         processed datasets (excluding raw)
 ├── previous_code/                original v2 dataset + earlier work
