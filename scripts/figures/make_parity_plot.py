@@ -13,7 +13,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 
-RESULTS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "results")
+RESULTS_DIR = "results"  # run from project root
 
 
 def load_pooled(prefix):
@@ -39,11 +39,11 @@ def load_pooled(prefix):
 
 def main():
     models = [
-        ("RF (tuned)", "rf_tuned"),
-        ("XGBoost", "xgboost_v2"),
-        ("Chemprop (D-MPNN)", "chemprop_v2"),
-        ("BiGRU (tuned)", "bigru_solvent_v2"),
-        ("ChemBERTa", "chemberta"),
+        ("RF (tuned)", "rf_tuned_v3"),
+        ("XGBoost", "xgboost_v3"),
+        ("Chemprop (D-MPNN)", "chemprop_v3"),
+        ("BiGRU (tuned)", "bigru_tuned_v3"),
+        ("ChemBERTa", "chemberta_v3"),
     ]
 
     # Load all data first to compute shared axis limits

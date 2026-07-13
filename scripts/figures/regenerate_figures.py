@@ -38,40 +38,22 @@ MODEL_COLORS = {
 
 
 def load_all_models():
-    """Load pooled predictions for all 5 models. Returns dict of {name: (y_pred, y_test, indices)}."""
+    """Load pooled v3 cross-validation predictions for all 5 models.
+
+    Returns dict of {name: (y_pred, y_test, indices)}; indices reference rows of
+    the v3 primary dataset (previous_code/UV_canonical_v3_dedup.csv).
+    """
+    prefixes = {
+        "RF": "rf_tuned_v3",
+        "XGBoost": "xgboost_v3",
+        "Chemprop": "chemprop_v3",
+        "BiGRU": "bigru_tuned_v3",
+        "ChemBERTa": "chemberta_v3",
+    }
     models = {}
-
-    # RF tuned (pool from per-fold)
-    preds, tests, indices = [], [], []
-    for i in range(5):
-        preds.append(np.load(f"{RESULTS_DIR}/rf_tuned_fold{i}_predictions.npy"))
-        tests.append(np.load(f"{RESULTS_DIR}/rf_tuned_fold{i}_y_test.npy"))
-        indices.append(np.load(f"{RESULTS_DIR}/rf_tuned_fold{i}_test_indices.npy"))
-    models["RF"] = (np.concatenate(preds), np.concatenate(tests), np.concatenate(indices))
-
-    # XGBoost v2 (pooled file)
-    d = np.load(f"{RESULTS_DIR}/xgboost_v2_cv_pooled.npz")
-    models["XGBoost"] = (d["y_pred"], d["y_test"], d["indices"])
-
-    # Chemprop v2 (pool from per-fold)
-    preds, tests, indices = [], [], []
-    for i in range(5):
-        preds.append(np.load(f"{RESULTS_DIR}/chemprop_v2_fold{i}_predictions.npy"))
-        tests.append(np.load(f"{RESULTS_DIR}/chemprop_v2_fold{i}_y_test.npy"))
-        indices.append(np.load(f"{RESULTS_DIR}/chemprop_v2_fold{i}_test_indices.npy"))
-    models["Chemprop"] = (np.concatenate(preds), np.concatenate(tests), np.concatenate(indices))
-
-    # BiGRU v2 (pooled file)
-    d = np.load(f"{RESULTS_DIR}/bigru_solvent_v2_cv_pooled.npz")
-    models["BiGRU"] = (d["y_pred"], d["y_test"], d["indices"])
-
-    # ChemBERTa (pool from per-fold)
-    preds, tests, indices = [], [], []
-    for i in range(5):
-        preds.append(np.load(f"{RESULTS_DIR}/chemberta_fold{i}_predictions.npy"))
-        tests.append(np.load(f"{RESULTS_DIR}/chemberta_fold{i}_y_test.npy"))
-        indices.append(np.load(f"{RESULTS_DIR}/chemberta_fold{i}_test_indices.npy"))
-    models["ChemBERTa"] = (np.concatenate(preds), np.concatenate(tests), np.concatenate(indices))
+    for name, prefix in prefixes.items():
+        d = np.load(f"{RESULTS_DIR}/{prefix}_cv_pooled.npz")
+        models[name] = (d["y_pred"], d["y_test"], d["indices"])
 
     for name, (yp, yt, idx) in models.items():
         rmse = np.sqrt(mean_squared_error(yt, yp))
@@ -82,8 +64,8 @@ def load_all_models():
 
 
 def load_solvents():
-    """Load the global solvent array from the primary dataset."""
-    data = pd.read_csv("previous_code/UV_canonical_full_dataset.csv")
+    """Load the global solvent array from the v3 primary dataset (indices reference it)."""
+    data = pd.read_csv("previous_code/UV_canonical_v3_dedup.csv")
     return data["solvents"].values
 
 
@@ -230,29 +212,30 @@ def figure_6b(models, solvents):
 
 def figure_9():
     """Bar chart comparing RMSE and training time across all 5 models."""
+    # v3 (Greenman--Song deduplicated) cross-validated metrics, matching Table 2.
     models = {
         "RF": {
-            "rmse": 31.34, "mae": 15.16,
+            "rmse": 31.50, "mae": 15.37,
             "train_time_min": 15,
             "color": MODEL_COLORS["RF"],
         },
         "XGBoost": {
-            "rmse": 33.70, "mae": 20.05,
+            "rmse": 33.92, "mae": 20.25,
             "train_time_min": 5,
             "color": MODEL_COLORS["XGBoost"],
         },
         "Chemprop": {
-            "rmse": 31.69, "mae": 16.84,
+            "rmse": 33.15, "mae": 18.11,
             "train_time_min": 90,  # ~14s/epoch × ~80 epochs × 5 folds
             "color": MODEL_COLORS["Chemprop"],
         },
         "BiGRU": {
-            "rmse": 34.71, "mae": 18.09,
+            "rmse": 36.20, "mae": 18.81,
             "train_time_min": 1500,  # ~5 hrs/fold × 5 folds
             "color": MODEL_COLORS["BiGRU"],
         },
         "ChemBERTa": {
-            "rmse": 50.39, "mae": 24.31,
+            "rmse": 54.09, "mae": 26.78,
             "train_time_min": 900,  # ~3 hrs/fold × 5 folds
             "color": MODEL_COLORS["ChemBERTa"],
         },
@@ -280,7 +263,7 @@ def figure_9():
     bars2 = ax2.bar(names, times, color=colors, edgecolor="white", alpha=0.9, width=0.55)
     ax2.set_yscale("log")
     for bar, val in zip(bars2, times):
-        label = f"{val} min" if val < 60 else f"{val / 60:.0f} hrs"
+        label = f"{val} min" if val < 60 else f"{val / 60:g} hrs"
         ax2.text(bar.get_x() + bar.get_width() / 2, bar.get_height() * 1.2,
                  label, ha="center", fontsize=10, fontweight="bold")
     ax2.set_ylabel("Training Time (min, log scale)")
