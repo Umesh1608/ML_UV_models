@@ -39,28 +39,35 @@ os.environ["XLA_FLAGS"] = (
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-RESULTS_DIR = os.path.join(SCRIPT_DIR, "results")
-DATA_PATH = os.path.join(SCRIPT_DIR, "data", "wetlab_experimental.csv")
+PROJECT_ROOT = os.path.abspath(os.path.join(SCRIPT_DIR, "..", ".."))
+RESULTS_DIR = os.path.join(PROJECT_ROOT, "results")
+DATA_PATH = os.path.join(PROJECT_ROOT, "data", "wetlab_experimental.csv")
 N_FOLDS = 5
 
 
-def load_config_and_models(use_tuned=False):
-    """Load BiGRU config and fold models."""
+def load_config_and_models(use_tuned=False, use_v3=False):
+    """Load BiGRU config (char_to_int, embed_len) and the 5 fold models."""
     import tensorflow as tf
 
-    if use_tuned:
-        config_path = os.path.join(RESULTS_DIR, "bigru_tuned_config.json")
-        model_prefix = "bigru_tuned"
+    if use_v3:
+        # v3 (Greenman--Song deduplicated) tuned BiGRU: vocab lives in a separate
+        # file and per-fold weights are saved as *_best.keras.
+        with open(os.path.join(RESULTS_DIR, "bigru_tuned_v3_vocab.json")) as f:
+            vocab = json.load(f)
+        config = {"char_to_int": vocab["char_to_int"], "embed_len": vocab["embed_len"]}
+        model_prefix, model_suffix = "bigru_tuned_v3", "best"
+    elif use_tuned:
+        with open(os.path.join(RESULTS_DIR, "bigru_tuned_config.json")) as f:
+            config = json.load(f)
+        model_prefix, model_suffix = "bigru_tuned", "model"
     else:
-        config_path = os.path.join(RESULTS_DIR, "bigru_solvent_v2_config.json")
-        model_prefix = "bigru_solvent_v2"
-
-    with open(config_path) as f:
-        config = json.load(f)
+        with open(os.path.join(RESULTS_DIR, "bigru_solvent_v2_config.json")) as f:
+            config = json.load(f)
+        model_prefix, model_suffix = "bigru_solvent_v2", "model"
 
     models = []
     for fold in range(N_FOLDS):
-        model_path = os.path.join(RESULTS_DIR, f"{model_prefix}_fold{fold}_model.keras")
+        model_path = os.path.join(RESULTS_DIR, f"{model_prefix}_fold{fold}_{model_suffix}.keras")
         if not os.path.exists(model_path):
             print(f"  WARNING: Missing fold {fold} model: {model_path}")
             continue
@@ -485,6 +492,8 @@ def main():
     parser = argparse.ArgumentParser(description="BiGRU saliency analysis")
     parser.add_argument("--tuned", action="store_true",
                         help="Use tuned BiGRU models instead of v2 default")
+    parser.add_argument("--v3", action="store_true",
+                        help="Use the v3 (Greenman--Song deduplicated) tuned BiGRU ensemble")
     args = parser.parse_args()
 
     print(f"\n{'=' * 70}")
@@ -496,7 +505,7 @@ def main():
     print(f"  Loaded {len(df)} wetlab measurements ({df['molecule'].nunique()} molecules)")
 
     # Load models
-    config, models = load_config_and_models(use_tuned=args.tuned)
+    config, models = load_config_and_models(use_tuned=args.tuned, use_v3=args.v3)
     char_to_int = config["char_to_int"]
     embed_len = config["embed_len"]
 
