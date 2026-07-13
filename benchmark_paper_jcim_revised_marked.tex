@@ -18,6 +18,7 @@
 \usepackage{url}
 
 % Margin relief
+\usepackage{microtype}
 \setlength{\emergencystretch}{3em}
 \setlength{\tabcolsep}{4pt}
 \sloppy
@@ -44,17 +45,17 @@
 
 \author{Umesh Arampath}
 \email{uarampath@mwbioprocessing.com}
-\affiliation{Department of Mathematics, University of Iowa, Iowa City, USA}
-\alsoaffiliation{Midwest Bioprocessing Center, Illinois, USA}
+\affiliation{Department of Mathematics, University of Iowa, Iowa City, IA 52242, USA}
+\alsoaffiliation{Midwest Bioprocessing Center, Peoria, IL 61606, USA}
 
 \author{Bryant Pero}
-\affiliation{Midwest Bioprocessing Center, Illinois, USA}
+\affiliation{Midwest Bioprocessing Center, Peoria, IL 61606, USA}
 
 \author{David Stewart}
-\affiliation{Department of Mathematics, University of Iowa, Iowa City, USA}
+\affiliation{Department of Mathematics, University of Iowa, Iowa City, IA 52242, USA}
 
 \author{David Demirjian}
-\affiliation{Midwest Bioprocessing Center, Illinois, USA}
+\affiliation{Midwest Bioprocessing Center, Peoria, IL 61606, USA}
 
 \keywords{UV absorption, molecular property prediction, deep learning, random forest, Morgan fingerprints, graph neural network, directed message passing, pretrained Transformer, solvent effects, benchmarking}
 
@@ -90,7 +91,7 @@ The UV absorption prediction task \removed{presents several distinctive challeng
 \begin{enumerate}
  \item \textbf{Solvent dependence:} $\lambda_{\max}$ varies with solvent environment (solvatochromism), requiring models to encode both solute structure and solvent identity.
  \item \textbf{Representation diversity:} Although absorption \removed{depends}\added{fundamentally depends} on electronic structure influenced by molecular geometry, our results show that 1D \added{and 2D} representations (\removed{fingerprints, SMILES}\added{Morgan fingerprints, SMILES strings, molecular graphs}) capture the dominant structure--property relationships for UV absorption\removed{, with 3D methods offering advantages primarily for structurally diverse datasets (see Cross-Dataset Benchmarking)}\added{ without requiring explicit 3D coordinates. Methods that incorporate 3D conformational information are not evaluated in this work and are discussed in the Limitations and Future Work sections}.
- \item \textbf{Diverse benchmarks:} Multiple published datasets with varying sizes, chemical spaces, and evaluation protocols enable comprehensive assessment.
+ \item \textbf{Diverse benchmarks:} Multiple published datasets with varying sizes, chemical spaces, and evaluation protocols enable broad assessment.
  \item \textbf{Practical relevance:} ICH~S10 guidelines require photosafety screening of pharmaceutical compounds, where $\lambda_{\max}$ prediction serves as a first-pass filter.
 \end{enumerate}
 
@@ -299,14 +300,11 @@ Our study extends this perspective specifically to UV absorption prediction, pro
 \label{sec:dataset}
 
 Our primary dataset combines the Joung et al.\ Experimental Database of Optical Properties~\cite{joung2020experimental} and the Beard et al.\ Comparative Dataset of UV/Vis Absorption Spectra~\cite{beard2019comparative}.
-\added{A number of other UV absorption / dye datasets exist (Song et al.~\cite{song2025fluortools} survey nine sources in their Table 3, including ChemFluor, SMFluo, ChemDataExtractor, DSSCDB, Fluor-predictor, and Ksenofontov's data). We selected Joung+Beard as the primary dataset for four reasons: (i)~it is the largest unified collection of \emph{purely experimental} solute--solvent $\lambda_{\max}$ measurements available without paywall or license restrictions at the time of submission, with each record carrying an experimental wavelength and an explicit solvent label; (ii)~it has \emph{published baselines} from independent groups (Joung et al.\ GCNN on Deep4Chem~\cite{joung2021deep}, Beard et al.\ DR-CNN, Jung et al.\ multifidelity and GBFS~\cite{jung2024machine}) that enable apples-to-apples comparison without our team training every baseline from scratch; (iii)~combining the two source collections yields broader chromophore coverage than either alone (Deep4Chem 6{,}480 and ChemFluor 4{,}386 unique solutes, vs.\ approximately 7{,}000 in the curated Joung+Beard primary set after our preprocessing); and (iv)~the dataset is dominated by drug-like organic chromophores rather than the dye-aggregation or solar-cell-specific compositions of DSSCDB and Dye-aggregation, matching our intended downstream applications (photosafety screening and wetlab UV-absorber discovery, see Sections~the Photosafety Classification section and the Experimental Validation section).
-Among Song's Table 3 entries, several (ChemFluor, SMFluo, Fluor-predictor) measure fluorescence emission rather than UV absorption and are therefore not direct alternatives for our $\lambda_{\max}$ regression task; ChemDataExtractor and Ksenofontov's data provide smaller NLP-extracted or curated subsets that we did not adopt as primary. The Mamede et al.~\cite{mamede2021machine} Reaxys-derived dataset provides binary photosafety labels rather than continuous $\lambda_{\max}$ values, and is used in this work as the basis for the photosafety classification benchmark (the Photosafety Classification section) rather than as a primary regression source.}
-Data curation proceeded as follows: (1)~SMILES strings were canonicalized using RDKit~\cite{landrumRdkitRdkit2020_03_12020} to ensure consistent molecular representations; (2)~entries with invalid or unparseable SMILES were removed; (3)~\removed{duplicate records were identified by matching canonical SMILES and solvent identity, retaining the first occurrence}\added{records were grouped by (canonical solute SMILES, canonical solvent SMILES) and the Greenman--Song duplicate-handling protocol~\cite{greenman2022multifidelity,song2025fluortools} was applied: groups whose within-group spread $\max(\lambda_{\max}) - \min(\lambda_{\max}) \leq 5$~nm were collapsed to the mean, and groups whose spread exceeded 5~nm were discarded entirely on the grounds that a within-key disagreement larger than typical instrument resolution likely reflects either a labelling error or a genuinely ambiguous measurement; singletons were retained unchanged}; (4)~solvent names were standardized and mapped to canonical SMILES where possible.\added{ Of the 18{,}755 records that pass dropna and SMILES validation, 18{,}162 were singletons, 253 duplicate groups (508 records) were averaged, and 41 duplicate groups (84 records) were dropped, yielding a cleaned dataset of 18{,}415 unique (solute, solvent) records. We adopt this protocol in preference to the ``retain first occurrence'' rule used in our earlier preprint in response to reviewer feedback (see Supporting Information Section~S9).}
-After merging\added{ and applying the duplicate-handling protocol}\removed{, deduplication, and canonicalization}, the combined dataset contains \textbf{\removed{18,755}\added{18,415} solute--solvent pairs} spanning \removed{7,016}\added{7,846} unique \removed{chromophores}\added{canonical chromophores} and \removed{365}\added{726 unique canonical} \removed{solvents}\added{solvent SMILES}.\added{ A visual overview of the dataset (the $\lambda_{\max}$ distribution, the top-20 solvent frequencies (log scale), and eight representative chromophore structures spanning the major class diversity) is given in Supporting Information Figure~S1.}
+\added{A number of other UV absorption / dye datasets exist (Song et al.~\cite{song2025fluortools} survey the landscape). We selected Joung+Beard as the primary dataset because it is the largest license-unrestricted collection of purely experimental solute--solvent $\lambda_{\max}$ measurements with explicit solvent labels, has published deep-learning baselines from independent groups (Joung et al.~\cite{joung2021deep}, Beard et al.~\cite{beard2019comparative}, Jung et al.~\cite{jung2024machine}) that enable direct comparison, and is dominated by drug-like organic chromophores rather than the dye-aggregation or solar-cell-specific compositions of DSSCDB and Dye-aggregation, matching our intended downstream applications (photosafety screening and wetlab UV-absorber discovery; see the Photosafety Classification and Experimental Validation sections). The Mamede et al.~\cite{mamede2021machine} Reaxys-derived dataset provides binary photosafety labels rather than continuous $\lambda_{\max}$ values and is used as the basis for the photosafety classification benchmark rather than as a primary regression source.}
+Data curation proceeded as follows: (1)~SMILES strings were canonicalized using RDKit~\cite{landrumRdkitRdkit2020_03_12020} to ensure consistent molecular representations; (2)~entries with invalid or unparseable SMILES were removed; (3)~\removed{duplicate records were identified by matching canonical SMILES and solvent identity, retaining the first occurrence}\added{records were grouped by (canonical solute SMILES, canonical solvent SMILES) and the Greenman--Song duplicate-handling protocol~\cite{greenman2022multifidelity,song2025fluortools} was applied: groups whose within-group spread $\max(\lambda_{\max}) - \min(\lambda_{\max}) \leq 5$~nm were collapsed to the mean, and groups whose spread exceeded 5~nm were discarded entirely on the grounds that a within-key disagreement larger than typical instrument resolution likely reflects either a labelling error or a genuinely ambiguous measurement; singletons were retained unchanged}; (4)~solvent names were standardized and mapped to canonical SMILES where possible.\added{ Of the 18{,}755 records that pass dropna and SMILES validation, 18{,}162 were singletons, 253 duplicate groups (508 records) were averaged, and 41 duplicate groups (84 records) were dropped, yielding a cleaned dataset of 18{,}415 unique (solute, solvent) records.}
+After merging\added{ and applying the duplicate-handling protocol}\removed{, deduplication, and canonicalization}, the combined dataset contains \textbf{\removed{18,755}\added{18,415} solute--solvent pairs} spanning \removed{7,016}\added{7,846} unique \removed{chromophores}\added{canonical chromophores} and \removed{365}\added{726 unique canonical} \removed{solvents}\added{solvent SMILES (Table~\ref{tab:dataset_summary})}.\added{ A visual overview of the dataset (the $\lambda_{\max}$ distribution, the top-20 solvent frequencies (log scale), and eight representative chromophore structures spanning the major class diversity) is given in Supporting Information Figure~S1.}
 
-\added{\textbf{Experimental measurement uncertainty.} To contextualise the model errors reported in Table~\ref{tab:model_comparison}, we quantified the inherent measurement noise in the underlying experimental data using two complementary audits (full results in Supporting Information Section~S17). \emph{Within-source} duplicates ((canonical solute, canonical solvent) pairs reported multiple times within the combined v2 dataset before Greenman--Song cleaning) show a heavily right-skewed spread distribution: of $294$ multi-record groups (592 records), the median spread is $0$~nm, $86$\% of groups have spread $\leq 5$~nm, $91$\% are within $20$~nm, and $4.1$\% have spread $> 50$~nm. The Greenman--Song 5-nm cleaning rule therefore retains essentially all duplicates whose spread is consistent with typical UV-Vis instrument precision while discarding the long tail of measurements that disagree by amounts likely attributable to lab-to-lab protocol differences or labelling errors. \emph{Inter-source} disagreement, measured on the $n = 21$ (canonical solute, canonical solvent) pairs reported in both Joung 2020 and Beard 2019, is substantially larger: median $|\Delta\lambda_{\max}| = 49$~nm, RMSD = $48$~nm; note that this small-$n$ sample is dominated by compounds appearing in multiple papers because of solvatochromic interest, which are exactly the chromophores most sensitive to subtle solvent-purity, temperature, or concentration differences across labs. The reported Table~\ref{tab:model_comparison} RMSEs ($31$--$54$~nm) are therefore comparable to the typical $95$th-percentile within-source spread ($21$~nm in Beard alone; $38$~nm in the v2-combined view), and the headline RF$\approx$Chemprop tie may be partially attributable to both architectures operating near the data noise floor on a substantial fraction of test molecules.}
-No outlier filtering on $\lambda_{\max}$ values was applied; all experimentally reported values\removed{ in the 200--900~nm range}\added{ (162--1100~nm)} were retained.
-Target values ($\lambda_{\max}$) range from \removed{200 to 900}\added{162 to 1100}~nm, with a median of \removed{325}\added{396}~nm\added{; 99.9\% of records lie within 200--900~nm}.
+\added{\textbf{Experimental measurement uncertainty.} To contextualise the model errors in Table~\ref{tab:model_comparison}, we audited the inherent noise in the underlying experimental data (full results in Supporting Information Section~S17). Within-source duplicate spread is heavily right-skewed: median $0$~nm, with $86$\% of duplicate groups falling within the Greenman--Song 5-nm cleaning threshold; inter-source disagreement between Joung 2020 and Beard 2019 is substantially larger (median $|\Delta\lambda_{\max}| = 49$~nm on $n = 21$ overlapping pairs). The reported Table~\ref{tab:model_comparison} RMSEs ($31$--$54$~nm) are therefore comparable to the typical $95$th-percentile within-source spread ($38$~nm), and the headline RF$\approx$Chemprop tie may be partially attributable to both architectures operating near the data noise floor.}
 
 To assess generalizability beyond the primary dataset, we also evaluate on two external datasets using their published split protocols, training models from scratch on each dataset's training split.
 The \textbf{Deep4Chem} database~\cite{joung2021deep} contains 30,094 chromophore--solvent combinations; after deduplication and preprocessing, 17,683 records remain (reported GCNN baseline: RMSE = 26.6~nm; 80/10/10 random split). \added{Because Deep4Chem is the source dataset for the Joung half of our primary collection, the two have substantial overlap: 77.4\% of unique Deep4Chem solutes and 72.6\% of its (solute, solvent) pairs also appear in Joung+Beard (overlap analysis in Supporting Information Section~S8 and Figure~S4). Deep4Chem is therefore best characterised as an \emph{in-distribution external} benchmark, useful for reproducing published per-paper baselines under their own splits, but \emph{not} a test of out-of-distribution generalisation.}
@@ -675,8 +673,9 @@ We use the Noam learning rate schedule (warmup from $10^{-4}$ to $10^{-3}$ over 
 \label{sec:solvent}
 
 UV absorption wavelengths are solvent-dependent properties: the same chromophore can exhibit different $\lambda_{\max}$ values in different solvents (solvatochromism)~\cite{reichardt2011solvents}.\added{ An empirical audit of the v3 dataset quantifies the size of this effect: of the $7{,}846$ unique chromophores, $2{,}516$ ($32$\%) appear under $\geq 2$ canonical solvents in the v3 cleaning; for these, the per-chromophore span $\max(\lambda_{\max}) - \min(\lambda_{\max})$ has median $10$~nm and $95$th percentile $52$~nm, with a long tail extending to $> 200$~nm for the strongest solvatochromic compounds in the dataset. The top-decile chromophores by span are dominated by classical solvatochromism standards (Reichardt's $E_T(30)$ dye reaches a $494$~nm span across $334$ different solvents in the dataset) and push--pull merocyanines / stilbene-pyridinium cyanines whose intramolecular charge transfer is strongly stabilised in polar solvents (full per-chromophore distribution and top-15 table in Supporting Information Section~S18).}
-We encode solvent information by concatenating the solute and solvent SMILES into a single input string:
+We encode solvent information by concatenating the solute and solvent SMILES into a single input string\added{, as defined in Equation~\ref{eq:solvent_encoding}}:
 \begin{equation}
+\label{eq:solvent_encoding}
  S_{\text{input}} = \texttt{!} \oplus S_{\text{solute}} \oplus \texttt{!} \oplus S_{\text{solvent}} \oplus \texttt{E}
 \end{equation}
 where \texttt{!} serves as the start/separator token and \texttt{E} as the end/padding token.
@@ -699,6 +698,8 @@ Table~\ref{tab:model_comparison} presents the performance of all models on the p
 \centering
 \caption{\removed{Model comparison on the Joung+Beard dataset (18,755 samples, stratified 5-fold CV, 64/16/20 train/val/test split). Best values in bold. $\pm$ denotes standard deviation across folds.}\added{Model comparison on the Joung+Beard dataset (18,415 samples after Greenman--Song duplicate handling, stratified 5-fold CV, 64/16/20 train/val/test split). Best values in bold. $\pm$ denotes standard deviation across folds. All five model families were re-trained on the v3 cleaned dataset; cross-validated mean RMSE shifted by $\leq$1.5~nm for the four local-feature models and by 3.7~nm for ChemBERTa, with the qualitative ranking and the RF$\approx$Chemprop tie preserved (see Supporting Information Section~S9 for the v2-vs-v3 comparison table).}}
 \label{tab:model_comparison}
+\small
+\setlength{\tabcolsep}{4pt}
 \added{%
 \begin{tabular}{lcccc}
 \toprule
@@ -713,7 +714,7 @@ BiGRU (tuned, 3L/256u)& 36.20 $\pm$ 1.20 & 18.81 $\pm$ 0.58 & 0.886 $\pm$ 0.007 
 XGBoost (MAE loss) & 40.75 $\pm$ 1.58$^{\dagger}$ & 21.99 $\pm$ 0.47$^{\dagger}$ & 0.854 $\pm$ 0.010$^{\dagger}$ & 0.927 $\pm$ 0.005$^{\dagger}$ \\
 ChemBERTa (pretrained)& 54.09 $\pm$ 3.57 & 26.78 $\pm$ 2.35 & 0.744 $\pm$ 0.035 & 0.880 $\pm$ 0.020 \\
 \bottomrule
-\multicolumn{5}{@{}p{\dimexpr\linewidth-2\tabcolsep\relax}@{}}{\footnotesize $^{\dagger}$The default BiGRU and MAE-loss XGBoost rows are reported on the v2 (18{,}755-row, first-occurrence-dedup) dataset; v3 retraining of these ablation variants is not in scope for the current revision and the qualitative comparisons (default vs.\ tuned BiGRU; MSE vs.\ MAE XGBoost) do not depend on which dedup protocol was used.} \\
+\multicolumn{5}{@{}p{\dimexpr\linewidth-2\tabcolsep\relax}@{}}{\footnotesize $^{\dagger}$The default BiGRU and MAE-loss XGBoost rows are reported on the v2 (18{,}755-row, first-occurrence-dedup) dataset; the qualitative comparisons (default vs.\ tuned BiGRU; MSE vs.\ MAE XGBoost) do not depend on which dedup protocol was used.} \\
 \multicolumn{5}{@{}p{\dimexpr\linewidth-2\tabcolsep\relax}@{}}{\footnotesize $^{\ddagger}$Tuned via a 25-trial Optuna probe matching the BiGRU HPO budget (best config: $d_h = 900$, depth $= 4$, dropout $= 0.1$, FFN $2\text{L}\times 800$, batch $= 32$, 5.6M params; configuration in SI Section~S13). The 2.67~nm advantage of tuned Chemprop over RF is borderline at $n = 5$ folds: paired $t$-test $p = 0.044$ but Wilcoxon $p = 0.125$; the conservative non-parametric test does not reject the null. Default Chemprop is retained as the bolded primary row to match the evaluation convention used by published Chemprop benchmarks on these data~\cite{joung2021deep,beard2019comparative,greenman2022multifidelity,jung2024machine,chempropv2_2024}.} \\
 \end{tabular}}
 \removed{%
@@ -735,7 +736,7 @@ ChemBERTa (pretrained)& 50.39 $\pm$ 2.30 & 24.31 $\pm$ 1.04 & 0.777 $\pm$ 0.019 
 RF with Morgan fingerprints achieves the best mean RMSE (\removed{31.34}\added{31.50}~nm), \removed{closely }followed by the Chemprop D-MPNN (\removed{31.69}\added{33.15}~nm), with the tuned BiGRU at \removed{34.71}\added{36.20}~nm and ChemBERTa at \removed{50.39}\added{54.09}~nm.
 The RF--Chemprop difference (\removed{1.1\%}\added{5.2\%}) is not statistically significant (\removed{$p = 0.77$, paired $t$-test}\added{$p = 0.16$, paired $t$-test on 5 folds; the entire RF advantage is driven by Chemprop fold~4, an early-stopping outlier at RMSE~$=$~39.21~nm; v2 also showed RF~$=$~Chemprop, $p = 0.77$ on the first-occurrence-dedup data}), while the gap between RF and the tuned BiGRU (\removed{10\%}\added{15\%}) is significant ($t = \removed{-7.08}\added{-22.5}$, $p \removed{= 0.002}\added{< 0.001}$).
 Hyperparameters were selected via grid search over 432 configurations (varying $n_\text{trees}$, max depth, min leaf size, features per split, FP radius, and FP length) evaluated on a held-out validation fold, with the optimal configuration ($B = 1000$, $\texttt{max\_features} = 0.3$, radius = 2, $n = 2048$) applied to all folds.
-The critical finding was that \texttt{max\_features} = $0.3d$ (30\% of features per split) substantially outperformed the default $\sqrt{d}$ ($\sim$1.6\% of features); all top 10 configurations in the grid search used this setting.
+The key finding was that \texttt{max\_features} = $0.3d$ (30\% of features per split) substantially outperformed the default $\sqrt{d}$ ($\sim$1.6\% of features); all top 10 configurations in the grid search used this setting.
 This result is consistent with recent observations in molecular property prediction that well-tuned fingerprint-based methods can match or exceed deep learning approaches, particularly when operating on the same 1D molecular information~\cite{panapitiya2022evaluation, walters2021applications, fooladi2025evaluating}.
 The default RF configuration (scikit-learn defaults with $\sqrt{d}$ feature sampling) achieves RMSE = 32.18~nm\added{ on the v2 dataset}; tuning improves this by only 2.6\%\added{ on v2 and a comparable margin on v3}.
 Similarly, BiGRU tuning reduces RMSE \removed{by 4.8\% (from 36.45 to 34.71~nm), confirming that RF's advantage is not an artifact of asymmetric hyperparameter optimization: even the default RF outperforms the tuned BiGRU}\added{from the default 36.45~nm to 34.71~nm on v2 (4.8\%); on v3 the tuned BiGRU lands at 36.20~nm, confirming that RF's advantage over BiGRU is not an artifact of asymmetric hyperparameter optimization}.
@@ -825,7 +826,7 @@ To quantify the contribution of solvent information, we compare models trained w
 
 \begin{table}[htbp]
 \centering
-\caption{Effect of solvent information on model performance (stratified 5-fold CV \added{on the v2 first-occurrence-dedup dataset, 18{,}755 samples}). ``+~Solvent'' uses concatenated solute+solvent representations; ``Solute only'' uses solute structure alone.\added{ The ablation is reported on v2 because both arms (+~Solvent and Solute~only) need to be trained on the same dataset for the comparison to be internally consistent; v3-retraining of the Solute-only baselines was outside the scope of the current revision. The 1.8\% record loss between v2 and v3 affects both arms equally, so the percentage reduction from solvent encoding is expected to be preserved (see Supporting Information Section~S9 for the cross-protocol spot-check).}}
+\caption{Effect of solvent information on model performance (stratified 5-fold CV \added{on the v2 first-occurrence-dedup dataset, 18{,}755 samples}). ``+~Solvent'' uses concatenated solute+solvent representations; ``Solute only'' uses solute structure alone.\added{ The ablation is reported on v2 because both arms (+~Solvent and Solute~only) must be trained on the same dataset for the comparison to be internally consistent. The 1.8\% record loss between v2 and v3 affects both arms equally, so the percentage reduction from solvent encoding is preserved (see Supporting Information Section~S9 for the cross-protocol spot-check).}}
 \label{tab:solvent_ablation}
 \begin{tabular}{lcccc}
 \toprule
@@ -897,43 +898,19 @@ Our top two models use simpler architectures than the published methods (which i
 Across both external datasets, Chemprop achieves the best performance, followed by RF, with both consistently outperforming BiGRU and ChemBERTa, reinforcing the finding that local-feature models (graph message passing and fingerprints) excel at in-distribution prediction. \added{We note (as discussed in the Dataset Description section) that the Deep4Chem results should be read as in-distribution validation rather than an OOD test, because Deep4Chem shares 77\% of its solutes with our primary training data; the Jung 2024 results, with $\sim$50\% solute overlap and a separate experimental provenance, constitute the more rigorous external benchmark.}
 
 % ============================================================
-% NEW SUBSECTION (added ).
-% Section heading, label and table environment are not wrapped in
-% \added{...} because \textcolor does not nest cleanly inside floats
-% and section commands; the colour-marked paragraph text plus the
-% explanatory comment make the new content unambiguous in the marked
-% copy. — Authors
 % ============================================================
-\subsection{\added{Performance on Non-Local Subsets}}
-\label{sec:nonlocal_subsets}
-
-\added{The benchmarks above pool molecules whose absorption is plausibly governed by local substitution patterns with molecules where the chromophore spans the entire $\pi$-system, donor--acceptor charge-transfer dyes, low-gap polymethines, BODIPYs, and other classes where global electronic effects and longer conjugation paths are expected to dominate. To examine whether the locality argument introduced in the Model Comparison section continues to hold for this second class, we partitioned the Joung+Beard test folds into subsets enriched for non-local effects and recomputed per-model error metrics within each subset.}
-
-\added{Subset definitions: \textit{long-wavelength} compounds ($\lambda_{\max} > 500$~nm or $> 600$~nm); \textit{donor--acceptor} (D-A) molecules containing at least one $\pi$-donor substituent (aryl-NH$_2$, aryl-NHR, aryl-NR$_2$, aryl-OH, aryl-OR, aryl-SH, aryl-SR) \emph{and} at least one $\pi$-acceptor (NO$_2$, CN, CHO, ketone, COOH/COOR/amide, SO$_2$R, CF$_3$, pyridinium, dicyanovinyl) attached to a conjugated $sp^2$ centre; D-A-D molecules with $\geq 2$ donor matches and $\geq 1$ acceptor; \textit{azo} dyes (Ar--N$=$N--Ar); and BODIPY cores (BF$_2$ bridging two ring nitrogens). The exact SMARTS patterns and per-rule molecule counts are listed in Supporting Information Section~S7. The union of all non-local categories covers 49\% of the dataset, with the individual subset sizes ranging from 264 (azo) to 5{,}945 (D-A) molecules.}
-
-\begin{table}[htbp]
-\centering
-\caption{\added{RMSE (nm, mean $\pm$ std across the five stratified test folds) restricted to non-local subsets of the Joung+Beard v3 cleaned dataset. $n$ is the per-fold subset size averaged across folds. Best result on each row in bold. MAE and $R^2$ on the same subsets are reported in Supporting Information Table~S14.}}
-\label{tab:nonlocal_subsets}
-\small
-\begin{tabular}{lcccccc}
-\toprule
-\textbf{Subset} & $n$ & \textbf{RF} & \textbf{Chemprop} & \textbf{BiGRU} & \textbf{ChemBERTa} & \textbf{XGBoost} \\
-\midrule
-Full dataset & 3683 & \textbf{31.50 $\pm$ 1.64} & 33.15 $\pm$ 3.65 & 36.20 $\pm$ 1.34 & 54.09 $\pm$ 3.99 & 33.92 $\pm$ 1.41 \\
-$\lambda_{\max} > 500$~nm & 766 & 51.81 $\pm$ 3.91 & \textbf{47.02 $\pm$ 7.79} & 57.45 $\pm$ 3.96 & 105.81 $\pm$ 8.46 & 51.20 $\pm$ 3.60 \\
-$\lambda_{\max} > 600$~nm & 311 & 69.54 $\pm$ 4.20 & \textbf{63.19 $\pm$ 8.67} & 77.14 $\pm$ 4.93 & 159.06 $\pm$ 12.48 & 67.63 $\pm$ 5.11 \\
-Azo (Ar--N$=$N--Ar) & 53 & \textbf{33.84 $\pm$ 7.39} & 37.36 $\pm$ 9.22 & 38.86 $\pm$ 8.26 & 45.62 $\pm$ 7.07 & 35.61 $\pm$ 3.64 \\
-D-A & 1189 & 25.04 $\pm$ 0.41 & \textbf{24.54 $\pm$ 4.77} & 27.78 $\pm$ 1.31 & 47.26 $\pm$ 3.34 & 27.21 $\pm$ 1.11 \\
-D-A-D & 436 & 26.86 $\pm$ 2.08 & \textbf{25.68 $\pm$ 5.83} & 29.25 $\pm$ 1.92 & 42.59 $\pm$ 4.29 & 28.50 $\pm$ 1.33 \\
-BODIPY core & 343 & \textbf{21.59 $\pm$ 2.14} & 22.83 $\pm$ 5.03 & 28.79 $\pm$ 0.64 & 78.02 $\pm$ 8.50 & 24.47 $\pm$ 2.69 \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\added{Two trends are visible. First, every model degrades sharply on long-wavelength compounds: RMSE roughly doubles when restricting to $\lambda_{\max} > 500$~nm and more than doubles for $\lambda_{\max} > 600$~nm. The effect is seen across all five architectures, but ChemBERTa exhibits an extreme version of it (RMSE = 106 and 159~nm respectively, with negative $R^2$ on both subsets): its predictions collapse to an essentially constant value around 600~nm, the prediction-ceiling artefact visible in Figure~\ref{fig:parity_5models} and diagnosed in detail in the Error Analysis section. For the other four models the degradation is consistent with two compounding factors identified in prior work on these datasets~\cite{beard2019comparative,joung2021deep}: data scarcity in the deep-coloured region of $\lambda$-space, and the greater structural complexity of low-gap chromophores (extended polyenes, push--pull cyanines, BODIPYs, phthalocyanines), many of which carry charge-transfer character whose accurate description requires global rather than local features.}
-
-\added{Second, the rank between RF and Chemprop is \emph{not stable} across subsets, but the direction of the instability is informative. On the full dataset the two are statistically indistinguishable ($p = 0.16$; the Model Comparison section), but on the long-wavelength subsets Chemprop pulls clearly ahead of RF: by 4.8~nm on $\lambda_{\max} > 500$~nm and 6.4~nm on $\lambda_{\max} > 600$~nm. On the broader D-A and D-A-D subsets Chemprop also retains a small advantage (0.5~nm on D-A, 1.2~nm on D-A-D), but those margins are smaller than they were on the v2 first-occurrence-dedup data; the qualitative direction (Chemprop $\geq$ RF on D-A-style compounds) is preserved but the v2-to-v3 protocol change has narrowed the gap, partly because Chemprop's fold-to-fold variance widened on v3 (std~$=$~4.77 on D-A, 5.83 on D-A-D). On two subsets the pattern flips: RF beats Chemprop on the small azo set (n~$=$~53; 33.8 vs.\ 37.4~nm, within one fold std of either model so not a robust reversal) and RF maintains an edge on BODIPYs (21.6 vs.\ 22.8~nm), a class whose rigid, conserved scaffold means that absorption is largely explained by short-range substitution patterns the fingerprint already captures. Taken together, the subset analysis is consistent with the locality argument (message-passing GNNs benefit relatively more when the property is governed by global rather than local features, with the largest effect seen on the deep-coloured tail) without overturning the headline observation that RF and Chemprop are within noise of each other on the dataset as a whole.}
+% R1-5 follow-up (revision 2): the full ``Performance on Non-Local
+% Subsets'' subsection (Table 5 + two-paragraph discussion + subset
+% definitions paragraph) was moved into Supporting Information
+% Section S7 to reduce main-text length. The two-sentence pointer
+% below preserves the headline finding and references the SI table.
+% The full analysis (SMARTS rules, subset counts, complete
+% RMSE/MAE/R^2 breakdown, and discussion) now lives in SI Section S7.
+% Section heading and the relocated table are no longer wrapped in
+% \added{...} because the surrounding pointer paragraph identifies the
+% revision. — Authors
+% ============================================================
+\added{To examine whether the locality argument continues to hold for compound classes where non-local electronic effects are expected to dominate---long-wavelength chromophores ($\lambda_{\max} > 500$~nm and $> 600$~nm), donor--acceptor (D-A) and D-A-D dyes, azo systems (Ar--N$=$N--Ar), and BODIPYs (BF$_2$ bridging two ring nitrogens)---we partitioned the v3 test folds by SMARTS-defined subsets and recomputed per-model error metrics within each subset (Supporting Information Section~S7). The qualitative ranking and the RF~$\approx$~Chemprop tie are preserved across subsets, with Chemprop pulling 4.8--6.4~nm ahead of RF on the long-wavelength tails (consistent with the locality argument: message-passing benefits relatively more on chromophores whose absorption depends on global $\pi$-system topology) and RF retaining a small edge on BODIPYs whose rigid, conserved scaffolds are well-captured by short-range fingerprint features.}
 
 
 % --- Error Analysis ---
@@ -958,7 +935,7 @@ BODIPY core & 343 & \textbf{21.59 $\pm$ 2.14} & 22.83 $\pm$ 5.03 & 28.79 $\pm$ 0
  \includegraphics[width=\textwidth]{results/error_by_solvent.png}
  \caption{MAE by solvent type for the five most common solvents in the dataset.}
  \end{subfigure}
- \caption{Error breakdown by wavelength range and solvent type for all five model families (pooled 5-fold CV predictions).}
+ \caption{Error breakdown by wavelength range and solvent type for all five model families (pooled 5-fold CV predictions).\added{ (a) MAE by wavelength range, highest accuracy in the data-abundant $\lambda_{\max} < 400$~nm region. (b) MAE by solvent type for the five most common solvents in the dataset.}}
  \label{fig:error_breakdown}
 \end{figure}
 
@@ -992,7 +969,7 @@ We averaged Gini importances across all five fold models and decoded the top fea
  \includegraphics[width=\textwidth]{results/rf_solute_vs_solvent.png}
  \caption{Relative importance of solute vs.\ solvent fingerprint bits. Solute structure accounts for 96.1\% of total feature importance.}
  \end{subfigure}
- \caption{RF feature importance analysis. The model learns chemically meaningful patterns: the top features correspond to known chromophore motifs that produce large bathochromic shifts.}
+ \caption{RF feature importance analysis. The model learns chemically meaningful patterns: the top features correspond to known chromophore motifs that produce large bathochromic shifts.\added{ (a) Top 15 Morgan fingerprint bits ranked by Gini importance, with mean $\Delta\lambda_{\max}$ annotations (red = bathochromic, gray = neutral/ubiquitous). (b) Relative importance of solute vs.\ solvent fingerprint bits, with solute structure accounting for $96.1$\% of total feature importance.}}
  \label{fig:rf_interpretability}
 \end{figure*}
 
@@ -1075,7 +1052,7 @@ BiGRU direct cls & 1,996 & 0.794 & 0.811 & 0.803 & 0.886 \\
 \end{tabular}
 \end{table}
 
-Our RF classifier closely reproduces the published Mamede results (accuracy 0.879 vs.\ 0.89), validating both our Reaxys dataset reconstruction and the effectiveness of Morgan fingerprints for photosafety screening.
+Our RF classifier closely reproduces the published Mamede results\added{ (Table~\ref{tab:classification};} accuracy 0.879 vs.\ 0.89\removed{)}\added{)}, validating both our Reaxys dataset reconstruction and the effectiveness of Morgan fingerprints for photosafety screening.
 When the tuned BiGRU is trained as a direct binary classifier on the same data, it achieves accuracy 0.803, substantially below RF (0.879).
 This gap reinforces the advantage of explicit substructure encoding (Morgan fingerprints) over character-level SMILES representations for classification tasks where specific functional-group presence determines the label.
 
@@ -1084,7 +1061,7 @@ This gap reinforces the advantage of explicit substructure encoding (Morgan fing
 \subsection{Experimental Validation}
 \label{sec:experimental}
 
-To further validate our models, we measured UV absorption spectra for 16 commercially available compounds (Figure~\ref{fig:wetlab_molecules}) in both ethanol (EtOH) and methanol (MeOH), yielding 32 experimental $\lambda_{\max}$ values.
+To further validate our models, we measured UV absorption spectra for 16 commercially available compounds (Figure~\ref{fig:wetlab_molecules}) in both ethanol (EtOH) and methanol (MeOH), yielding 32 experimental $\lambda_{\max}$ values\added{ (per-molecule predictions in Table~\ref{tab:experimental}, aggregate metrics in Table~\ref{tab:wetlab_summary})}.
 \removed{Of these 16 molecules, 15 are entirely absent from the training dataset, providing a genuine out-of-distribution test.}
 \removed{One molecule (Ferulic Acid) appears in the training data with a different solvent (water).}
 \added{At the SMILES level, only Ferulic Acid is an exact duplicate of a training record; the other 15 molecules are absent from the training data and are fingerprint-distant from it (nearest-neighbour Tanimoto similarity using Morgan radius-2/2048-bit fingerprints: mean~$= 0.58$, median~$= 0.58$, with 5/16 molecules below the $0.5$ ``dissimilar'' threshold and only the Ferulic-Acid duplicate above $0.7$). At the Bemis--Murcko scaffold level, however, 15/16 generic scaffolds are present in the v3 training set; only Avobenzone (a 1,3-diketone bridging two substituted phenyls) is scaffold-novel. The wetlab set therefore tests \emph{molecule-level} (novel substitution-pattern) generalisation on chromophore classes the models have seen at the scaffold level (the operational deployment scenario for the photosafety- and UV-filter-screening applications this manuscript targets) rather than full scaffold-class extrapolation. The per-molecule similarity table, the four-bin Tanimoto distribution, the scaffold-match counts, and a stricter Tanimoto-$\leq 0.5$ subset analysis (the five truly fingerprint-novel molecules, on which the DL-vs-RF gap actually \emph{widens}) are in Supporting Information Section~S14.}
@@ -1177,6 +1154,8 @@ This complementarity extends beyond the local/global distinction: RF's fixed-voc
 
 Figure~\ref{fig:wetlab_per_molecule} shows per-molecule predictions alongside experimental values, illustrating the pattern more concretely: the D-MPNN achieves near-exact predictions for Cinnamic Acid and PABA where other models overpredict by 60--80~nm, while all models struggle with Octocrylene. ChemBERTa tracks the experimental trend most closely for mid-range absorbers (Padimate~O, Ferulic Acid).
 
+\FloatBarrier
+
 % ===== Conclusion =====
 \section{Conclusion}
 \label{sec:conclusion}
@@ -1207,13 +1186,13 @@ Our key findings are:
 \removed{More broadly, these findings offer practical guidance for molecular property prediction beyond UV absorption: when a target property is determined by local molecular features (conjugation, substituent effects, functional groups), models that encode local structural information (fingerprints with tree ensembles, RNNs processing SMILES subsequences) are expected to outperform global-attention architectures on in-distribution benchmarks, while pretrained Transformers retain advantages for out-of-distribution generalization to novel scaffolds.}
 \removed{Model selection should therefore be guided by (1)~the locality of the target property and (2)~the relationship between target compounds and available training data: local-feature models for interpolation within known chemical space, learned representations for extrapolation to novel architectures.}
 \removed{This framework should generalize to related molecular properties including emission wavelength, molar extinction coefficient, and other endpoints where the balance between local and global structural determinants varies.}
-\added{Our results raise a testable hypothesis about model selection: that architectures whose inductive bias matches the locality of the target property will outperform global-attention architectures in-distribution, while pretrained representations can confer out-of-distribution advantages even when the architecture's inductive bias is mismatched, as ChemBERTa illustrates in this work. The present work establishes this pattern for UV absorption $\lambda_{\max}$; whether it extends to fluorescence emission, lipophilicity, aqueous solubility, or other molecular endpoints whose locality differs from UV absorption requires dedicated cross-property benchmarking, which we identify as a priority for future work.}
+\added{Our results raise a testable hypothesis about model selection: architectures whose inductive bias matches the locality of the target property outperform global-attention architectures in-distribution, while pretrained representations can confer out-of-distribution advantages even when the architecture's inductive bias is mismatched, as ChemBERTa illustrates here. We establish this pattern for UV absorption $\lambda_{\max}$; whether it extends to fluorescence emission, lipophilicity, aqueous solubility, or other molecular endpoints whose locality differs from UV absorption requires dedicated cross-property benchmarking, which we identify as a priority for future work.}
 
 \subsection*{Limitations}
 Our models use 1D or 2D molecular representations (fingerprints, SMILES, molecular graphs); 3D conformational information may become important for structurally diverse chromophores where electronic properties depend on molecular geometry~\cite{lupopasini2023excited}.
 Solvents are encoded purely through their molecular structure (SMILES or fingerprints), without explicit physical properties such as dielectric constant, refractive index, or Hansen solubility parameters~\cite{reichardt2011solvents}, which may limit the models' ability to capture fine-grained solvatochromic effects.
 The BiGRU model uses character-level tokenization, which may miss chemically meaningful substructures; ChemBERTa's BPE tokenizer partially addresses this but still operates on 1D SMILES strings.
-The experimental validation set (16 molecules) is small; larger out-of-distribution evaluations would strengthen the generalization finding, though the consistent advantage of deep learning on novel compounds is robust.
+The experimental validation set (16 molecules) is small; larger out-of-distribution evaluations would strengthen the generalization finding, though the deep learning advantage on novel compounds is consistent across all three DL families.
 Bayesian hyperparameter optimization of BiGRU (25 Optuna trials, extended to 5-fold CV \added{on the v2 dataset}) reduced its cross-validated RMSE by 4.8\% (from 36.45 to $34.71 \pm 1.40$~nm)\added{; re-evaluation on the v3 cleaned dataset yields $36.20 \pm 1.20$~nm for the tuned BiGRU}, narrowing but not closing the gap with RF (\removed{31.34}\added{31.50}~nm); however, ChemBERTa hyperparameters remain untuned due to prohibitive training cost.
 ChemBERTa's 44.1M parameters may also be overparameterized for the $\sim$12K training samples available per fold.
 While tuning substantially mitigates the asymmetry concern for BiGRU, the remaining 10\% performance gap supports the hypothesis that fingerprint representations have an inherent advantage for in-distribution UV absorption prediction.
@@ -1239,13 +1218,13 @@ More broadly, our in-distribution results are consistent with the hypothesis tha
 \added{Two further model families are worth incorporating into this benchmark in future work. \textbf{Pretrained molecular graph foundation models} (for example GROVER~\cite{rong2020grover}, MolCLR~\cite{wang2022molecular}, GraphMVP~\cite{liu2021pretraining}, Uni-Mol~\cite{zhou2023unimol}, and the recent Chemprop-foundation variants) offer a graph-side analogue to ChemBERTa's pretrained-sequence baseline and would complement the present comparison by isolating whether a graph (rather than sequence) pretrained representation can match ChemBERTa's wetlab MAE while preserving Chemprop's locality-aligned inductive bias. \textbf{Large language models and general-purpose molecular foundation models} (GPT-style and Claude-style decoders, MoLFormer~\cite{ross2022molformer}, the recent Llama/Mistral chemistry derivatives, and emerging multi-modal models) could contribute through three orthogonal mechanisms even when not used directly as regression heads: (i) SMILES augmentation or canonicalisation under multiple equivalent representations, (ii) data curation (de-duplication, solvent-name standardisation, outlier detection from natural-language abstracts), and (iii) agentic workflows that hand off literature retrieval, retrosynthesis, and TD-DFT calculation to specialised tools. These directions extend rather than supplant the architecture-comparison framework here.}
 
 
-% ===== Data and Code Availability =====
-\section*{Data and Code Availability}
+% ===== Data and Software Availability =====
+\section*{Data and \removed{Code}\added{Software} Availability}
 The primary Joung+Beard dataset and the Deep4Chem database are available from the same Figshare repository~\cite{joung2020experimental, beard2019comparative} (DOI: 10.6084/m9.figshare.12045567).
 Additional external dataset: Jung et al.\ (GitHub)~\cite{jung2024machine}.
 \removed{The Mamede classification dataset was reconstructed from Reaxys~\cite{mamede2021machine}.}\added{The Mamede photosafety dataset is obtained from the published Supporting Information of Mamede et al.~\cite{mamede2021machine}; the full canonicalisation pipeline is documented in Supporting Information Section~S16.}
 \added{The Greenman--Song-cleaned v3 primary dataset ($18{,}415$ records, see Methods), the per-fold stratified cross-validation indices, the per-fold predictions, and all trained model weights (RF, XGBoost, Chemprop default and tuned, BiGRU, ChemBERTa) are deposited at Zenodo (DOI: \texttt{10.5281/zenodo.20600225}) so that the cleaned benchmark and the exact checkpoints reported in this manuscript have a citable, version-pinned location independent of the GitHub repository. We intend to submit a contribution PR proposing the v3 dataset for inclusion in MoleculeNet~\cite{wuMoleculeNet2018} (which currently contains no UV absorption benchmark) after publication.}
-\removed{All code for model training, evaluation, and analysis will be released on GitHub under the MIT license upon publication, including trained model weights and preprocessing scripts.}\added{All code for model training, evaluation, and analysis is publicly available under the MIT license at \url{https://github.com/Umesh1608/ML_UV_models} and has been accessible throughout peer review.}
+\removed{All code for model training, evaluation, and analysis will be released on GitHub under the MIT license upon publication, including trained model weights and preprocessing scripts.}\added{All code for model training, evaluation, and analysis is publicly available under the MIT license at \url{https://github.com/Umesh1608/ML_UV_models}.}
 
 
 % ===== Acknowledgement =====
@@ -1259,7 +1238,7 @@ The authors declare no competing financial interest.
 
 % ===== Supporting Information =====
 \begin{suppinfo}
-The Supporting Information is available free of charge at [DOI].
+The Supporting Information is available free of charge on the ACS Publications website.
 
 \added{Dataset overview figure (Figure~S1),} \removed{Per}\added{per}-fold cross-validation results for all five model families including solvent ablation (Tables~S1--S7), statistical significance tests (Table~S8), RF hyperparameter sensitivity analysis, BiGRU and ChemBERTa learning curves (Figures~\removed{S1--S2}\added{S2--S3}), hyperparameter tuning asymmetry analysis (Table~S9), \added{SMARTS rules and full RMSE/MAE/$R^2$ breakdown for the non-local subset analysis (Tables~S10--S14),} \added{Joung+Beard vs.\ Deep4Chem overlap analysis (Table~S15, Figure~\removed{S3}\added{S4}),} \added{v2-vs-v3 cross-protocol comparison for the Greenman/Song duplicate-handling protocol (Table~S16),} \added{chromophore-solvent leakage analysis (Tables~S17--S18),} and BiGRU character-type saliency analysis (Figure~\removed{S3}\added{S5}) (PDF).
 \end{suppinfo}
