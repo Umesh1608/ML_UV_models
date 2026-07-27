@@ -130,7 +130,7 @@ Some places in the manuscript mention how things were changed from one revision 
 - Table S16 caption: ``cleaned protocol adopted for the revised manuscript''
 - Table S24 caption also appears to be missing a word: ``(adopted in this revision per )''
 \end{reviewer}
-\response{Corrected. We removed the revision-referencing phrasing from the two SI table captions the reviewer identified. The Table~S24 caption additionally contained a broken citation---the ``(adopted in this revision per )'' phrase ended with an empty \texttt{\textbackslash cite} command---which we have replaced with a proper citation to Greenman and Song. We also swept the manuscript and SI for other inter-revision phrasing and found no further instances.}
+\response{Corrected. We removed the revision-referencing phrasing from the two SI table captions the reviewer identified. The Table~S24 caption additionally contained a broken citation: the ``(adopted in this revision per )'' phrase ended with an empty \texttt{\textbackslash cite} command, which we have replaced with a proper citation to Greenman and Song. We also swept the manuscript and SI for other inter-revision phrasing and found no further instances.}
 \begin{changes}
   \item \textbf{SI Table~S16 caption.} ``the Greenman--Song-style cleaned protocol adopted for the revised manuscript'' $\rightarrow$ ``the Greenman--Song-style spread-filtered protocol.''
   \item \textbf{SI Table~S24 caption.} ``The Greenman--Song cleaning rule (adopted in this revision per~) discards\ldots'' $\rightarrow$ ``The Greenman--Song cleaning rule~\cite{greenman2022multifidelity,song2025fluortools} discards\ldots'' (revision-mention removed, empty citation fixed).
@@ -159,7 +159,7 @@ I thank the authors for including the link to the public GitHub repo with the re
 \begin{reviewer}
 Figure 2(b): The Chemprop D-MPNN part of this figure is misleading because it implies the Solute and Solvent D-MPNNs are sequential rather than parallel. This is explained correctly in the caption, but I think the figure should be updated accordingly.
 \end{reviewer}
-\response{Corrected. We redrew Figure~2(b) so the solute and solvent D-MPNN encoders are shown as two \emph{parallel} branches---both fed from the shared ``RDKit~$\to$~graphs'' step and both feeding the ``Mean-pool~$\oplus$~concat'' step---rather than as a vertical sequence in which one appears to feed the other. The figure now matches the multicomponent architecture described in the caption.}
+\response{Corrected. We redrew Figure~2(b) so the solute and solvent D-MPNN encoders are shown as two \emph{parallel} branches, both fed from the shared ``RDKit~$\to$~graphs'' step and both feeding the ``Mean-pool~$\oplus$~concat'' step, rather than as a vertical sequence in which one appears to feed the other. The figure now matches the multicomponent architecture described in the caption.}
 \begin{changes}
   \item \textbf{Figure~2(b).} Replaced the sequential Solute-D-MPNN~$\rightarrow$~Solvent-D-MPNN layout with two side-by-side parallel encoder branches that merge at the mean-pool/concatenation step.
 \end{changes}
