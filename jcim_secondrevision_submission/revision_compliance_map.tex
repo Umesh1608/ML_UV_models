@@ -1,0 +1,327 @@
+\documentclass[11pt]{article}
+\usepackage[margin=0.95in]{geometry}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{microtype}
+\usepackage[colorlinks=true,urlcolor=accent,linkcolor=accent]{hyperref}
+\usepackage{tcolorbox}
+\usepackage{needspace}
+
+\definecolor{accent}{RGB}{72,50,160}
+\definecolor{done}{RGB}{25,110,88}
+\definecolor{act}{RGB}{160,95,10}
+\definecolor{inkmute}{RGB}{100,96,115}
+\definecolor{rulegrey}{RGB}{215,212,225}
+\definecolor{boxbg}{RGB}{248,246,252}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.55em}
+\setlength{\emergencystretch}{3em}
+
+\titleformat{\section}{\large\bfseries\color{accent}}{}{0pt}{}
+\titlespacing*{\section}{0pt}{1.5em}{0.6em}
+
+% item heading: \itemhead{ID}{status}{statuscolor}{title}
+\newcommand{\itemhead}[4]{%
+  \needspace{4\baselineskip}%
+  \vspace{0.5em}%
+  {\bfseries\color{accent}#1}\hfill{\small\bfseries\color{#3}\MakeUppercase{#2}}\\[-0.4em]
+  \textcolor{rulegrey}{\rule{\linewidth}{0.4pt}}\\[-0.2em]
+  {\bfseries #4}\par\vspace{-0.15em}%
+}
+
+\newcommand{\quo}[1]{{\small\itshape\color{inkmute}``#1''}\par}
+\newcommand{\where}[1]{%
+  \vspace{0.15em}%
+  {\small\textcolor{inkmute}{\textbf{Where:}} #1}\par
+}
+
+\title{\vspace{-2.2em}\bfseries Decision-Letter Compliance Map\\[0.35em]
+\large\mdseries ci-2026-009433.R1 \quad$\cdot$\quad ``When Do Simple Models Win?''}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+\vspace{-3.2em}
+
+\textcolor{rulegrey}{\rule{\linewidth}{1pt}}
+
+{\small Every point in Prof.\ Kitchin's decision letter, mapped to the exact file, section and page
+where it was addressed. Page numbers refer to the PDFs in \texttt{jcim\_secondrevision\_submission/}.
+Audited 27 July 2026. \textbf{15 of 19 items complete and verified; 4 need an author action.}}
+
+{\footnotesize\color{inkmute} Internal working reference --- not a submission file. Do not upload.}
+
+\begin{tcolorbox}[colback=boxbg,colframe=act,boxrule=1pt,left=8pt,right=8pt,top=6pt,bottom=6pt,
+                  title={\bfseries Four items only you can complete}, coltitle=white, colbacktitle=act]
+Everything in the manuscript files is done. These four live in the submission form or need your
+factual decision --- none can be settled from the \LaTeX{} sources.
+\begin{enumerate}[leftmargin=1.4em,itemsep=3pt,topsep=4pt]
+  \item \textbf{ORCID iDs} --- each author validates their own iD on their ACS user profile before
+        the revision can be submitted. Nothing goes in the manuscript file.
+  \item \textbf{Funding in the submission form} --- the manuscript already declares no specific grant
+        funding (p.~48). ACS requires the same declaration in the form as well as the file.
+  \item \textbf{English-language editing} --- the one item with \emph{no response anywhere} in the
+        package. Needs your call on what is factually true (see p.~3).
+  \item \textbf{Cover art} --- optional and opt-in. Nothing prepared; declining costs nothing.
+\end{enumerate}
+\end{tcolorbox}
+
+\section{Editor's four technical issues}
+{\small\color{inkmute} Answered in Part A of the response letter, pages 2--3.}
+
+\itemhead{E1}{done}{done}{Table 5 caption recovery percentage}
+\quo{The numbers in Table 5 caption don't appear to be consistent (the recovery \%) with the manuscript.}
+The caption still carried the \textbf{93.6\% recovery} figure from the original submission --- the very
+number retracted in the first-round response to R1-15. The Mamede photosafety set is read directly from
+the published Supporting Information, not rebuilt by a Reaxys re-query, and RDKit canonicalises 74{,}783
+of 74{,}784 entries ($\sim$100\%). The main text was fixed in round~1; the caption was missed. It now reads
+``a reconstruction from Mamede's published Supporting Information (74{,}783 of 74{,}784 compounds
+canonicalised).''
+\where{Clean manuscript \textbf{p.~35} (Table 5 caption) $\cdot$ Marked \textbf{p.~41} $\cdot$
+Response letter \textbf{p.~2} $\cdot$ SI \textbf{p.~33} (Section S17, full provenance)}
+
+\itemhead{E2}{done}{done}{Regenerate Figures 5, 6 and 9}
+\quo{it appears that figures 5, 6 and 9 need to be regenerated with the updated results}
+Correct --- all three had been carried over from the v2 submission and never regenerated after the v3
+(Greenman--Song) retrain. All three now come from the same v3 cross-validated predictions that underlie
+Table~2. One subtlety is now stated explicitly so it is not mistaken for a fresh discrepancy:
+\textbf{Figures 5 and 6 pool test predictions across the five folds} and report a single pooled RMSE,
+whereas \textbf{Table 2 and Figure 9 report the mean across folds}. The two summaries agree to within
+0.2~nm for every model, and the Figure~5 caption says which it is.
+\where{Clean manuscript \textbf{p.~28} (Figs 5, 6), \textbf{p.~31} (Fig 9) $\cdot$ Marked
+\textbf{pp.~33, 34, 37} $\cdot$ Response letter \textbf{p.~2} $\cdot$ Scripts
+\texttt{make\_parity\_plot.py}, \texttt{regenerate\_figures.py}}
+
+\itemhead{E3}{done}{done}{Abstract contradicts Methods on hyperparameter tuning}
+\quo{The abstract suggests no hyperparameter tuning was used, but the methods suggest there was via a grid search}
+Genuinely contradictory, and the abstract was the inaccurate one --- RF's tree count and per-split feature
+fraction were selected by a 432-configuration grid search. Reworded in three places to describe the tuning
+accurately while keeping the intended compute-cost contrast: RF needs a lightweight one-time CPU grid
+search, not GPU-based optimisation.
+\where{Clean manuscript \textbf{p.~1} (abstract, now ``with only lightweight grid-search tuning (no GPU)''),
+\textbf{p.~4} (Introduction contributions bullet), and the Model Interpretability and Practical
+Considerations section $\cdot$ Marked \textbf{p.~4} $\cdot$ Response letter \textbf{p.~3}}
+
+\itemhead{E4}{done}{done}{Figure 10 consistency with Table 6}
+\quo{Review if Figure 10 is consistent with Table 6.}
+A real inconsistency. Figure~10 computed saliency and its per-molecule prediction subtitles from the
+\textbf{tuned} BiGRU ensemble while Table~6 reports the \textbf{default} ensemble, so the two disagreed ---
+the old caption showed Octocrylene at $+61$~nm against Table~6's $+43$~nm. Figure~10 was regenerated from
+the same default-BiGRU 5-fold ensemble Table~6 uses. Per-molecule predictions now match exactly (Sinapic
+Acid 318, Amiloxate 318, Padimate~O 330, Octisalate 333, Sulisobenzone 346, Cinnamic Acid 353~nm) and the
+ensemble MAE of 28.6~nm matches Table~7. Caption thresholds updated
+($<$22 $\rightarrow$ $<$20~nm well-predicted; $>$28 $\rightarrow$ $>$25~nm poorly predicted).
+\where{Clean manuscript \textbf{p.~34} (Fig 10) against \textbf{p.~38} (Tables 6, 7) $\cdot$
+Marked \textbf{p.~40} against \textbf{p.~44} $\cdot$ Response letter \textbf{p.~3}}
+
+\section{Submission requirements}
+
+\itemhead{TOC graphic}{done}{done}{Table of Contents graphic}
+\quo{NEED Table of Contents (TOC) Graphic \ldots{} should appear on the last page of your manuscript and should not have a caption.}
+Present and compliant on all three counts. It sits on the \textbf{last page} of the manuscript, carries
+\textbf{no caption} (achemso's \texttt{tocentry} environment prints only the standard ``TOC Graphic''
+heading), and the artwork is 975\,$\times$\,525~px --- exactly \textbf{3.25\,$\times$\,1.75 inches at
+300~dpi}, the ACS minimum size at full resolution. Verified as a genuinely embedded 300~ppi RGB image,
+not a missing-file placeholder.
+\where{Clean manuscript \textbf{p.~57} (the final page) $\cdot$ Source
+\texttt{benchmark\_paper\_jcim\_revised.tex} lines 59--61 $\cdot$ Artwork \texttt{results/toc\_graphic.png}}
+
+\itemhead{Files a--d}{done}{done}{The four required resubmission files}
+\quo{a) A point-by-point response \ldots{} b) A clean, unmarked copy \ldots{} c) A marked copy \ldots{} Upload this file as Supporting Information for Review. d) A clean, unmarked Supporting Information for Publication file.}
+All four are built and verified, plus the cover letter. Every document compiles with \textbf{zero undefined
+references or citations}. The clean manuscript, marked manuscript and Supporting Information reproduce
+\textbf{byte-for-byte} from their committed sources, which proves none of them is a stale build. Full
+manifest on the last page.
+
+\itemhead{Funding}{your action}{act}{Funding sources}
+\quo{Confirm all sources of funding for ALL authors relevant to this manuscript are included in BOTH the submission form and in the manuscript file.}
+The \textbf{manuscript half is done}: the Acknowledgement declares that the research received no specific
+grant from funding agencies in the public, commercial or not-for-profit sectors. A nil declaration
+satisfies the requirement. \textbf{What is left is the form half} --- ACS asks for the same declaration
+inside Paragon Plus, and that field cannot be set from the \LaTeX{} files.
+\where{Clean manuscript \textbf{p.~48} (Acknowledgement) $\cdot$ Marked \textbf{p.~55} $\cdot$
+Cover letter \textbf{p.~2}}
+
+\itemhead{ORCID}{your action}{act}{Validated ORCID iDs}
+\quo{Authors submitting manuscript revisions are required to provide their own validated ORCID iDs before completing the submission.}
+Purely a submission-system task --- ORCID iDs attach to ACS user profiles, never to the manuscript file, so
+there is correctly nothing to change in the \LaTeX{}. Each author validates their own iD; you cannot supply
+one on a co-author's behalf. The cover letter already tells the editor these are provided through the
+system, so make sure that is true before you submit.
+\where{ACS Paragon Plus $\rightarrow$ Email/Name section of each author's account $\cdot$
+Cover letter \textbf{p.~2}}
+
+\itemhead{English}{needs your call}{act}{Quality of written English}
+\quo{The reviewers indicate that the quality of the written English could be improved. Please consider using a native English speaker or an English-language editing service to assist with this.}
+\textbf{This is the one item with no response anywhere in the package} --- not in the cover letter, not in
+the response document. It appears in the standard block of the letter rather than in either reviewer's
+numbered comments, and neither reviewer raised language in their own text, so it is plausibly boilerplate.
+Even so, it was explicitly asked, and a single sentence in the cover letter closes it.
+
+I have deliberately not written that sentence, because it is a factual claim about what you did and only
+you can make it truthfully. Two honest options: state that the manuscript was reread and copy-edited for
+clarity and grammar during this revision, which the prose-cleanup work supports; or, if you used a service
+or a native-speaker colleague, name that. Do not claim a professional service that was not used.
+\where{Would go in \texttt{cover\_letter\_revised.tex}, after the Reviewer~1 paragraph, before the file list}
+
+\itemhead{Cover art}{optional}{act}{Cover art}
+\quo{JCIM is now accepting images to appear on the front cover \ldots{} please upload it and a brief (80 word) description.}
+An open invitation, not a requirement --- it uses ``if you have,'' and declining costs nothing. Nothing has
+been prepared and no cover art is referenced anywhere in the package. If you did want to pursue it, the TOC
+graphic is the natural starting point, but it would need re-rendering to the cover specification and an
+80-word caption, uploaded under the \emph{Cover Art} and \emph{Cover Art Caption} designations.
+
+\itemhead{iThenticate}{no action}{inkmute}{Similarity screening}
+Informational --- ACS runs this automatically and nothing is required of you. Worth knowing that a revision
+legitimately overlaps heavily with its own earlier version, which the screening accounts for.
+
+\section{Reviewer 1's seven suggestions}
+{\small\color{inkmute} Answered in Part A of the response letter, pages 4--7. All seven complete.}
+
+\itemhead{R1 $\cdot$ 1}{done}{done}{Reviewer comments were paraphrased, not verbatim}
+\quo{This is true for my comments R1-1 to R1-11, but R1-12 to R1-19 are paraphrased \ldots{} The authors should double check that the paraphrased reviewer comments are the only things that the AI didn't copy correctly.}
+Every reviewer-comment block in Part~B was replaced with the exact text of the original decision letter.
+The requested double-check turned up \textbf{more than the reviewer had spotted}: Reviewer~2's comments
+R2-1, R2-2, R2-4, R2-5, R2-6 and R2-7 had also been paraphrased. Those were restored too, and the response
+says so plainly rather than quietly fixing them.
+
+On the wider audit, the response states that the only substantive inaccuracies found are the two already
+surfaced and listed in the Summary of Major Changes --- the ``variance is intrinsic to Chemprop'' claim,
+corrected by the R1-12 HPO probe, and the 93.6\% Reaxys recovery claim, corrected in R1-15. The inference
+about AI assistance is confirmed directly rather than deflected, and cross-referenced to the disclosure in
+point~5.
+\where{Response letter \textbf{p.~4} (Comment 1) $\cdot$ \textbf{p.~8}\,+ (Part B, every block verbatim)
+$\cdot$ \textbf{p.~33} (Reviewer 2) $\cdot$ \textbf{p.~40} (Summary of Major Changes)}
+
+\itemhead{R1 $\cdot$ 2}{done}{done}{Supporting Information sections were not numbered}
+\quo{References to the supporting information from the main text are of the form ``Supporting Information Section S7'', but the sections in the actual supporting information file are not numbered.}
+Section numbering is enabled and prefixed, so the SI now carries \textbf{21 numbered sections, S1 through
+S21}, matching how the main text refers to them. All 28 \texttt{Section S$n$} references in the manuscript
+were independently checked against the SI's actual section list --- every one resolves to the topically
+correct section, with no off-by-one drift.
+\where{Source \texttt{supporting\_information\_revised.tex} line 44:
+\texttt{\textbackslash renewcommand\{\textbackslash thesection\}\{S\textbackslash arabic\{section\}\}}
+$\cdot$ Response letter \textbf{p.~4}}
+
+\itemhead{R1 $\cdot$ 3}{done}{done}{v2 and v3 dataset versions need clearer definition}
+\quo{The new ``v2'' and ``v3'' descriptions of datasets used through the main text and SI could be more clearly defined, especially in their first usage. I also encourage the authors to consider using more descriptive titles.}
+Both halves are addressed. Each version is now defined at first use and given a descriptive name rather
+than a bare version number --- v2 as the 18{,}755-row first-occurrence-dedup set, v3 as the 18{,}415-row
+\textbf{Greenman--Song} duplicate-handling set. The abstract itself now names the protocol instead of
+saying ``v3.'' A dedicated SI section compares the two side by side.
+\where{Clean manuscript \textbf{p.~1} (abstract names the protocol), \textbf{p.~21} (Table 2 dagger
+footnote flags the two v2 rows) $\cdot$ SI \textbf{p.~16} (Section S10) $\cdot$ Response letter \textbf{p.~5}}
+
+\itemhead{R1 $\cdot$ 4}{done}{done}{Inter-revision phrasing in captions}
+\quo{Some places in the manuscript mention how things were changed from one revision to the next, which is unconventional \ldots{} Table S24 caption also appears to be missing a word: ``(adopted in this revision per )''}
+Both flagged captions are fixed, and the truncated one had an underlying cause worth noting: the missing
+word was a \textbf{broken citation} that rendered as an empty reference, not a typo. That citation is
+repaired, so the caption is complete rather than merely reworded. Both the manuscript and the SI were swept
+for any remaining revision-relative phrasing --- none survives.
+\where{SI Table S16 and Table S24 captions $\cdot$ Response letter \textbf{p.~5} $\cdot$ Verified: zero
+occurrences of ``in this revision'' / ``the revised manuscript'' remain in either file}
+
+\itemhead{R1 $\cdot$ 5}{done}{done}{AI-assistance disclosure understates the scope}
+\quo{If AI assisted with any of the manuscript writing/revising in addition to formatting, I encourage the authors to add this to the disclosure \ldots{} the CLAUDE.md file seems to indicate that AI was used more heavily than just for code debugging/review.}
+The disclosure was broadened rather than defended. It now reads that Claude (Anthropic) assisted with
+\textbf{code development and debugging, data-analysis scripting, and editing of the manuscript and
+response-to-reviewer text} --- explicitly covering the manuscript writing the reviewer inferred from the
+commit history and CLAUDE.md, and covering the response document too. The authorship boundary is stated in
+the same sentence: all scientific content, analysis, experimental work and interpretation are the authors'
+own, and the authors take responsibility for the final manuscript.
+\where{Clean manuscript \textbf{p.~48} (Acknowledgement) $\cdot$ Marked \textbf{p.~55} $\cdot$
+Response letter \textbf{p.~6}}
+
+\itemhead{R1 $\cdot$ 6}{done}{done}{Repository organisation and the missing LICENSE}
+\quo{I suggest that the authors clean up the repository a bit by creating more subdirectories \ldots{} while the authors specify in a couple places in the README that their project is published under the MIT License, there is no LICENSE file present.}
+A dedicated, cleanly organised repository was created for the manuscript: \textbf{ML\_UV\_models\_jcim}.
+Verified live --- it is public, the root holds just four directories (\texttt{data}, \texttt{results},
+\texttt{scripts}, \texttt{uvml}) plus README, pyproject, requirements and gitignore, and a \textbf{LICENSE
+file is present and detected by GitHub as the MIT License}. The scattered \texttt{.tex} files and images the
+reviewer objected to are no longer in the root. The original development repository stays public so the full
+commit history the reviewer inspected remains available; the manuscript cites both and explains why each
+exists.
+\where{Clean manuscript \textbf{p.~48} (Data and Software Availability) $\cdot$ Response letter \textbf{p.~6}
+$\cdot$ Verified live: \texttt{ML\_UV\_models\_jcim} (200), \texttt{ML\_UV\_models} (200),
+Zenodo \texttt{10.5281/zenodo.20600225} (200)}
+
+\itemhead{R1 $\cdot$ 7}{done}{done}{Figure 2(b) implies sequential D-MPNN encoders}
+\quo{The Chemprop D-MPNN part of this figure is misleading because it implies the Solute and Solvent D-MPNNs are sequential rather than parallel. This is explained correctly in the caption, but I think the figure should be updated accordingly.}
+The panel was redrawn so the solute and solvent encoders appear as genuine parallel branches converging on a
+concatenation, matching what the caption always said. The caption was tightened to match the new drawing ---
+``two parallel directed message-passing encoders \ldots{} concatenates their mean-pooled representations
+before a feed-forward regression head'' --- and the closing sentence now attributes solvent handling in
+panel~(b) to the parallel-encoder multicomponent configuration.
+\where{Clean manuscript \textbf{p.~14} (Figure 2, panel b) $\cdot$ Marked \textbf{p.~15} $\cdot$
+Response letter \textbf{p.~7}}
+
+\section{Caught during the pre-submission audit}
+{\small\color{inkmute} Not requested by anyone --- found while verifying the package was ready to upload.}
+
+\itemhead{Fix}{fixed}{done}{The response letter had a broken bibliography}
+The staged response-to-reviewers PDF had been compiled without a complete BibTeX pass.
+\textbf{Fourteen citations rendered as literal \texttt{[?]}} --- among them the Greenman, Song and
+Chemprop~v2 references that several answers depend on --- and \textbf{the References page was missing
+entirely}. Given that Reviewer~1's first point was precisely about citation and quoting rigour in this
+document, sending it that way would have read badly.
+
+Rebuilt from source: all fourteen citations resolve to numbered entries, the nine-entry References list is
+restored, and the document runs 46 pages instead of 45. Old and new were diffed to confirm nothing else
+changed. The cover letter was rebuilt at the same time so both now carry the 27 July submission date rather
+than 15 July.
+
+\textit{Worth carrying forward:} a grep for \texttt{??} finds undefined \emph{references} but not undefined
+\emph{citations}, which render as \texttt{[?]}. The first scan came back clean and missed this; it only
+surfaced on recompiling from source and diffing against the staged file.
+
+\section{Reading the marked copy}
+The marked manuscript carries two rounds of changes in two separate colour pairs, so the editor can isolate
+what is new since the last decision. \textbf{Round-2 edits --- everything in this document --- are green and
+orange.}
+
+\vspace{-0.3em}
+\begin{center}
+\begin{tabular}{@{}llr@{}}
+\toprule
+\textbf{Colour} & \textbf{Meaning} & \textbf{Count} \\
+\midrule
+Blue & Round-1 additions & 126 \\
+Red & Round-1 deletions & 85 \\
+\textbf{Green} & \textbf{Round-2 additions} & \textbf{13} \\
+\textbf{Orange} & \textbf{Round-2 deletions} & \textbf{10} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Marking is colour-only rather than struck through, because soul's \texttt{\textbackslash st} cannot span
+paragraph breaks or table cells and would have broken several of the edited captions.
+
+\section{Upload manifest}
+{\small\color{inkmute} Everything in \texttt{jcim\_secondrevision\_submission/}, with its ACS file designation.}
+
+\vspace{-0.3em}
+\begin{center}
+{\small
+\begin{tabular}{@{}p{6.3cm}p{4.6cm}r l@{}}
+\toprule
+\textbf{File} & \textbf{ACS designation} & \textbf{pp.} & \textbf{State} \\
+\midrule
+\texttt{\ldots\_revised.pdf} & Manuscript & 57 & Verified \\
+\texttt{\ldots\_revised\_marked.pdf} & Supp.\ Info.\ for Review Only & 63 & Verified \\
+\texttt{\ldots\_response\_to\_reviewers.pdf} & Response to Reviewers & 46 & \textbf{Rebuilt} \\
+\texttt{\ldots\_supporting\_information.pdf} & Supp.\ Info.\ for Publication & 47 & Verified \\
+\texttt{\ldots\_cover\_letter.pdf} & Cover Letter & 2 & \textbf{Rebuilt} \\
+\bottomrule
+\end{tabular}}
+\end{center}
+
+{\footnotesize\color{inkmute}
+All files carry the \texttt{When\_do\_simple\_models\_win\_} prefix. Clean manuscript, marked manuscript and
+Supporting Information reproduce byte-for-byte from their committed \LaTeX{} sources. Every external link
+was checked live and resolves.}
+
+\end{document}
