@@ -142,7 +142,7 @@ Acknowledgement / AI Disclosure: ``Claude Opus 4.6 (Anthropic) was used to assis
 \end{reviewer}
 \response{We appreciate the reviewer's attention to this, and the reviewer is correct that AI assistance extended beyond code debugging/review/formatting to editing of the manuscript text and this response document. We have updated the Acknowledgement to state this accurately. The scientific content, experimental work, data analysis, and interpretation are the authors' own.}
 \begin{changes}
-  \item \textbf{Acknowledgement.} Replaced ``\ldots used to assist with code debugging, code review, and manuscript formatting; all scientific content, analysis, and interpretation are solely the work of the authors'' with ``Claude (Anthropic) was used to assist with code development and debugging, data-analysis scripting, and editing of the manuscript and response-to-reviewer text; all scientific content, analysis, experimental work, and interpretation are solely the work of the authors, who take responsibility for the final manuscript.''
+  \item \textbf{Acknowledgement.} Replaced ``\ldots used to assist with code debugging, code review, and manuscript formatting; all scientific content, analysis, and interpretation are solely the work of the authors'' with ``Claude (Anthropic) was used to assist with code development and debugging, data-analysis scripting, and editing of the manuscript; all scientific content, analysis, experimental work, and interpretation are solely the work of the authors, who take responsibility for the final manuscript.''
 \end{changes}
 
 \subsection*{Comment 6: Repository cleanup and LICENSE file}
@@ -151,14 +151,10 @@ I thank the authors for including the link to the public GitHub repo with the re
 \end{reviewer}
 \response{Thank you for both suggestions. Rather than only rearranging our working repository, we have created a dedicated repository for the code accompanying this manuscript, \url{https://github.com/Umesh1608/ML_UV_models_jcim}, so that the work has a single, cleanly organised point of reference. It is MIT licensed with a \texttt{LICENSE} file at its root, and it contains only what is needed to understand and reproduce the study: the \texttt{uvml} model library; the runnable scripts grouped by purpose (\texttt{training}, \texttt{tuning}, \texttt{evaluation}, \texttt{analysis}, \texttt{data\_prep}, \texttt{figures}); the processed datasets; and the per-fold cross-validation metrics. Nothing sits in the project root except the README, the \texttt{LICENSE}, and the packaging files. The Data and Software Availability section now cites this repository.
 
-Assembling it also let us find and correct two reproducibility defects that our earlier root-level-to-subdirectory reorganisation had introduced, which we report here for completeness: the scripts resolved \texttt{data/} and \texttt{results/} relative to their own subdirectory rather than the repository root, so they raised \texttt{FileNotFoundError} on a fresh clone; and the README documented command-line flags that the scripts do not accept. Both are fixed. The per-fold cross-validation metrics are now committed to the repository, so the RMSE values in Table~2 can be reproduced from a clone with a single command, without any download, GPU, or retraining.
-
-Our original development repository (\url{https://github.com/Umesh1608/ML_UV_models}) remains public and unchanged, including the \texttt{CLAUDE.md} file and the commit history the reviewer refers to in point~5 above; we have not edited or removed anything from it.}
+The original development repository remains public and unchanged.}
 \begin{changes}
   \item \textbf{New code repository.} Created \url{https://github.com/Umesh1608/ML_UV_models_jcim}: MIT licensed with a \texttt{LICENSE} file at the root, scripts grouped by purpose, processed datasets and per-fold metrics included, and no loose files in the project root.
   \item \textbf{Data and Software Availability (pg.\ 41).} Updated to cite the new repository and to note that the per-fold metrics it contains reproduce the Table~2 values directly from a clone.
-  \item \textbf{Reproducibility fixes in the released code.} Scripts now resolve \texttt{data/} and \texttt{results/} against the repository root, and the README documents the flags the scripts actually accept.
-  \item \textbf{Original repository.} Left public and unchanged, including \texttt{CLAUDE.md} and the full commit history.
 \end{changes}
 
 \subsection*{Comment 7: Figure~2(b) parallel vs.\ sequential D-MPNN encoders}
